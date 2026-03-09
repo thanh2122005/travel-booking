@@ -14,6 +14,14 @@ export type TourFilterInput = {
 };
 
 type RatingMap = Record<string, { avgRating: number; reviewCount: number }>;
+type TourViewerData = {
+  isFavorite: boolean;
+  review: {
+    rating: number;
+    comment: string;
+  } | null;
+  phone: string;
+};
 
 async function getTourRatings(tourIds: string[]): Promise<RatingMap> {
   if (!tourIds.length) {
@@ -170,7 +178,7 @@ export async function getTours(filters: TourFilterInput) {
   };
 }
 
-export async function getTourBySlug(slug: string) {
+export async function getTourBySlug(slug: string, userId?: string) {
   const tour = await db.tour.findUnique({
     where: { slug },
     include: {
@@ -208,6 +216,48 @@ export async function getTourBySlug(slug: string) {
 
   const ratings = await getTourRatings([tour.id, ...relatedTours.map((item) => item.id)]);
 
+  let viewer: TourViewerData | null = null;
+  if (userId) {
+    const [favorite, ownReview, ownProfile] = await Promise.all([
+      db.favorite.findUnique({
+        where: {
+          userId_tourId: {
+            userId,
+            tourId: tour.id,
+          },
+        },
+        select: { id: true },
+      }),
+      db.review.findUnique({
+        where: {
+          userId_tourId: {
+            userId,
+            tourId: tour.id,
+          },
+        },
+        select: {
+          rating: true,
+          comment: true,
+        },
+      }),
+      db.user.findUnique({
+        where: { id: userId },
+        select: { phone: true },
+      }),
+    ]);
+
+    viewer = {
+      isFavorite: Boolean(favorite),
+      review: ownReview
+        ? {
+            rating: ownReview.rating,
+            comment: ownReview.comment,
+          }
+        : null,
+      phone: ownProfile?.phone ?? "",
+    };
+  }
+
   return {
     tour: {
       ...tour,
@@ -219,6 +269,7 @@ export async function getTourBySlug(slug: string) {
       avgRating: ratings[item.id]?.avgRating ?? 0,
       reviewCount: ratings[item.id]?.reviewCount ?? 0,
     })),
+    viewer,
   };
 }
 

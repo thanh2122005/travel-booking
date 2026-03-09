@@ -8,6 +8,7 @@ import { SectionHeading } from "@/components/common/section-heading";
 import { TourBookingCard } from "@/components/tour/tour-booking-card";
 import { TourCard } from "@/components/tour/tour-card";
 import { StarRating } from "@/components/tour/star-rating";
+import { getAuthSession } from "@/lib/auth/session";
 import { getTourBySlug } from "@/lib/db/public-queries";
 import { formatDate, formatDuration, getTourDisplayPrice } from "@/lib/utils/format";
 
@@ -35,13 +36,14 @@ export async function generateMetadata({ params }: TourDetailPageProps): Promise
 
 export default async function TourDetailPage({ params }: TourDetailPageProps) {
   const { slug } = await params;
-  const data = await getTourBySlug(slug).catch(() => null);
+  const session = await getAuthSession();
+  const data = await getTourBySlug(slug, session?.user?.id).catch(() => null);
 
   if (!data) {
     notFound();
   }
 
-  const { tour, relatedTours } = data;
+  const { tour, relatedTours, viewer } = data;
   const finalPrice = getTourDisplayPrice(tour.price, tour.discountPrice);
 
   return (
@@ -172,6 +174,9 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
             unitPrice={finalPrice}
             originalPrice={tour.price}
             maxGuests={tour.maxGuests}
+            initialIsFavorite={viewer?.isFavorite ?? false}
+            initialReview={viewer?.review ?? null}
+            initialPhone={viewer?.phone ?? ""}
           />
         </aside>
       </section>
