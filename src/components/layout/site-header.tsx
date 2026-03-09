@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PlaneTakeoff } from "lucide-react";
+import { Menu, PlaneTakeoff } from "lucide-react";
 import { AuthUserMenu } from "@/components/layout/auth-user-menu";
 
 const navItems = [
@@ -19,7 +19,7 @@ export function SiteHeader() {
           Travel Booking
         </Link>
 
-        <nav className="hidden items-center gap-5 md:flex">
+        <nav className="hidden items-center gap-5 lg:flex">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -31,7 +31,32 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <AuthUserMenu />
+        <div className="flex items-center gap-2">
+          <div className="hidden sm:block">
+            <AuthUserMenu />
+          </div>
+          <details className="relative lg:hidden">
+            <summary className="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-lg border bg-background">
+              <Menu className="h-4 w-4" />
+            </summary>
+            <div className="absolute right-0 mt-2 w-56 rounded-xl border bg-card p-3 shadow-lg">
+              <nav className="grid gap-1">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="rounded-md px-2 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-muted hover:text-primary"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+              <div className="mt-2 border-t pt-2 sm:hidden">
+                <AuthUserMenu />
+              </div>
+            </div>
+          </details>
+        </div>
       </div>
     </header>
   );
