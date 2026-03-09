@@ -1,0 +1,94 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn } from "next-auth/react";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { loginSchema, type LoginInput } from "@/lib/validations/auth";
+
+export function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/tai-khoan";
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = handleSubmit(async (values) => {
+    const result = await signIn("credentials", {
+      email: values.email,
+      password: values.password,
+      callbackUrl,
+      redirect: false,
+    });
+
+    if (!result || result.error) {
+      toast.error("Đăng nhập thất bại. Vui lòng kiểm tra email hoặc mật khẩu.");
+      return;
+    }
+
+    toast.success("Đăng nhập thành công.");
+    router.push(result.url ?? callbackUrl);
+    router.refresh();
+  });
+
+  return (
+    <Card className="rounded-2xl border shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-2xl">Đăng nhập</CardTitle>
+        <CardDescription>Nhập thông tin tài khoản để truy cập hệ thống.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" placeholder="ban@example.com" {...register("email")} />
+            {errors.email ? <p className="text-sm text-destructive">{errors.email.message}</p> : null}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">Mật khẩu</Label>
+            <Input id="password" type="password" placeholder="Nhập mật khẩu" {...register("password")} />
+            {errors.password ? (
+              <p className="text-sm text-destructive">{errors.password.message}</p>
+            ) : null}
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Đang đăng nhập...
+              </>
+            ) : (
+              "Đăng nhập"
+            )}
+          </Button>
+        </form>
+
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          Chưa có tài khoản?{" "}
+          <Link href="/dang-ky" className="font-medium text-primary hover:underline">
+            Đăng ký ngay
+          </Link>
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
