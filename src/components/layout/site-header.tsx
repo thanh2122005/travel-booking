@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { MapPinned, PlaneTakeoff } from "lucide-react";
+import { PlaneTakeoff } from "lucide-react";
 import { AuthUserMenu } from "@/components/layout/auth-user-menu";
 
 const navItems = [
   { href: "/", label: "Trang chủ" },
-  { href: "/dang-nhap", label: "Đăng nhập" },
-  { href: "/dang-ky", label: "Đăng ký" },
+  { href: "/tours", label: "Tour du lịch" },
+  { href: "/dia-diem", label: "Địa điểm" },
+  { href: "/gioi-thieu", label: "Giới thiệu" },
+  { href: "/lien-he", label: "Liên hệ" },
 ];
 
 export function SiteHeader() {
@@ -14,10 +16,10 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-6">
         <Link href="/" className="inline-flex items-center gap-2 text-base font-bold text-primary">
           <PlaneTakeoff className="h-5 w-5" />
-          Travel Booking System
+          Travel Booking
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-5 md:flex">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -29,13 +31,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <span className="hidden items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground lg:inline-flex">
-            <MapPinned className="h-3.5 w-3.5" />
-            Giai đoạn 1
-          </span>
-          <AuthUserMenu />
-        </div>
+        <AuthUserMenu />
       </div>
     </header>
   );
