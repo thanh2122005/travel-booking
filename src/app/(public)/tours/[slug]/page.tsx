@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: TourDetailPageProps): Promise
 
   if (!data) {
     return {
-      title: "KhÃ´ng tÃ¬m tháº¥y tour",
+      title: "Không tìm thấy tour",
     };
   }
 
@@ -51,11 +51,11 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
       <section className="space-y-4">
         <p className="text-sm text-muted-foreground">
           <Link href="/" className="hover:text-primary">
-            Trang chá»§
+            Trang chủ
           </Link>{" "}
           /{" "}
           <Link href="/tours" className="hover:text-primary">
-            Tour du lá»‹ch
+            Tour du lịch
           </Link>{" "}
           / {tour.title}
         </p>
@@ -91,7 +91,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
                   <div key={item.id} className="relative h-28 overflow-hidden rounded-2xl border">
                     <Image
                       src={item.imageUrl}
-                      alt={`HÃ¬nh áº£nh tour ${tour.title}`}
+                      alt={`Hình ảnh tour ${tour.title}`}
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 33vw, 20vw"
@@ -103,7 +103,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
           </div>
 
           <article className="space-y-4 rounded-3xl border bg-card p-6">
-            <h2 className="text-2xl font-bold">Tá»•ng quan tour</h2>
+            <h2 className="text-2xl font-bold">Tổng quan tour</h2>
             <p className="text-sm leading-7 text-muted-foreground">{tour.description}</p>
             <div className="grid gap-3 sm:grid-cols-2">
               <p className="inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm">
@@ -112,7 +112,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
               </p>
               <p className="inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm">
                 <Users className="h-4 w-4 text-primary" />
-                Tá»‘i Ä‘a {tour.maxGuests} khÃ¡ch
+                Tối đa {tour.maxGuests} khách
               </p>
               <p className="inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm">
                 <Plane className="h-4 w-4 text-primary" />
@@ -120,18 +120,18 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
               </p>
               <p className="inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm">
                 <MapPin className="h-4 w-4 text-primary" />
-                Khá»Ÿi hÃ nh: {tour.departureLocation}
+                Khởi hành: {tour.departureLocation}
               </p>
             </div>
           </article>
 
           <article className="space-y-4 rounded-3xl border bg-card p-6">
-            <h2 className="text-2xl font-bold">Lá»‹ch trÃ¬nh chi tiáº¿t</h2>
+            <h2 className="text-2xl font-bold">Lịch trình chi tiết</h2>
             <div className="space-y-3">
               {tour.itineraries.map((item) => (
                 <div key={item.id} className="rounded-xl border bg-background p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
-                    NgÃ y {item.dayNumber}
+                    Ngày {item.dayNumber}
                   </p>
                   <h3 className="mt-1 text-base font-semibold">{item.title}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
@@ -141,7 +141,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
           </article>
 
           <article className="space-y-4 rounded-3xl border bg-card p-6">
-            <h2 className="text-2xl font-bold">ÄÃ¡nh giÃ¡ tá»« khÃ¡ch hÃ ng</h2>
+            <h2 className="text-2xl font-bold">Đánh giá từ khách hàng</h2>
             {tour.reviews.length ? (
               <div className="space-y-3">
                 {tour.reviews.map((review) => (
@@ -150,17 +150,17 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
                       <p className="text-sm font-semibold">{review.user.fullName}</p>
                       <p className="text-xs text-muted-foreground">{formatDate(review.createdAt)}</p>
                     </div>
-                    <p className="mt-1 text-sm font-medium">ÄÃ¡nh giÃ¡: {review.rating}/5</p>
+                    <p className="mt-1 text-sm font-medium">Đánh giá: {review.rating}/5</p>
                     <p className="mt-1 text-sm text-muted-foreground">{review.comment}</p>
                   </div>
                 ))}
               </div>
             ) : (
               <EmptyState
-                title="ChÆ°a cÃ³ Ä‘Ã¡nh giÃ¡"
-                description="Tour nÃ y chÆ°a cÃ³ Ä‘Ã¡nh giÃ¡ hiá»ƒn thá»‹."
+                title="Chưa có đánh giá"
+                description="Tour này chưa có đánh giá hiển thị."
                 ctaHref="/tours"
-                ctaLabel="Xem tour khÃ¡c"
+                ctaLabel="Xem tour khác"
               />
             )}
           </article>
@@ -182,7 +182,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
       </section>
 
       <section className="space-y-5">
-        <SectionHeading title="Tour liÃªn quan" description="Gá»£i Ã½ thÃªm cÃ¡c tour khÃ¡c cÃ¹ng Ä‘á»‹a Ä‘iá»ƒm." />
+        <SectionHeading title="Tour liên quan" description="Gợi ý thêm các tour khác cùng điểm đến." />
         {relatedTours.length ? (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             {relatedTours.map((item) => (
@@ -191,14 +191,13 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
           </div>
         ) : (
           <EmptyState
-            title="ChÆ°a cÃ³ tour liÃªn quan"
-            description="Hiá»‡n chÆ°a cÃ³ tour cÃ¹ng Ä‘á»‹a Ä‘iá»ƒm Ä‘á»ƒ gá»£i Ã½."
+            title="Chưa có tour liên quan"
+            description="Hiện chưa có tour cùng điểm đến để gợi ý."
             ctaHref="/tours"
-            ctaLabel="Xem toÃ n bá»™ tour"
+            ctaLabel="Xem toàn bộ tour"
           />
         )}
       </section>
     </div>
   );
 }
-

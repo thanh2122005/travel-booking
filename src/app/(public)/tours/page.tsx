@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Tour du lịch",
-  description: "Khám phá danh sách tour du lịch với bộ lọc theo địa điểm, giá và thời lượng.",
+  description: "Khám phá danh sách tour du lịch với bộ lọc theo điểm đến, giá và thời lượng.",
 };
 
 type ToursPageProps = {
@@ -59,7 +59,7 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
       <SectionHeading
         eyebrow="Tour du lịch"
         title="Tìm kiếm hành trình phù hợp với bạn"
-        description="Lọc theo địa điểm, khoảng giá, thời lượng và sắp xếp theo nhu cầu."
+        description="Lọc theo điểm đến, khoảng giá, thời lượng và sắp xếp theo nhu cầu."
       />
 
       <form className="grid gap-3 rounded-2xl border bg-card p-4 md:grid-cols-2 lg:grid-cols-6">
@@ -81,7 +81,7 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
 
         <div>
           <label htmlFor="location" className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            Địa điểm
+            Điểm đến
           </label>
           <select
             id="location"
@@ -161,7 +161,7 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
 
         <label className="inline-flex items-center gap-2 text-sm text-muted-foreground lg:col-span-2">
           <input type="checkbox" name="featured" value="1" defaultChecked={filters.featured} className="h-4 w-4" />
-          Chỉ hiện tour nổi bật
+          Chỉ hiển thị tour nổi bật
         </label>
 
         <div className="flex gap-2 lg:col-span-4 lg:justify-end">
