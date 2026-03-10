@@ -86,6 +86,12 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
                   </div>
                   <p className="line-clamp-2 text-sm text-slate-600">{location.shortDescription}</p>
                   <p className="text-xs text-slate-500">Cập nhật: {formatDate(location.updatedAt)}</p>
+                  <Link
+                    href={`/admin/locations/${location.id}`}
+                    className="inline-flex h-8 items-center rounded-md border border-slate-300 px-3 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
+                  >
+                    Quản lý chi tiết
+                  </Link>
                   <AdminLocationActions locationId={location.id} featured={location.featured} />
                 </div>
               </article>
