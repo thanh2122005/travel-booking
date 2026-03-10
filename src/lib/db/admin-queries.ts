@@ -94,12 +94,15 @@ function buildBookingRevenueTimeline(
   return keys.map((key) => map.get(key)!);
 }
 
-export async function getAdminDashboardData() {
+export async function getAdminDashboardData(options?: { monthCount?: number }) {
   try {
+    const requestedMonthCount = options?.monthCount ?? 6;
+    const monthCount = [3, 6, 12].includes(requestedMonthCount) ? requestedMonthCount : 6;
+
     const timelineStart = new Date();
     timelineStart.setDate(1);
     timelineStart.setHours(0, 0, 0, 0);
-    timelineStart.setMonth(timelineStart.getMonth() - 5);
+    timelineStart.setMonth(timelineStart.getMonth() - (monthCount - 1));
 
     const [
       totalUsers,
@@ -235,7 +238,7 @@ export async function getAdminDashboardData() {
         PAID: 0,
       },
     );
-    const bookingRevenueTimeline = buildBookingRevenueTimeline(bookingTimelineRows);
+    const bookingRevenueTimeline = buildBookingRevenueTimeline(bookingTimelineRows, monthCount);
 
     return {
       metrics: {
@@ -250,13 +253,14 @@ export async function getAdminDashboardData() {
       bookingsByStatus,
       paymentsByStatus,
       bookingRevenueTimeline,
+      monthCount,
       recentBookings,
       recentReviews,
       recentUsers,
     };
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      return demoGetDashboardData();
+      return demoGetDashboardData(options?.monthCount);
     }
     throw error;
   }

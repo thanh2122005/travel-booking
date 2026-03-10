@@ -504,7 +504,7 @@ export async function demoGetLocationOptions() {
     .sort((a, b) => a.name.localeCompare(b.name, "vi"));
 }
 
-export async function demoGetDashboardData() {
+export async function demoGetDashboardData(monthCount = 6) {
   const state = await readDemo();
   const userMap = new Map(state.users.map((user) => [user.id, user]));
   const tourMap = new Map(state.tours.map((tour) => [tour.id, tour]));
@@ -529,7 +529,7 @@ export async function demoGetDashboardData() {
     paymentsByStatus[booking.paymentStatus] += 1;
   }
 
-  const bookingRevenueTimeline = buildBookingRevenueTimeline(state.bookings);
+  const bookingRevenueTimeline = buildBookingRevenueTimeline(state.bookings, monthCount);
 
   return {
     metrics: {

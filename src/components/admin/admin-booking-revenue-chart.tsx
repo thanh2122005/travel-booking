@@ -9,9 +9,10 @@ type TimelineItem = {
 
 type AdminBookingRevenueChartProps = {
   timeline: TimelineItem[];
+  monthCount?: number;
 };
 
-export function AdminBookingRevenueChart({ timeline }: AdminBookingRevenueChartProps) {
+export function AdminBookingRevenueChart({ timeline, monthCount = 6 }: AdminBookingRevenueChartProps) {
   if (!timeline.length) {
     return (
       <article className="iv-card p-5">
@@ -30,7 +31,7 @@ export function AdminBookingRevenueChart({ timeline }: AdminBookingRevenueChartP
         <div>
           <h2 className="text-xl font-bold text-slate-900">Xu hướng đặt tour và doanh thu</h2>
           <p className="mt-1 text-sm text-slate-600">
-            Theo dõi 6 tháng gần nhất để nhận diện mùa cao điểm và hiệu suất bán tour.
+            Theo dõi {monthCount} tháng gần nhất để nhận diện mùa cao điểm và hiệu suất bán tour.
           </p>
         </div>
         <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">

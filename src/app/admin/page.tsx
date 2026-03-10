@@ -7,8 +7,20 @@ import { formatDate, formatPrice } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
-  const data = await getAdminDashboardData().catch(() => null);
+type AdminPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function normalizeParam(value?: string | string[]) {
+  if (!value) return "";
+  return Array.isArray(value) ? value[0] ?? "" : value;
+}
+
+export default async function AdminPage({ searchParams }: AdminPageProps) {
+  const params = await searchParams;
+  const requestedRange = Number(normalizeParam(params.range) || "6");
+  const monthCount = [3, 6, 12].includes(requestedRange) ? requestedRange : 6;
+  const data = await getAdminDashboardData({ monthCount }).catch(() => null);
 
   if (!data) {
     return (
@@ -30,6 +42,8 @@ export default async function AdminPage() {
     { label: "Doanh thu xác nhận", value: formatPrice(data.metrics.totalRevenue) },
   ];
 
+  const rangeOptions = [3, 6, 12] as const;
+
   return (
     <div className="space-y-6">
       <section className="iv-card p-6">
@@ -49,7 +63,27 @@ export default async function AdminPage() {
         ))}
       </section>
 
-      <AdminBookingRevenueChart timeline={data.bookingRevenueTimeline} />
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-slate-700">Khoảng thời gian phân tích</p>
+          <div className="flex flex-wrap gap-2">
+            {rangeOptions.map((range) => (
+              <Link
+                key={range}
+                href={{ pathname: "/admin", query: { ...params, range: String(range) } }}
+                className={`inline-flex h-8 items-center rounded-md border px-3 text-xs font-semibold transition ${
+                  monthCount === range
+                    ? "border-teal-600 bg-teal-600 text-white"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {range} tháng
+              </Link>
+            ))}
+          </div>
+        </div>
+        <AdminBookingRevenueChart timeline={data.bookingRevenueTimeline} monthCount={monthCount} />
+      </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
         <article className="iv-card p-5">
