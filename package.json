@@ -11,7 +11,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:push": "prisma db push",
     "prisma:seed": "prisma db seed",
-    "admin:ensure": "node scripts/ensure-admin.js"
+    "admin:ensure": "node scripts/ensure-admin.js",
+    "admin:check": "node scripts/check-admin.js"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",

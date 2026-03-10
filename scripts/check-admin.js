@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const { loadEnvConfig } = require("@next/env");
-const { PrismaClient, UserRole, UserStatus } = require("@prisma/client");
+const { PrismaClient } = require("@prisma/client");
 
 loadEnvConfig(process.cwd());
 
@@ -37,53 +37,43 @@ const prisma = new PrismaClient();
 async function main() {
   const email = process.env.ADMIN_EMAIL || "admin@example.com";
   const password = process.env.ADMIN_PASSWORD || "Admin@123";
-  const fullName = process.env.ADMIN_FULL_NAME || "Quản trị viên hệ thống";
-  const phone = process.env.ADMIN_PHONE || "0909000001";
-  const avatarUrl =
-    process.env.ADMIN_AVATAR_URL || "https://api.dicebear.com/9.x/notionists/svg?seed=admin";
 
   if (!process.env.DATABASE_URL) {
-    throw new Error("Thiếu biến môi trường DATABASE_URL. Hãy tạo file .env trước.");
+    throw new Error("Thiếu biến môi trường DATABASE_URL.");
   }
 
-  const passwordHash = await bcrypt.hash(password, 10);
-
-  const user = await prisma.user.upsert({
+  const user = await prisma.user.findUnique({
     where: { email },
-    update: {
-      fullName,
-      phone,
-      avatarUrl,
-      passwordHash,
-      role: UserRole.ADMIN,
-      status: UserStatus.ACTIVE,
-    },
-    create: {
-      fullName,
-      email,
-      phone,
-      avatarUrl,
-      passwordHash,
-      role: UserRole.ADMIN,
-      status: UserStatus.ACTIVE,
-    },
     select: {
       id: true,
       email: true,
       role: true,
       status: true,
+      passwordHash: true,
     },
   });
 
-  console.log("Đã sẵn sàng tài khoản admin:");
-  console.log(`Email: ${email}`);
-  console.log(`Mật khẩu: ${password}`);
-  console.log(`Role: ${user.role} | Status: ${user.status}`);
+  if (!user) {
+    console.log(`Không tìm thấy user ${email} trong DB hiện tại.`);
+    process.exit(2);
+  }
+
+  const passwordOk = await bcrypt.compare(password, user.passwordHash);
+
+  console.log("Tìm thấy user admin:");
+  console.log(`Email: ${user.email}`);
+  console.log(`Role: ${user.role}`);
+  console.log(`Status: ${user.status}`);
+  console.log(`Mật khẩu khớp: ${passwordOk ? "ĐÚNG" : "SAI"}`);
+
+  if (!passwordOk) {
+    process.exit(3);
+  }
 }
 
 main()
   .catch((error) => {
-    console.error("Không thể tạo admin:", error.message || error);
+    console.error("Không thể kiểm tra admin:", error.message || error);
     process.exit(1);
   })
   .finally(async () => {
