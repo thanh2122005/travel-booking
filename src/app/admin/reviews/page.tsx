@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminReviewActions } from "@/components/admin/admin-review-actions";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
 import { getAdminReviews } from "@/lib/db/admin-queries";
@@ -87,6 +88,9 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
                     {review.tour.title}
                   </Link>
                 </p>
+                <div className="mt-3">
+                  <AdminReviewActions reviewId={review.id} isVisible={review.isVisible} />
+                </div>
               </article>
             ))}
           </div>

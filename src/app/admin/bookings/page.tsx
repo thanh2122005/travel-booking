@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminBookingActions } from "@/components/admin/admin-booking-actions";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
 import { adminLabels, getAdminBookings } from "@/lib/db/admin-queries";
@@ -76,6 +77,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
                   <th className="px-2 py-3 font-medium">Trạng thái</th>
                   <th className="px-2 py-3 font-medium">Thanh toán</th>
                   <th className="px-2 py-3 font-medium">Ngày tạo</th>
+                  <th className="px-2 py-3 font-medium">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -100,6 +102,13 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
                       <Badge variant="outline">{adminLabels.paymentStatus[booking.paymentStatus]}</Badge>
                     </td>
                     <td className="px-2 py-3 text-slate-500">{formatDate(booking.createdAt)}</td>
+                    <td className="px-2 py-3">
+                      <AdminBookingActions
+                        bookingId={booking.id}
+                        status={booking.status}
+                        paymentStatus={booking.paymentStatus}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>

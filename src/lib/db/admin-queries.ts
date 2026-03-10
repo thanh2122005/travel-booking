@@ -1,4 +1,21 @@
 import { BookingStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
+import {
+  demoCreateLocation,
+  demoCreateTour,
+  demoGetBookings,
+  demoGetDashboardData,
+  demoGetLocationOptions,
+  demoGetLocations,
+  demoGetReviews,
+  demoGetTours,
+  demoGetUsers,
+  demoUpdateBooking,
+  demoUpdateLocation,
+  demoUpdateReview,
+  demoUpdateTour,
+  demoUpdateUser,
+} from "@/lib/demo/admin-demo-store";
+import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { db } from "@/lib/db/prisma";
 
 type AdminListFilter = {
@@ -14,338 +31,567 @@ function getPagination(filter: AdminListFilter) {
 }
 
 export async function getAdminDashboardData() {
-  const [
-    totalUsers,
-    totalTours,
-    totalLocations,
-    totalBookings,
-    totalReviews,
-    totalFavorites,
-    revenueAgg,
-    bookingStatusGroups,
-    paymentStatusGroups,
-    recentBookings,
-    recentReviews,
-    recentUsers,
-  ] = await Promise.all([
-    db.user.count(),
-    db.tour.count(),
-    db.location.count(),
-    db.booking.count(),
-    db.review.count(),
-    db.favorite.count(),
-    db.booking.aggregate({
-      where: {
-        status: {
-          in: [BookingStatus.CONFIRMED, BookingStatus.COMPLETED],
-        },
-      },
-      _sum: {
-        totalPrice: true,
-      },
-    }),
-    db.booking.groupBy({
-      by: ["status"],
-      _count: {
-        _all: true,
-      },
-    }),
-    db.booking.groupBy({
-      by: ["paymentStatus"],
-      _count: {
-        _all: true,
-      },
-    }),
-    db.booking.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 8,
-      include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-          },
-        },
-        tour: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-          },
-        },
-      },
-    }),
-    db.review.findMany({
-      where: {
-        isVisible: true,
-      },
-      orderBy: { createdAt: "desc" },
-      take: 8,
-      include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-          },
-        },
-        tour: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-          },
-        },
-      },
-    }),
-    db.user.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 8,
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        role: true,
-        status: true,
-        createdAt: true,
-      },
-    }),
-  ]);
-
-  const bookingsByStatus = bookingStatusGroups.reduce<Record<BookingStatus, number>>(
-    (acc, item) => {
-      acc[item.status] = item._count._all;
-      return acc;
-    },
-    {
-      PENDING: 0,
-      CONFIRMED: 0,
-      CANCELLED: 0,
-      COMPLETED: 0,
-    },
-  );
-
-  const paymentsByStatus = paymentStatusGroups.reduce<Record<PaymentStatus, number>>(
-    (acc, item) => {
-      acc[item.paymentStatus] = item._count._all;
-      return acc;
-    },
-    {
-      UNPAID: 0,
-      PAID: 0,
-    },
-  );
-
-  return {
-    metrics: {
+  try {
+    const [
       totalUsers,
       totalTours,
       totalLocations,
       totalBookings,
       totalReviews,
       totalFavorites,
-      totalRevenue: revenueAgg._sum.totalPrice ?? 0,
-    },
-    bookingsByStatus,
-    paymentsByStatus,
-    recentBookings,
-    recentReviews,
-    recentUsers,
-  };
+      revenueAgg,
+      bookingStatusGroups,
+      paymentStatusGroups,
+      recentBookings,
+      recentReviews,
+      recentUsers,
+    ] = await Promise.all([
+      db.user.count(),
+      db.tour.count(),
+      db.location.count(),
+      db.booking.count(),
+      db.review.count(),
+      db.favorite.count(),
+      db.booking.aggregate({
+        where: {
+          status: {
+            in: [BookingStatus.CONFIRMED, BookingStatus.COMPLETED],
+          },
+        },
+        _sum: {
+          totalPrice: true,
+        },
+      }),
+      db.booking.groupBy({
+        by: ["status"],
+        _count: {
+          _all: true,
+        },
+      }),
+      db.booking.groupBy({
+        by: ["paymentStatus"],
+        _count: {
+          _all: true,
+        },
+      }),
+      db.booking.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 8,
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+            },
+          },
+          tour: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+            },
+          },
+        },
+      }),
+      db.review.findMany({
+        where: {
+          isVisible: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 8,
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+            },
+          },
+          tour: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+            },
+          },
+        },
+      }),
+      db.user.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 8,
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          role: true,
+          status: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    const bookingsByStatus = bookingStatusGroups.reduce<Record<BookingStatus, number>>(
+      (acc, item) => {
+        acc[item.status] = item._count._all;
+        return acc;
+      },
+      {
+        PENDING: 0,
+        CONFIRMED: 0,
+        CANCELLED: 0,
+        COMPLETED: 0,
+      },
+    );
+
+    const paymentsByStatus = paymentStatusGroups.reduce<Record<PaymentStatus, number>>(
+      (acc, item) => {
+        acc[item.paymentStatus] = item._count._all;
+        return acc;
+      },
+      {
+        UNPAID: 0,
+        PAID: 0,
+      },
+    );
+
+    return {
+      metrics: {
+        totalUsers,
+        totalTours,
+        totalLocations,
+        totalBookings,
+        totalReviews,
+        totalFavorites,
+        totalRevenue: revenueAgg._sum.totalPrice ?? 0,
+      },
+      bookingsByStatus,
+      paymentsByStatus,
+      recentBookings,
+      recentReviews,
+      recentUsers,
+    };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetDashboardData();
+    }
+    throw error;
+  }
 }
 
 export async function getAdminUsers(filter: AdminListFilter = {}) {
-  const { page, pageSize, skip } = getPagination(filter);
+  try {
+    const { page, pageSize, skip } = getPagination(filter);
 
-  const where: Prisma.UserWhereInput = filter.search
-    ? {
-        OR: [
-          { fullName: { contains: filter.search, mode: "insensitive" } },
-          { email: { contains: filter.search, mode: "insensitive" } },
-        ],
-      }
-    : {};
+    const where: Prisma.UserWhereInput = filter.search
+      ? {
+          OR: [
+            { fullName: { contains: filter.search, mode: "insensitive" } },
+            { email: { contains: filter.search, mode: "insensitive" } },
+          ],
+        }
+      : {};
 
-  const [total, items] = await Promise.all([
-    db.user.count({ where }),
-    db.user.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: pageSize,
-      include: {
-        _count: {
-          select: {
-            bookings: true,
-            reviews: true,
-            favorites: true,
+    const [total, items] = await Promise.all([
+      db.user.count({ where }),
+      db.user.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: pageSize,
+        include: {
+          _count: {
+            select: {
+              bookings: true,
+              reviews: true,
+              favorites: true,
+            },
           },
         },
-      },
-    }),
-  ]);
+      }),
+    ]);
 
-  return { items, total, page, pageSize, totalPages: Math.max(Math.ceil(total / pageSize), 1) };
+    return { items, total, page, pageSize, totalPages: Math.max(Math.ceil(total / pageSize), 1) };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetUsers(filter);
+    }
+    throw error;
+  }
 }
 
 export async function getAdminTours(filter: AdminListFilter = {}) {
-  const { page, pageSize, skip } = getPagination(filter);
+  try {
+    const { page, pageSize, skip } = getPagination(filter);
 
-  const where: Prisma.TourWhereInput = filter.search
-    ? {
-        OR: [
-          { title: { contains: filter.search, mode: "insensitive" } },
-          { slug: { contains: filter.search, mode: "insensitive" } },
-          { location: { name: { contains: filter.search, mode: "insensitive" } } },
-        ],
-      }
-    : {};
+    const where: Prisma.TourWhereInput = filter.search
+      ? {
+          OR: [
+            { title: { contains: filter.search, mode: "insensitive" } },
+            { slug: { contains: filter.search, mode: "insensitive" } },
+            { location: { name: { contains: filter.search, mode: "insensitive" } } },
+          ],
+        }
+      : {};
 
-  const [total, items] = await Promise.all([
-    db.tour.count({ where }),
-    db.tour.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: pageSize,
-      include: {
-        location: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
+    const [total, items] = await Promise.all([
+      db.tour.count({ where }),
+      db.tour.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: pageSize,
+        include: {
+          location: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          _count: {
+            select: {
+              bookings: true,
+              reviews: true,
+              favorites: true,
+            },
           },
         },
-        _count: {
-          select: {
-            bookings: true,
-            reviews: true,
-            favorites: true,
-          },
-        },
-      },
-    }),
-  ]);
+      }),
+    ]);
 
-  return { items, total, page, pageSize, totalPages: Math.max(Math.ceil(total / pageSize), 1) };
+    return { items, total, page, pageSize, totalPages: Math.max(Math.ceil(total / pageSize), 1) };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetTours(filter);
+    }
+    throw error;
+  }
 }
 
 export async function getAdminLocations(filter: AdminListFilter = {}) {
-  const { page, pageSize, skip } = getPagination(filter);
+  try {
+    const { page, pageSize, skip } = getPagination(filter);
 
-  const where: Prisma.LocationWhereInput = filter.search
-    ? {
-        OR: [
-          { name: { contains: filter.search, mode: "insensitive" } },
-          { provinceOrCity: { contains: filter.search, mode: "insensitive" } },
-          { slug: { contains: filter.search, mode: "insensitive" } },
-        ],
-      }
-    : {};
+    const where: Prisma.LocationWhereInput = filter.search
+      ? {
+          OR: [
+            { name: { contains: filter.search, mode: "insensitive" } },
+            { provinceOrCity: { contains: filter.search, mode: "insensitive" } },
+            { slug: { contains: filter.search, mode: "insensitive" } },
+          ],
+        }
+      : {};
 
-  const [total, items] = await Promise.all([
-    db.location.count({ where }),
-    db.location.findMany({
-      where,
-      orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
-      skip,
-      take: pageSize,
-      include: {
-        _count: {
-          select: {
-            tours: true,
+    const [total, items] = await Promise.all([
+      db.location.count({ where }),
+      db.location.findMany({
+        where,
+        orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
+        skip,
+        take: pageSize,
+        include: {
+          _count: {
+            select: {
+              tours: true,
+            },
           },
         },
-      },
-    }),
-  ]);
+      }),
+    ]);
 
-  return { items, total, page, pageSize, totalPages: Math.max(Math.ceil(total / pageSize), 1) };
+    return { items, total, page, pageSize, totalPages: Math.max(Math.ceil(total / pageSize), 1) };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetLocations(filter);
+    }
+    throw error;
+  }
 }
 
 export async function getAdminBookings(filter: AdminListFilter = {}) {
-  const { page, pageSize, skip } = getPagination(filter);
+  try {
+    const { page, pageSize, skip } = getPagination(filter);
 
-  const where: Prisma.BookingWhereInput = filter.search
-    ? {
-        OR: [
-          { bookingCode: { contains: filter.search, mode: "insensitive" } },
-          { fullName: { contains: filter.search, mode: "insensitive" } },
-          { email: { contains: filter.search, mode: "insensitive" } },
-          { tour: { title: { contains: filter.search, mode: "insensitive" } } },
-        ],
-      }
-    : {};
+    const where: Prisma.BookingWhereInput = filter.search
+      ? {
+          OR: [
+            { bookingCode: { contains: filter.search, mode: "insensitive" } },
+            { fullName: { contains: filter.search, mode: "insensitive" } },
+            { email: { contains: filter.search, mode: "insensitive" } },
+            { tour: { title: { contains: filter.search, mode: "insensitive" } } },
+          ],
+        }
+      : {};
 
-  const [total, items] = await Promise.all([
-    db.booking.count({ where }),
-    db.booking.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: pageSize,
-      include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
+    const [total, items] = await Promise.all([
+      db.booking.count({ where }),
+      db.booking.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: pageSize,
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+            },
+          },
+          tour: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+            },
           },
         },
-        tour: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-          },
-        },
-      },
-    }),
-  ]);
+      }),
+    ]);
 
-  return { items, total, page, pageSize, totalPages: Math.max(Math.ceil(total / pageSize), 1) };
+    return { items, total, page, pageSize, totalPages: Math.max(Math.ceil(total / pageSize), 1) };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetBookings(filter);
+    }
+    throw error;
+  }
 }
 
 export async function getAdminReviews(filter: AdminListFilter = {}) {
-  const { page, pageSize, skip } = getPagination(filter);
+  try {
+    const { page, pageSize, skip } = getPagination(filter);
 
-  const where: Prisma.ReviewWhereInput = filter.search
-    ? {
-        OR: [
-          { comment: { contains: filter.search, mode: "insensitive" } },
-          { user: { fullName: { contains: filter.search, mode: "insensitive" } } },
-          { tour: { title: { contains: filter.search, mode: "insensitive" } } },
-        ],
-      }
-    : {};
+    const where: Prisma.ReviewWhereInput = filter.search
+      ? {
+          OR: [
+            { comment: { contains: filter.search, mode: "insensitive" } },
+            { user: { fullName: { contains: filter.search, mode: "insensitive" } } },
+            { tour: { title: { contains: filter.search, mode: "insensitive" } } },
+          ],
+        }
+      : {};
 
-  const [total, items] = await Promise.all([
-    db.review.count({ where }),
-    db.review.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: pageSize,
-      include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
+    const [total, items] = await Promise.all([
+      db.review.count({ where }),
+      db.review.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: pageSize,
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+            },
+          },
+          tour: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+            },
           },
         },
-        tour: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-          },
-        },
+      }),
+    ]);
+
+    return { items, total, page, pageSize, totalPages: Math.max(Math.ceil(total / pageSize), 1) };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetReviews(filter);
+    }
+    throw error;
+  }
+}
+
+export async function getAdminLocationOptions() {
+  try {
+    return db.location.findMany({
+      select: {
+        id: true,
+        name: true,
+        slug: true,
       },
-    }),
-  ]);
+      orderBy: { name: "asc" },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetLocationOptions();
+    }
+    throw error;
+  }
+}
 
-  return { items, total, page, pageSize, totalPages: Math.max(Math.ceil(total / pageSize), 1) };
+export async function updateAdminBooking(
+  bookingId: string,
+  payload: { status?: BookingStatus; paymentStatus?: PaymentStatus },
+) {
+  try {
+    return db.booking.update({
+      where: { id: bookingId },
+      data: {
+        ...(payload.status ? { status: payload.status } : {}),
+        ...(payload.paymentStatus ? { paymentStatus: payload.paymentStatus } : {}),
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateBooking(bookingId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function updateAdminReview(reviewId: string, payload: { isVisible?: boolean }) {
+  try {
+    return db.review.update({
+      where: { id: reviewId },
+      data: {
+        ...(typeof payload.isVisible === "boolean" ? { isVisible: payload.isVisible } : {}),
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateReview(reviewId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function updateAdminTour(
+  tourId: string,
+  payload: { status?: TourStatus; featured?: boolean },
+) {
+  try {
+    return db.tour.update({
+      where: { id: tourId },
+      data: {
+        ...(payload.status ? { status: payload.status } : {}),
+        ...(typeof payload.featured === "boolean" ? { featured: payload.featured } : {}),
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateTour(tourId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function updateAdminLocation(locationId: string, payload: { featured?: boolean }) {
+  try {
+    return db.location.update({
+      where: { id: locationId },
+      data: {
+        ...(typeof payload.featured === "boolean" ? { featured: payload.featured } : {}),
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateLocation(locationId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function updateAdminUser(
+  userId: string,
+  payload: { role?: UserRole; status?: UserStatus },
+) {
+  try {
+    return db.user.update({
+      where: { id: userId },
+      data: {
+        ...(payload.role ? { role: payload.role } : {}),
+        ...(payload.status ? { status: payload.status } : {}),
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateUser(userId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function createAdminLocation(input: {
+  name: string;
+  slug: string;
+  provinceOrCity: string;
+  country: string;
+  shortDescription: string;
+  description: string;
+  imageUrl: string;
+  featured?: boolean;
+}) {
+  try {
+    return db.location.create({
+      data: {
+        name: input.name,
+        slug: input.slug,
+        provinceOrCity: input.provinceOrCity,
+        country: input.country,
+        shortDescription: input.shortDescription,
+        description: input.description,
+        imageUrl: input.imageUrl,
+        gallery: [input.imageUrl],
+        featured: Boolean(input.featured),
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoCreateLocation(input);
+    }
+    throw error;
+  }
+}
+
+export async function createAdminTour(input: {
+  title: string;
+  slug: string;
+  shortDescription: string;
+  description: string;
+  price: number;
+  discountPrice?: number | null;
+  durationDays: number;
+  durationNights: number;
+  maxGuests: number;
+  transportation: string;
+  departureLocation: string;
+  featuredImage: string;
+  status?: TourStatus;
+  featured?: boolean;
+  locationId: string;
+}) {
+  try {
+    return db.tour.create({
+      data: {
+        title: input.title,
+        slug: input.slug,
+        shortDescription: input.shortDescription,
+        description: input.description,
+        price: input.price,
+        discountPrice: input.discountPrice ?? null,
+        durationDays: input.durationDays,
+        durationNights: input.durationNights,
+        maxGuests: input.maxGuests,
+        transportation: input.transportation,
+        departureLocation: input.departureLocation,
+        featuredImage: input.featuredImage,
+        status: input.status ?? TourStatus.ACTIVE,
+        featured: Boolean(input.featured),
+        locationId: input.locationId,
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoCreateTour(input);
+    }
+    throw error;
+  }
 }
 
 export const adminLabels = {

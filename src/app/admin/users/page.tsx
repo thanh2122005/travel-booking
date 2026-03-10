@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminUserActions } from "@/components/admin/admin-user-actions";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
 import { adminLabels, getAdminUsers } from "@/lib/db/admin-queries";
@@ -76,6 +77,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                   <th className="px-2 py-3 font-medium">Đánh giá</th>
                   <th className="px-2 py-3 font-medium">Yêu thích</th>
                   <th className="px-2 py-3 font-medium">Ngày tạo</th>
+                  <th className="px-2 py-3 font-medium">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -95,6 +97,9 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                     <td className="px-2 py-3">{user._count.reviews}</td>
                     <td className="px-2 py-3">{user._count.favorites}</td>
                     <td className="px-2 py-3 text-slate-500">{formatDate(user.createdAt)}</td>
+                    <td className="px-2 py-3">
+                      <AdminUserActions userId={user.id} role={user.role} status={user.status} />
+                    </td>
                   </tr>
                 ))}
               </tbody>

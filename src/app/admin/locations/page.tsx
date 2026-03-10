@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { AdminCreateLocationForm } from "@/components/admin/admin-create-location-form";
+import { AdminLocationActions } from "@/components/admin/admin-location-actions";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
 import { getAdminLocations } from "@/lib/db/admin-queries";
@@ -63,6 +65,8 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
         </div>
       </form>
 
+      <AdminCreateLocationForm />
+
       {data.items.length ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -82,6 +86,7 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
                   </div>
                   <p className="line-clamp-2 text-sm text-slate-600">{location.shortDescription}</p>
                   <p className="text-xs text-slate-500">Cập nhật: {formatDate(location.updatedAt)}</p>
+                  <AdminLocationActions locationId={location.id} featured={location.featured} />
                 </div>
               </article>
             ))}

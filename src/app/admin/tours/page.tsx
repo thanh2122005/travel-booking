@@ -1,8 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import { AdminCreateTourForm } from "@/components/admin/admin-create-tour-form";
+import { AdminTourActions } from "@/components/admin/admin-tour-actions";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
-import { adminLabels, getAdminTours } from "@/lib/db/admin-queries";
+import { adminLabels, getAdminLocationOptions, getAdminTours } from "@/lib/db/admin-queries";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +28,7 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
     page: Number.isFinite(page) ? page : 1,
     pageSize: 12,
   }).catch(() => null);
+  const locationOptions = await getAdminLocationOptions().catch(() => []);
 
   if (!data) {
     return (
@@ -63,6 +66,8 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
         </div>
       </form>
 
+      <AdminCreateTourForm locations={locationOptions} />
+
       {data.items.length ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -89,6 +94,7 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
                     Đặt tour: {tour._count.bookings} · Đánh giá: {tour._count.reviews} · Yêu thích: {tour._count.favorites}
                   </p>
                   <p className="text-xs text-slate-500">Cập nhật: {formatDate(tour.updatedAt)}</p>
+                  <AdminTourActions tourId={tour.id} status={tour.status} featured={tour.featured} />
                 </div>
               </article>
             ))}
