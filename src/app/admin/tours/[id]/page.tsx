@@ -2,9 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { AdminItineraryManager } from "@/components/admin/admin-itinerary-manager";
+import { AdminTourContentForm } from "@/components/admin/admin-tour-content-form";
 import { AdminTourImagesManager } from "@/components/admin/admin-tour-images-manager";
 import { Badge } from "@/components/ui/badge";
-import { getAdminTourDetail } from "@/lib/db/admin-queries";
+import { getAdminLocationOptions, getAdminTourDetail } from "@/lib/db/admin-queries";
 import { formatPrice } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,10 @@ type AdminTourDetailPageProps = {
 
 export default async function AdminTourDetailPage({ params }: AdminTourDetailPageProps) {
   const { id } = await params;
-  const tour = await getAdminTourDetail(id).catch(() => null);
+  const [tour, locationOptions] = await Promise.all([
+    getAdminTourDetail(id).catch(() => null),
+    getAdminLocationOptions().catch(() => []),
+  ]);
 
   if (!tour) {
     notFound();
@@ -64,6 +68,7 @@ export default async function AdminTourDetailPage({ params }: AdminTourDetailPag
         </div>
       </section>
 
+      <AdminTourContentForm tour={tour} locations={locationOptions} />
       <AdminTourImagesManager tourId={tour.id} images={tour.images} />
       <AdminItineraryManager tourId={tour.id} itineraries={tour.itineraries} />
     </div>

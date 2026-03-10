@@ -98,7 +98,7 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
                     href={`/admin/tours/${tour.id}`}
                     className="inline-flex h-8 items-center rounded-md border border-slate-300 px-3 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
                   >
-                    Quản lý ảnh & lịch trình
+                    Quản lý nội dung chi tiết
                   </Link>
                   <AdminTourActions tourId={tour.id} status={tour.status} featured={tour.featured} />
                 </div>
