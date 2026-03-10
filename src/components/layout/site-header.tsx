@@ -31,10 +31,6 @@ export function SiteHeader() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
-
   const navClassName = useMemo(
     () => cn("iv-nav", isScrolled && "iv-nav-scrolled"),
     [isScrolled],
@@ -84,6 +80,7 @@ export function SiteHeader() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => setIsOpen(false)}
                 className={cn(
                   "rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900",
                   isActivePath(pathname, item.href) && "bg-slate-100 text-slate-900",

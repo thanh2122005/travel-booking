@@ -70,7 +70,16 @@ function buildDurationWhere(duration?: TourFilterInput["duration"]): Prisma.Tour
 }
 
 export async function getHomePublicData() {
-  const [featuredLocations, featuredTours] = await Promise.all([
+  const [
+    featuredLocations,
+    featuredTours,
+    latestReviews,
+    itineraryPreview,
+    totalTours,
+    totalLocations,
+    totalBookings,
+    totalReviews,
+  ] = await Promise.all([
     db.location.findMany({
       where: { featured: true },
       orderBy: { updatedAt: "desc" },
@@ -87,6 +96,62 @@ export async function getHomePublicData() {
       orderBy: { createdAt: "desc" },
       take: 6,
     }),
+    db.review.findMany({
+      where: {
+        isVisible: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 6,
+      include: {
+        user: {
+          select: {
+            fullName: true,
+            avatarUrl: true,
+          },
+        },
+        tour: {
+          select: {
+            title: true,
+            slug: true,
+            location: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+    db.tour.findMany({
+      where: {
+        status: TourStatus.ACTIVE,
+      },
+      include: {
+        location: true,
+        itineraries: {
+          orderBy: {
+            dayNumber: "asc",
+          },
+          take: 3,
+        },
+      },
+      orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+      take: 4,
+    }),
+    db.tour.count({
+      where: {
+        status: TourStatus.ACTIVE,
+      },
+    }),
+    db.location.count(),
+    db.booking.count(),
+    db.review.count({
+      where: {
+        isVisible: true,
+      },
+    }),
   ]);
 
   const ratings = await getTourRatings(featuredTours.map((item) => item.id));
@@ -98,6 +163,14 @@ export async function getHomePublicData() {
       avgRating: ratings[item.id]?.avgRating ?? 0,
       reviewCount: ratings[item.id]?.reviewCount ?? 0,
     })),
+    latestReviews,
+    itineraryPreview,
+    stats: {
+      totalTours,
+      totalLocations,
+      totalBookings,
+      totalReviews,
+    },
   };
 }
 
