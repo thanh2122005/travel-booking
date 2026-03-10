@@ -1,42 +1,79 @@
 import Link from "next/link";
+import { Mail, MapPin, Phone } from "lucide-react";
+import { footerPopularDestinations, footerQuickLinks } from "@/lib/content/site-navigation";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t bg-card">
-      <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 md:grid-cols-3 md:px-6">
-        <div className="space-y-3">
-          <h3 className="text-base font-semibold">Travel Booking System</h3>
-          <p className="text-sm text-muted-foreground">
-            Nền tảng đặt tour du lịch hiện đại, giao diện tiếng Việt, phù hợp demo đồ án và portfolio.
+    <footer className="iv-footer">
+      <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-12 md:grid-cols-2 md:px-6 lg:grid-cols-4">
+        <div className="space-y-4">
+          <p className="text-2xl font-extrabold tracking-tight text-white">
+            Immersive<span className="text-teal-400">Vietnam</span>
           </p>
-        </div>
-
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold">Liên kết nhanh</h4>
-          <div className="grid gap-2 text-sm text-muted-foreground">
-            <Link href="/tours" className="hover:text-primary">
-              Danh sách tour
-            </Link>
-            <Link href="/dia-diem" className="hover:text-primary">
-              Danh sách địa điểm
-            </Link>
-            <Link href="/gioi-thieu" className="hover:text-primary">
-              Giới thiệu
-            </Link>
-            <Link href="/lien-he" className="hover:text-primary">
-              Liên hệ
-            </Link>
+          <p className="text-sm leading-7 text-slate-300">
+            Nen tang dat tour du lich Viet Nam theo huong san pham that: de dung, dep, va co the mo rong dai han.
+          </p>
+          <div className="space-y-1.5 text-sm text-slate-200">
+            <p className="inline-flex items-center gap-2">
+              <Phone className="h-4 w-4 text-teal-400" />
+              +84 866 055 283
+            </p>
+            <p className="inline-flex items-center gap-2">
+              <Mail className="h-4 w-4 text-teal-400" />
+              hello@immersevietnam.vn
+            </p>
+            <p className="inline-flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-teal-400" />
+              Ha Noi, Viet Nam
+            </p>
           </div>
         </div>
 
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold">Thông tin</h4>
-          <p className="text-sm text-muted-foreground">
-            Mặc định hiển thị tiếng Việt.
-            <br />
-            © {new Date().getFullYear()} Travel Booking System.
-          </p>
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold text-white">Dieu huong nhanh</h3>
+          <ul className="space-y-2 text-sm">
+            {footerQuickLinks.map((item) => (
+              <li key={item.href}>
+                <Link href={item.href}>{item.label}</Link>
+              </li>
+            ))}
+          </ul>
         </div>
+
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold text-white">Diem den pho bien</h3>
+          <ul className="space-y-2 text-sm">
+            {footerPopularDestinations.map((item) => (
+              <li key={item.href}>
+                <Link href={item.href}>{item.label}</Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold text-white">Nhan tin uu dai</h3>
+          <p className="text-sm leading-7 text-slate-300">
+            Nhan ban tin ve hanh trinh moi, tour noi bat va lo trinh du lich Viet Nam moi nhat.
+          </p>
+          <form className="space-y-2">
+            <input
+              type="email"
+              placeholder="Email cua ban"
+              className="h-10 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 text-sm text-white placeholder:text-slate-400 focus:border-teal-400 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-4 text-sm font-semibold"
+            >
+              Dang ky
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div className="border-t border-slate-700/70 px-4 py-4 text-center text-xs text-slate-400 md:px-6">
+        © {new Date().getFullYear()} ImmersiveVietnam. All rights reserved.
       </div>
     </footer>
   );

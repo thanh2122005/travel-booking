@@ -1,30 +1,61 @@
-import Link from "next/link";
-import { Menu, PlaneTakeoff } from "lucide-react";
-import { AuthUserMenu } from "@/components/layout/auth-user-menu";
+"use client";
 
-const navItems = [
-  { href: "/", label: "Trang chủ" },
-  { href: "/tours", label: "Tour du lịch" },
-  { href: "/dia-diem", label: "Địa điểm" },
-  { href: "/gioi-thieu", label: "Giới thiệu" },
-  { href: "/lien-he", label: "Liên hệ" },
-];
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Compass, Menu, X } from "lucide-react";
+import { AuthUserMenu } from "@/components/layout/auth-user-menu";
+import { publicNavItems } from "@/lib/content/site-navigation";
+import { cn } from "@/lib/utils";
+
+function isActivePath(pathname: string, href: string) {
+  if (href === "/") {
+    return pathname === "/";
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function SiteHeader() {
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 30);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  const navClassName = useMemo(
+    () => cn("iv-nav", isScrolled && "iv-nav-scrolled"),
+    [isScrolled],
+  );
+
   return (
-    <header className="sticky top-0 z-50 border-b bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-6">
-        <Link href="/" className="inline-flex items-center gap-2 text-base font-bold text-primary">
-          <PlaneTakeoff className="h-5 w-5" />
-          Travel Booking
+    <header className={navClassName}>
+      <div className="mx-auto flex h-[76px] w-full max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
+        <Link href="/" className="iv-brand inline-flex items-center gap-2.5 text-xl font-extrabold tracking-tight">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-900 shadow-sm">
+            <Compass className="h-4.5 w-4.5 text-teal-600" />
+          </span>
+          Immersive<span>Vietnam</span>
         </Link>
 
-        <nav className="hidden items-center gap-5 lg:flex">
-          {navItems.map((item) => (
+        <nav className="hidden items-center gap-6 lg:flex">
+          {publicNavItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm font-medium text-foreground/80 transition-colors hover:text-primary"
+              className={cn("iv-nav-link text-sm font-semibold", isActivePath(pathname, item.href) && "iv-link-active")}
             >
               {item.label}
             </Link>
@@ -35,29 +66,38 @@ export function SiteHeader() {
           <div className="hidden sm:block">
             <AuthUserMenu />
           </div>
-          <details className="relative lg:hidden">
-            <summary className="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-lg border bg-background">
-              <Menu className="h-4 w-4" />
-            </summary>
-            <div className="absolute right-0 mt-2 w-56 rounded-xl border bg-card p-3 shadow-lg">
-              <nav className="grid gap-1">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="rounded-md px-2 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-muted hover:text-primary"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
-              <div className="mt-2 border-t pt-2 sm:hidden">
-                <AuthUserMenu />
-              </div>
-            </div>
-          </details>
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-teal-500 hover:text-teal-700 lg:hidden"
+            onClick={() => setIsOpen((prev) => !prev)}
+            aria-label={isOpen ? "Dong menu" : "Mo menu"}
+          >
+            {isOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
+          </button>
         </div>
       </div>
+
+      {isOpen ? (
+        <div className="border-t border-slate-200/80 bg-white px-4 pb-4 pt-3 shadow-sm lg:hidden">
+          <nav className="grid gap-1.5">
+            {publicNavItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900",
+                  isActivePath(pathname, item.href) && "bg-slate-100 text-slate-900",
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="mt-2 border-t pt-2 sm:hidden">
+            <AuthUserMenu />
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }
