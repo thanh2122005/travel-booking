@@ -19,10 +19,16 @@ function normalizeParam(value?: string | string[]) {
 export default async function AdminBookingsPage({ searchParams }: AdminBookingsPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
+  const status = normalizeParam(params.status);
+  const paymentStatus = normalizeParam(params.paymentStatus);
   const page = Number(normalizeParam(params.page) || "1");
 
   const data = await getAdminBookings({
     search: search || undefined,
+    status: status
+      ? (status as "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED")
+      : undefined,
+    paymentStatus: paymentStatus ? (paymentStatus as "UNPAID" | "PAID") : undefined,
     page: Number.isFinite(page) ? page : 1,
     pageSize: 15,
   }).catch(() => null);
@@ -49,7 +55,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
         <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
           Tìm kiếm booking
         </label>
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="grid gap-2 lg:grid-cols-[1fr_180px_180px_auto]">
           <input
             id="search"
             name="search"
@@ -57,6 +63,26 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
             placeholder="Mã đơn, tên khách, email hoặc tên tour..."
             className="h-10 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
+          <select
+            name="status"
+            defaultValue={status}
+            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+          >
+            <option value="">Tất cả trạng thái đơn</option>
+            <option value="PENDING">Chờ xác nhận</option>
+            <option value="CONFIRMED">Đã xác nhận</option>
+            <option value="CANCELLED">Đã hủy</option>
+            <option value="COMPLETED">Hoàn thành</option>
+          </select>
+          <select
+            name="paymentStatus"
+            defaultValue={paymentStatus}
+            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+          >
+            <option value="">Tất cả thanh toán</option>
+            <option value="UNPAID">Chưa thanh toán</option>
+            <option value="PAID">Đã thanh toán</option>
+          </select>
           <button type="submit" className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold">
             Tìm kiếm
           </button>

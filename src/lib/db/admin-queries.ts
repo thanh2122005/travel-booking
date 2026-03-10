@@ -492,7 +492,9 @@ export async function getAdminLocationDetail(locationId: string) {
   }
 }
 
-export async function getAdminBookings(filter: AdminListFilter = {}) {
+export async function getAdminBookings(
+  filter: AdminListFilter & { status?: BookingStatus; paymentStatus?: PaymentStatus } = {},
+) {
   try {
     const { page, pageSize, skip } = getPagination(filter);
 
@@ -506,6 +508,12 @@ export async function getAdminBookings(filter: AdminListFilter = {}) {
           ],
         }
       : {};
+    if (filter.status) {
+      where.status = filter.status;
+    }
+    if (filter.paymentStatus) {
+      where.paymentStatus = filter.paymentStatus;
+    }
 
     const [total, items] = await Promise.all([
       db.booking.count({ where }),

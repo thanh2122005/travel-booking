@@ -685,14 +685,23 @@ export async function demoGetLocationDetail(locationId: string) {
   };
 }
 
-export async function demoGetBookings(filter: ListFilter = {}) {
+export async function demoGetBookings(
+  filter: ListFilter & { status?: BookingStatus; paymentStatus?: PaymentStatus } = {},
+) {
   const state = await readDemo();
   const userMap = new Map(state.users.map((user) => [user.id, user]));
   const tourMap = new Map(state.tours.map((tour) => [tour.id, tour]));
   const rows = state.bookings
     .filter((booking) => {
       const tourTitle = tourMap.get(booking.tourId)?.title ?? "";
-      return searchIncludes(booking.bookingCode, filter.search) || searchIncludes(booking.fullName, filter.search) || searchIncludes(booking.email, filter.search) || searchIncludes(tourTitle, filter.search);
+      const searchMatched =
+        searchIncludes(booking.bookingCode, filter.search) ||
+        searchIncludes(booking.fullName, filter.search) ||
+        searchIncludes(booking.email, filter.search) ||
+        searchIncludes(tourTitle, filter.search);
+      const statusMatched = !filter.status || booking.status === filter.status;
+      const paymentMatched = !filter.paymentStatus || booking.paymentStatus === filter.paymentStatus;
+      return searchMatched && statusMatched && paymentMatched;
     })
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .map((booking) => ({
