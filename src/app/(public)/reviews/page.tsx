@@ -29,7 +29,7 @@ export default async function ReviewsPage() {
       <div className="iv-card overflow-hidden bg-[linear-gradient(130deg,#091f33,#0b344f,#0f706d)] p-7 text-white md:p-9">
         <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-teal-100">
           <MessageSquareText className="h-4 w-4" />
-          Real Reviews
+          Đánh giá thực tế
         </p>
         <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">Đánh giá từ khách hàng</h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100 md:text-base">
@@ -49,7 +49,7 @@ export default async function ReviewsPage() {
 
       <section className="space-y-5">
         <HomeSectionHeading
-          eyebrow="Community Feedback"
+          eyebrow="Phản hồi cộng đồng"
           title="Trải nghiệm được xác thực"
           description="Chỉ review visible và có booking hợp lệ mới hiển thị trong hệ thống."
         />

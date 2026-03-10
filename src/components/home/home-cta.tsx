@@ -3,7 +3,7 @@ import Link from "next/link";
 export function HomeCTA() {
   return (
     <section className="iv-card overflow-hidden bg-[linear-gradient(130deg,#0a405a,#0f7f79,#18b7a8)] p-7 text-white md:p-10">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-100">Ready to book</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-100">Sẵn sàng đặt tour</p>
       <h2 className="mt-2 max-w-3xl text-3xl font-black leading-tight md:text-4xl">
         Biến template showcase thành booking website thật cho du lịch Việt Nam.
       </h2>

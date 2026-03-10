@@ -13,15 +13,15 @@ export default async function InspirationPage() {
   return (
     <div className="space-y-10">
       <PageHeroBanner
-        eyebrow="Inspiration"
-        title="Travel Inspiration"
+        eyebrow="Cảm hứng"
+        title="Cảm hứng du lịch Việt Nam"
         description="Chuyển đổi trang blog tĩnh trong template thành trang truyền cảm hứng có route dynamic và khả năng map dữ liệu thật."
         videoSrc="/immerse-vietnam/videos/vietnamBlog.mp4"
       />
 
       <section className="space-y-5">
         <HomeSectionHeading
-          eyebrow="Stories"
+          eyebrow="Câu chuyện"
           title="Những hành trình đang truyền cảm hứng"
           description="Blog không còn là static html; mỗi bài viết hướng đến destination detail và luồng đặt tour."
         />
@@ -41,7 +41,7 @@ export default async function InspirationPage() {
                 <div className="space-y-2 p-5">
                   <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
                     <CalendarDays className="h-3.5 w-3.5 text-teal-600" />
-                    {`Jun ${String(3 + index).padStart(2, "0")}, 2026`}
+                    {new Date(2026, 5, 3 + index).toLocaleDateString("vi-VN")}
                   </p>
                   <h3 className="text-xl font-bold tracking-tight text-slate-900">
                     {location.name}: {location.shortDescription}

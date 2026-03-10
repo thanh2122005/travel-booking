@@ -19,7 +19,7 @@ export default async function FavoritesPage() {
       <div className="iv-card overflow-hidden bg-[linear-gradient(130deg,#091f33,#0a314d,#085a66)] p-7 text-white md:p-9">
         <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-teal-100">
           <Heart className="h-4 w-4" />
-          Favorite Tours
+          Tour yêu thích
         </p>
         <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">Danh sách tour yêu thích</h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100 md:text-base">
@@ -29,7 +29,7 @@ export default async function FavoritesPage() {
 
       <section className="space-y-5">
         <HomeSectionHeading
-          eyebrow="Saved Tours"
+          eyebrow="Đã lưu"
           title="Tour bạn đang theo dõi"
           description="Danh sách này được đồng bộ theo tài khoản người dùng và cập nhật theo thao tác yêu thích."
         />
@@ -71,7 +71,7 @@ export default async function FavoritesPage() {
           />
         ) : (
           <EmptyState
-            title="Đăng nhập để xem favorites"
+            title="Đăng nhập để xem tour yêu thích"
             description="Danh sách yêu thích gắn với tài khoản, vui lòng đăng nhập để tiếp tục."
             ctaHref="/dang-nhap?callbackUrl=/favorites"
             ctaLabel="Đăng nhập"

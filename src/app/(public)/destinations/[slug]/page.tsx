@@ -45,7 +45,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
           <Image src={location.imageUrl} alt={location.name} fill className="object-cover opacity-80" sizes="100vw" priority />
         </div>
         <div className="relative px-5 py-16 md:px-8 md:py-24">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-100">Destination Detail</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-100">Chi tiết điểm đến</p>
           <h1 className="mt-2 max-w-3xl text-4xl font-black tracking-tight md:text-6xl">{location.name}</h1>
           <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-slate-100">
             <MapPin className="h-4 w-4 text-teal-200" />
@@ -58,7 +58,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
       <section className="grid gap-6 lg:grid-cols-[1fr_340px]">
         <article className="iv-card space-y-4 p-6">
           <HomeSectionHeading
-            eyebrow="Highlights"
+            eyebrow="Điểm nổi bật"
             title={`Vì sao nên đến ${location.name}?`}
             description={location.shortDescription}
           />
@@ -73,7 +73,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
         </article>
 
         <aside className="iv-card h-fit space-y-4 p-5 lg:sticky lg:top-24">
-          <h3 className="text-lg font-semibold text-slate-900">Quick Actions</h3>
+          <h3 className="text-lg font-semibold text-slate-900">Thao tác nhanh</h3>
           <p className="text-sm leading-7 text-slate-600">
             Xem danh sách tour đang mở bán tại {location.name} và đặt tour ngay khi tìm thấy lịch trình phù hợp.
           </p>
@@ -95,7 +95,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
 
       <section className="space-y-5">
         <HomeSectionHeading
-          eyebrow="Tours"
+          eyebrow="Tour theo điểm đến"
           title={`Tour đang mở tại ${location.name}`}
           description="Danh sách này được map trực tiếp từ model Tour theo locationId."
         />

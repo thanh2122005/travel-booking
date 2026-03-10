@@ -23,7 +23,7 @@ export function HomeItineraryPreview({ tours }: HomeItineraryPreviewProps) {
   return (
     <section className="space-y-5">
       <HomeSectionHeading
-        eyebrow="Itinerary Preview"
+        eyebrow="Xem trước lịch trình"
         title="Xem nhanh lộ trình trước khi đặt"
         description="Section mới để tạo cảm giác sản phẩm booking thật: khách nhìn được các mốc hành trình ngay từ homepage."
       />

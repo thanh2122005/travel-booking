@@ -20,7 +20,7 @@ export function HomeFeaturedDestinations({ locations }: HomeFeaturedDestinations
   return (
     <section className="space-y-5">
       <HomeSectionHeading
-        eyebrow="Featured Places"
+        eyebrow="Điểm đến nổi bật"
         title="Điểm đến nổi bật tại Việt Nam"
         description="Giữ bố cục ảnh lớn, lớp overlay và tinh thần showcase của template cũ, nhưng đưa vào route data thật."
       />

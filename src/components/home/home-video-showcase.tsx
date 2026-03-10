@@ -38,7 +38,7 @@ export function HomeVideoShowcase() {
       </video>
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/30" />
       <div className="absolute inset-x-0 bottom-0 z-10 p-6 text-white md:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-100">Vietnam in motion</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-100">Việt Nam chuyển động</p>
         <h2 className="mt-2 max-w-2xl text-2xl font-black leading-tight md:text-4xl">
           Cảm nhận không khí du lịch Việt Nam trước khi chọn tour.
         </h2>

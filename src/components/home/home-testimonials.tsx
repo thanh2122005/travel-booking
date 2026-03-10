@@ -34,12 +34,12 @@ export function HomeTestimonials({ reviews }: HomeTestimonialsProps) {
     <section className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <HomeSectionHeading
-          eyebrow="Testimonials"
+          eyebrow="Khách hàng nói gì"
           title="Khách hàng nói gì về chuyến đi"
           description="Map trực tiếp từ model Review + User + Tour để giữ tính xác thực thay cho testimonial hardcode."
         />
         <Link href="/reviews" className="iv-btn-soft inline-flex h-10 items-center px-4 text-sm font-semibold">
-          Xem tất cả review
+          Xem tất cả đánh giá
         </Link>
       </div>
 

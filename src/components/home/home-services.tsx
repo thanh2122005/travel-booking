@@ -31,7 +31,7 @@ export function HomeServices() {
       <div className="grid gap-8 bg-[linear-gradient(120deg,#08253a,#0f3f58,#0a4f66)] px-6 py-8 text-white md:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-10 lg:px-10 lg:py-10">
         <div>
           <HomeSectionHeading
-            eyebrow="Our Services"
+            eyebrow="Dịch vụ"
             title="Đặt tour dễ, chuyên nghiệp và đáng tin cậy"
             description="Refactor từ section services của template cũ, nâng cấp thành proposition rõ ràng cho website booking."
           />

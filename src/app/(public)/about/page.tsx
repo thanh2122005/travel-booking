@@ -42,7 +42,7 @@ export default async function AboutPage() {
   return (
     <div className="space-y-10">
       <PageHeroBanner
-        eyebrow="Our Story"
+        eyebrow="Câu chuyện thương hiệu"
         title="Về Immersive Vietnam"
         description="Từ tinh thần của template showcase, chúng tôi xây dựng thành hệ thống booking tour có dữ liệu động, tập trung vào trải nghiệm du lịch Việt Nam."
         videoSrc="/immerse-vietnam/videos/blogcover.mp4"
@@ -50,8 +50,8 @@ export default async function AboutPage() {
 
       <section className="space-y-6">
         <HomeSectionHeading
-          eyebrow="Our Story"
-          title="Years of growing together"
+          eyebrow="Hành trình phát triển"
+          title="Nâng cấp từ giao diện thành sản phẩm"
           description="Nội dung được migrate từ template about và refactor thành block nội dung để tái sử dụng."
         />
 
@@ -62,7 +62,7 @@ export default async function AboutPage() {
             </div>
           </article>
           <article className="iv-card space-y-3 p-6">
-            <h3 className="text-2xl font-bold tracking-tight">From student project to product mindset</h3>
+            <h3 className="text-2xl font-bold tracking-tight">Từ bài toán học tập đến tư duy sản phẩm</h3>
             <p className="text-sm leading-7 text-slate-600">
               Bắt đầu từ nhu cầu giới thiệu vẻ đẹp Việt Nam cho bạn bè quốc tế, dự án đã được nâng cấp thành website
               booking có cấu trúc dữ liệu rõ ràng và mở rộng được trong thực tế.
@@ -76,10 +76,10 @@ export default async function AboutPage() {
 
         <div className="grid items-center gap-5 lg:grid-cols-2">
           <article className="iv-card order-2 space-y-3 p-6 lg:order-1">
-            <h3 className="text-2xl font-bold tracking-tight">Vision: practical travel booking platform</h3>
+            <h3 className="text-2xl font-bold tracking-tight">Tầm nhìn: nền tảng đặt tour thực tế</h3>
             <p className="text-sm leading-7 text-slate-600">
-              Mục tiêu không chỉ là giao diện đẹp. Hệ thống cần map được Tour, Location, Booking, Review, Favorite và
-              Itinerary để đầy đủ nghiệp vụ sản phẩm.
+              Mục tiêu không chỉ là giao diện đẹp. Hệ thống cần map được Tour, Điểm đến, Đơn đặt, Đánh giá, Yêu thích
+              và Lịch trình để đầy đủ nghiệp vụ sản phẩm.
             </p>
             <p className="text-sm leading-7 text-slate-600">
               Nhóm tiếp tục đầu tư responsive, animation vừa đủ và luồng điều hướng hợp lý để tạo trải nghiệm đặt tour

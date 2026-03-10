@@ -13,7 +13,7 @@ export default async function ContactPage() {
   return (
     <div className="space-y-10">
       <PageHeroBanner
-        eyebrow="Contact"
+        eyebrow="Liên hệ"
         title="Kết nối với đội ngũ tư vấn"
         description="Trang contact được nâng cấp từ template cũ: giữ style hero video và bổ sung booking inquiry form theo hướng sản phẩm thật."
         videoSrc="/immerse-vietnam/videos/blogcover.mp4"
@@ -21,7 +21,7 @@ export default async function ContactPage() {
 
       <section className="space-y-6">
         <HomeSectionHeading
-          eyebrow="Booking Inquiry"
+          eyebrow="Yêu cầu tư vấn"
           title="Gửi yêu cầu đặt tour"
           description="Form này là bước tiền đề để kết nối với API booking và CRM trong phase sau."
         />

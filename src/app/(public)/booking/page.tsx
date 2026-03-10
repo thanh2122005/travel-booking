@@ -40,7 +40,7 @@ export default async function BookingPage() {
   return (
     <div className="space-y-10">
       <PageHeroBanner
-        eyebrow="Booking Flow"
+        eyebrow="Quy trình đặt tour"
         title="Đặt tour rõ ràng và dễ theo dõi"
         description="Trang booking tổng hợp luồng đặt tour, giúp người dùng hiểu rõ các bước từ chọn tour đến xác nhận đơn."
         imageSrc="/immerse-vietnam/images/header-bg.jpg"
@@ -48,7 +48,7 @@ export default async function BookingPage() {
 
       <section className="space-y-5">
         <HomeSectionHeading
-          eyebrow="How It Works"
+          eyebrow="Cách hoạt động"
           title="Quy trình đặt tour 4 bước"
           description="Refactor từ template showcase thành flow booking có context dữ liệu và điều hướng rõ ràng."
         />
@@ -66,7 +66,7 @@ export default async function BookingPage() {
       <section className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <HomeSectionHeading
-            eyebrow="Recent Bookings"
+            eyebrow="Đơn gần đây"
             title="Đơn đặt tour gần đây của bạn"
             description="Bảng này map dữ liệu trực tiếp từ model Booking trong Prisma."
           />

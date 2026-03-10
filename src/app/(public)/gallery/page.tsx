@@ -24,15 +24,15 @@ export default async function GalleryPage() {
   return (
     <div className="space-y-10">
       <PageHeroBanner
-        eyebrow="Gallery"
-        title="Vietnam Through The Lens"
+        eyebrow="Thư viện"
+        title="Việt Nam qua lăng kính cảm xúc"
         description="Trang gallery được convert từ template cũ, giữ bố cục ảnh lớn và bổ sung highlight theo dữ liệu location."
         videoSrc="/immerse-vietnam/videos/blogcover.mp4"
       />
 
       <section className="space-y-5">
         <HomeSectionHeading
-          eyebrow="Moments"
+          eyebrow="Khoảnh khắc"
           title="Bộ sưu tập hình ảnh du lịch"
           description="Toàn bộ asset image migrate vào public/immerse-vietnam để sử dụng ổn định trong Next.js."
         />
@@ -55,7 +55,7 @@ export default async function GalleryPage() {
 
       <section className="space-y-5">
         <HomeSectionHeading
-          eyebrow="Popular Places"
+          eyebrow="Địa điểm nổi bật"
           title="Điểm đến đang được quan tâm"
           description="Thay cho danh sách tích hợp tay trong template, dữ liệu này map theo model Location."
         />

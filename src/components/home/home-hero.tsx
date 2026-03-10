@@ -39,7 +39,7 @@ export function HomeHero({ featuredLocations, stats }: HomeHeroProps) {
       <div className="relative mx-auto grid w-full max-w-7xl gap-10 px-4 pb-20 pt-20 md:px-6 lg:grid-cols-[1.2fr_0.8fr] lg:gap-12 lg:pb-24 lg:pt-24">
         <div className="space-y-7 iv-fade-up">
           <p className="inline-flex rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-teal-100">
-            Leave Your Footprints
+            Hành trình của bạn bắt đầu từ đây
           </p>
           <h1 className="max-w-3xl text-4xl font-black leading-tight tracking-tight md:text-6xl">
             Đặt tour Việt Nam theo phong cách premium, rõ ràng và dễ mở rộng.
