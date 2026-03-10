@@ -25,12 +25,12 @@ function normalizeParam(value?: string | string[]) {
 export default async function DestinationsPage({ searchParams }: DestinationsPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
-  const locations = await getLocations(search || undefined);
+  const locations = await getLocations(search || undefined).catch(() => []);
 
   return (
     <div className="space-y-8">
       <HomeSectionHeading
-        eyebrow="Destinations"
+        eyebrow="Điểm đến"
         title="Khám phá điểm đến Việt Nam"
         description="Route này thay thế cho mô hình trang thành phố tĩnh, gom vào hệ thống dynamic /destinations/[slug]."
       />

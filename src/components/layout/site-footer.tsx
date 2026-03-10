@@ -1,8 +1,22 @@
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { footerPopularDestinations, footerQuickLinks } from "@/lib/content/site-navigation";
+import { getLocations } from "@/lib/db/public-queries";
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const popularDestinations = await getLocations()
+    .then((locations) =>
+      locations
+        .slice()
+        .sort((a, b) => Number(b.featured) - Number(a.featured))
+        .slice(0, 4)
+        .map((location) => ({
+          href: `/destinations/${location.slug}`,
+          label: location.name,
+        })),
+    )
+    .catch(() => footerPopularDestinations);
+
   return (
     <footer className="iv-footer">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-12 md:grid-cols-2 md:px-6 lg:grid-cols-4">
@@ -43,7 +57,7 @@ export function SiteFooter() {
         <div className="space-y-4">
           <h3 className="text-base font-semibold text-white">Điểm đến phổ biến</h3>
           <ul className="space-y-2 text-sm">
-            {footerPopularDestinations.map((item) => (
+            {popularDestinations.map((item) => (
               <li key={item.href}>
                 <Link href={item.href}>{item.label}</Link>
               </li>
@@ -73,7 +87,7 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-slate-700/70 px-4 py-4 text-center text-xs text-slate-400 md:px-6">
-        © {new Date().getFullYear()} ImmersiveVietnam. All rights reserved.
+        © {new Date().getFullYear()} ImmersiveVietnam. Bảo lưu mọi quyền.
       </div>
     </footer>
   );

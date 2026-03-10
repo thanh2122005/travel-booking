@@ -26,7 +26,7 @@ export function ImmersiveHomePage({ data }: ImmersiveHomePageProps) {
         <HomeItineraryPreview tours={data.itineraryPreview} />
         <HomeTestimonials reviews={data.latestReviews} />
         <HomeVideoShowcase />
-        <HomeInspiration />
+        <HomeInspiration locations={data.featuredLocations} />
         <HomeCTA />
       </div>
     </div>

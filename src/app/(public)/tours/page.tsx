@@ -52,7 +52,14 @@ function parseFilters(raw: Record<string, string | string[] | undefined>): TourF
 export default async function ToursPage({ searchParams }: ToursPageProps) {
   const rawParams = await searchParams;
   const filters = parseFilters(rawParams);
-  const data = await getTours(filters);
+  const data = await getTours(filters).catch(() => ({
+    tours: [],
+    locations: [],
+    total: 0,
+    page: 1,
+    pageSize: 9,
+    totalPages: 1,
+  }));
 
   return (
     <div className="space-y-8 py-6">
