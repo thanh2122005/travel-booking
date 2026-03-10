@@ -6,7 +6,7 @@ import { getLocations } from "@/lib/db/public-queries";
 
 export const dynamic = "force-dynamic";
 
-const galleryImages = [
+const fallbackGalleryImages = [
   "/immerse-vietnam/images/gallery1.jpg",
   "/immerse-vietnam/images/gallery2.webp",
   "/immerse-vietnam/images/gallery3.jpg",
@@ -20,6 +20,14 @@ const galleryImages = [
 
 export default async function GalleryPage() {
   const locations = await getLocations().catch(() => []);
+  const galleryImages = Array.from(
+    new Set(
+      locations
+        .flatMap((location) => [location.imageUrl, ...(Array.isArray(location.gallery) ? location.gallery : [])])
+        .filter((image): image is string => Boolean(image))
+        .concat(fallbackGalleryImages),
+    ),
+  ).slice(0, 18);
 
   return (
     <div className="space-y-10">
@@ -34,7 +42,7 @@ export default async function GalleryPage() {
         <HomeSectionHeading
           eyebrow="Khoảnh khắc"
           title="Bộ sưu tập hình ảnh du lịch"
-          description="Toàn bộ asset image migrate vào public/immerse-vietnam để sử dụng ổn định trong Next.js."
+          description="Ảnh được lấy trực tiếp từ dữ liệu điểm đến và hệ asset public/immerse-vietnam để luôn hiển thị ổn định."
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {galleryImages.map((src, index) => (

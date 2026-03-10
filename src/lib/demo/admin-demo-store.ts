@@ -10,6 +10,13 @@ import {
   UserRole,
   UserStatus,
 } from "@prisma/client";
+import {
+  catalogLocations,
+  catalogReviewComments,
+  catalogTours,
+  catalogTravelerProfiles,
+  localAvatarPool,
+} from "@/lib/content/vietnam-catalog";
 
 type DemoUser = {
   id: string;
@@ -91,6 +98,7 @@ type DemoFavorite = {
 };
 
 type DemoState = {
+  version: number;
   users: DemoUser[];
   locations: DemoLocation[];
   tours: DemoTour[];
@@ -107,244 +115,206 @@ type ListFilter = {
 
 const DEMO_DIR = path.join(process.cwd(), ".data");
 const DEMO_FILE = path.join(DEMO_DIR, "admin-demo.json");
+const DEMO_DATA_VERSION = 2;
 
 const nowIso = () => new Date().toISOString();
 const toDate = (value: string) => new Date(value);
+const cleanId = (value: string) => value.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
 
-const initialData: DemoState = (() => {
+function createInitialDemoState(): DemoState {
   const createdAt = nowIso();
+
+  const users: DemoUser[] = [
+    {
+      id: "usr_admin",
+      fullName: "Quản trị viên hệ thống",
+      email: "admin@example.com",
+      role: UserRole.ADMIN,
+      status: UserStatus.ACTIVE,
+      createdAt,
+      updatedAt: createdAt,
+    },
+    ...catalogTravelerProfiles.slice(0, 16).map((traveler, index) => ({
+      id: `usr_${String(index + 1).padStart(2, "0")}`,
+      fullName: traveler.fullName,
+      email: traveler.email,
+      role: UserRole.USER,
+      status: UserStatus.ACTIVE,
+      createdAt,
+      updatedAt: createdAt,
+    })),
+  ];
+
+  const locations: DemoLocation[] = catalogLocations.map((location) => ({
+    id: `loc_${cleanId(location.slug)}`,
+    name: location.name,
+    slug: location.slug,
+    provinceOrCity: location.provinceOrCity,
+    country: location.country,
+    shortDescription: location.shortDescription,
+    description: location.description,
+    imageUrl: location.imageUrl,
+    gallery: location.gallery,
+    featured: Boolean(location.featured),
+    createdAt,
+    updatedAt: createdAt,
+  }));
+
+  const locationIdMap = new Map(locations.map((location) => [location.slug, location.id]));
+
+  const tours: DemoTour[] = catalogTours.map((tour) => ({
+    id: `tour_${cleanId(tour.slug)}`,
+    title: tour.title,
+    slug: tour.slug,
+    shortDescription: tour.shortDescription,
+    description: tour.description,
+    price: tour.price,
+    discountPrice: tour.discountPrice ?? null,
+    durationDays: tour.durationDays,
+    durationNights: tour.durationNights,
+    maxGuests: tour.maxGuests,
+    transportation: tour.transportation,
+    departureLocation: tour.departureLocation,
+    featuredImage: tour.featuredImage,
+    status: tour.status === "INACTIVE" ? TourStatus.INACTIVE : TourStatus.ACTIVE,
+    featured: Boolean(tour.featured),
+    locationId: locationIdMap.get(tour.locationSlug) ?? locations[0]?.id ?? "",
+    createdAt,
+    updatedAt: createdAt,
+  }));
+
+  const regularUsers = users.filter((user) => user.role === UserRole.USER);
+  const activeTours = tours.filter((tour) => tour.status === TourStatus.ACTIVE);
+  const bookingStatuses: BookingStatus[] = [
+    BookingStatus.PENDING,
+    BookingStatus.CONFIRMED,
+    BookingStatus.COMPLETED,
+    BookingStatus.CANCELLED,
+  ];
+
+  const bookings: DemoBooking[] = Array.from({ length: 30 }).map((_, index) => {
+    const user = regularUsers[index % regularUsers.length]!;
+    const tour = activeTours[(index * 3) % activeTours.length]!;
+    const guests = Math.min((index % 4) + 1, tour.maxGuests);
+    const status = bookingStatuses[index % bookingStatuses.length]!;
+    const paymentStatus =
+      status === BookingStatus.CONFIRMED || status === BookingStatus.COMPLETED
+        ? PaymentStatus.PAID
+        : PaymentStatus.UNPAID;
+
+    return {
+      id: `bk_${String(index + 1).padStart(2, "0")}`,
+      bookingCode: `TB2026${String(index + 1).padStart(5, "0")}`,
+      userId: user.id,
+      tourId: tour.id,
+      fullName: user.fullName,
+      email: user.email,
+      phone: catalogTravelerProfiles[index % catalogTravelerProfiles.length]?.phone ?? "0909009999",
+      numberOfGuests: guests,
+      totalPrice: (tour.discountPrice ?? tour.price) * guests,
+      status,
+      paymentStatus,
+      createdAt,
+      updatedAt: createdAt,
+    };
+  });
+
+  const reviews: DemoReview[] = [];
+  const reviewPairs = new Set<string>();
+  for (let userIndex = 0; userIndex < regularUsers.length; userIndex += 1) {
+    for (let round = 0; round < 2; round += 1) {
+      const user = regularUsers[userIndex]!;
+      const tour = activeTours[(userIndex * 2 + round * 5) % activeTours.length]!;
+      const pairKey = `${user.id}_${tour.id}`;
+      if (reviewPairs.has(pairKey)) {
+        continue;
+      }
+      reviewPairs.add(pairKey);
+      reviews.push({
+        id: `rv_${String(reviews.length + 1).padStart(2, "0")}`,
+        userId: user.id,
+        tourId: tour.id,
+        rating: 5 - ((userIndex + round) % 3),
+        comment: catalogReviewComments[(userIndex + round) % catalogReviewComments.length]!,
+        isVisible: (userIndex + round) % 6 !== 0,
+        createdAt,
+        updatedAt: createdAt,
+      });
+    }
+  }
+
+  const favorites: DemoFavorite[] = [];
+  const favoritePairs = new Set<string>();
+  regularUsers.forEach((user, userIndex) => {
+    for (let offset = 0; offset < 3; offset += 1) {
+      const tour = activeTours[(userIndex * 2 + offset * 7) % activeTours.length]!;
+      const pairKey = `${user.id}_${tour.id}`;
+      if (favoritePairs.has(pairKey)) {
+        continue;
+      }
+      favoritePairs.add(pairKey);
+      favorites.push({
+        id: `fv_${String(favorites.length + 1).padStart(2, "0")}`,
+        userId: user.id,
+        tourId: tour.id,
+      });
+    }
+  });
+
   return {
-    users: [
-      {
-        id: "usr_admin",
-        fullName: "Quản trị viên hệ thống",
-        email: "admin@example.com",
-        role: UserRole.ADMIN,
-        status: UserStatus.ACTIVE,
-        createdAt,
-        updatedAt: createdAt,
-      },
-      {
-        id: "usr_01",
-        fullName: "Nguyễn Minh Anh",
-        email: "minhanh@example.com",
-        role: UserRole.USER,
-        status: UserStatus.ACTIVE,
-        createdAt,
-        updatedAt: createdAt,
-      },
-      {
-        id: "usr_02",
-        fullName: "Trần Bảo Long",
-        email: "baolong@example.com",
-        role: UserRole.USER,
-        status: UserStatus.ACTIVE,
-        createdAt,
-        updatedAt: createdAt,
-      },
-    ],
-    locations: [
-      {
-        id: "loc_hanoi",
-        name: "Hà Nội",
-        slug: "ha-noi",
-        provinceOrCity: "Hà Nội",
-        country: "Việt Nam",
-        shortDescription: "Thủ đô nghìn năm văn hiến.",
-        description: "Hà Nội nổi bật với phố cổ và ẩm thực đường phố.",
-        imageUrl: "/immerse-vietnam/images/HaNoi/hanoicover.jpg",
-        gallery: [
-          "/immerse-vietnam/images/HaNoi/hanoi1.webp",
-          "/immerse-vietnam/images/HaNoi/hanoi2.jpg",
-          "/immerse-vietnam/images/HaNoi/hanoi3.jpg",
-        ],
-        featured: true,
-        createdAt,
-        updatedAt: createdAt,
-      },
-      {
-        id: "loc_danang",
-        name: "Đà Nẵng",
-        slug: "da-nang",
-        provinceOrCity: "Đà Nẵng",
-        country: "Việt Nam",
-        shortDescription: "Thành phố biển năng động.",
-        description: "Đà Nẵng là điểm đến hấp dẫn với biển đẹp và dịch vụ tốt.",
-        imageUrl: "/immerse-vietnam/images/DaNang/danangcover.jpg",
-        gallery: [
-          "/immerse-vietnam/images/DaNang/danang1.jpg",
-          "/immerse-vietnam/images/DaNang/danang2.jpg",
-          "/immerse-vietnam/images/DaNang/danang3.jpg",
-        ],
-        featured: true,
-        createdAt,
-        updatedAt: createdAt,
-      },
-      {
-        id: "loc_halong",
-        name: "Hạ Long",
-        slug: "ha-long",
-        provinceOrCity: "Quảng Ninh",
-        country: "Việt Nam",
-        shortDescription: "Di sản thiên nhiên thế giới.",
-        description: "Vịnh Hạ Long lý tưởng cho hành trình du thuyền nghỉ dưỡng.",
-        imageUrl: "/immerse-vietnam/images/HaLong/halongcover.jpg",
-        gallery: [
-          "/immerse-vietnam/images/HaLong/halong1.jpg",
-          "/immerse-vietnam/images/HaLong/halong2.jpg",
-          "/immerse-vietnam/images/HaLong/halong3.jpg",
-        ],
-        featured: false,
-        createdAt,
-        updatedAt: createdAt,
-      },
-    ],
-    tours: [
-      {
-        id: "tour_dn_01",
-        title: "Đà Nẵng - Hội An 4N3Đ",
-        slug: "da-nang-hoi-an-4n3d",
-        shortDescription: "Kết hợp biển và phố cổ.",
-        description: "Lịch trình linh hoạt cho gia đình và nhóm bạn.",
-        price: 5290000,
-        discountPrice: 4890000,
-        durationDays: 4,
-        durationNights: 3,
-        maxGuests: 24,
-        transportation: "Máy bay + xe du lịch",
-        departureLocation: "TP.HCM",
-        featuredImage: "/immerse-vietnam/images/DaNang/danang1.jpg",
-        status: TourStatus.ACTIVE,
-        featured: true,
-        locationId: "loc_danang",
-        createdAt,
-        updatedAt: createdAt,
-      },
-      {
-        id: "tour_hn_01",
-        title: "Hà Nội - Ninh Bình 3N2Đ",
-        slug: "ha-noi-ninh-binh-3n2d",
-        shortDescription: "Hành trình văn hóa và thiên nhiên miền Bắc.",
-        description: "Khám phá di sản và trải nghiệm văn hóa bản địa.",
-        price: 3890000,
-        discountPrice: 3490000,
-        durationDays: 3,
-        durationNights: 2,
-        maxGuests: 20,
-        transportation: "Xe du lịch",
-        departureLocation: "Hà Nội",
-        featuredImage: "/immerse-vietnam/images/HaNoi/hanoi1.webp",
-        status: TourStatus.ACTIVE,
-        featured: false,
-        locationId: "loc_hanoi",
-        createdAt,
-        updatedAt: createdAt,
-      },
-      {
-        id: "tour_hl_01",
-        title: "Du thuyền Hạ Long 2N1Đ",
-        slug: "du-thuyen-ha-long-2n1d",
-        shortDescription: "Nghỉ đêm trên vịnh.",
-        description: "Hành trình cao cấp với trải nghiệm khác biệt.",
-        price: 4590000,
-        discountPrice: null,
-        durationDays: 2,
-        durationNights: 1,
-        maxGuests: 30,
-        transportation: "Limousine",
-        departureLocation: "Hà Nội",
-        featuredImage: "/immerse-vietnam/images/HaLong/halong1.jpg",
-        status: TourStatus.ACTIVE,
-        featured: true,
-        locationId: "loc_halong",
-        createdAt,
-        updatedAt: createdAt,
-      },
-    ],
-    bookings: [
-      {
-        id: "bk_01",
-        bookingCode: "TB2026031001",
-        userId: "usr_01",
-        tourId: "tour_dn_01",
-        fullName: "Nguyễn Minh Anh",
-        email: "minhanh@example.com",
-        phone: "0909111111",
-        numberOfGuests: 2,
-        totalPrice: 9780000,
-        status: BookingStatus.CONFIRMED,
-        paymentStatus: PaymentStatus.PAID,
-        createdAt,
-        updatedAt: createdAt,
-      },
-      {
-        id: "bk_02",
-        bookingCode: "TB2026031002",
-        userId: "usr_02",
-        tourId: "tour_hl_01",
-        fullName: "Trần Bảo Long",
-        email: "baolong@example.com",
-        phone: "0909222222",
-        numberOfGuests: 3,
-        totalPrice: 13770000,
-        status: BookingStatus.PENDING,
-        paymentStatus: PaymentStatus.UNPAID,
-        createdAt,
-        updatedAt: createdAt,
-      },
-    ],
-    reviews: [
-      {
-        id: "rv_01",
-        userId: "usr_01",
-        tourId: "tour_dn_01",
-        rating: 5,
-        comment: "Dịch vụ tốt, lịch trình hợp lý.",
-        isVisible: true,
-        createdAt,
-        updatedAt: createdAt,
-      },
-      {
-        id: "rv_02",
-        userId: "usr_02",
-        tourId: "tour_hl_01",
-        rating: 4,
-        comment: "Trải nghiệm đẹp nhưng cần thêm thời gian tự do.",
-        isVisible: true,
-        createdAt,
-        updatedAt: createdAt,
-      },
-    ],
-    favorites: [
-      { id: "fv_01", userId: "usr_01", tourId: "tour_hl_01" },
-      { id: "fv_02", userId: "usr_02", tourId: "tour_dn_01" },
-    ],
+    version: DEMO_DATA_VERSION,
+    users,
+    locations,
+    tours,
+    bookings,
+    reviews,
+    favorites,
   };
-})();
+}
+
+const initialData: DemoState = createInitialDemoState();
 
 async function ensureDemoFile() {
   try {
     await fs.access(DEMO_FILE);
   } catch {
-    await fs.mkdir(DEMO_DIR, { recursive: true });
-    await fs.writeFile(DEMO_FILE, JSON.stringify(initialData, null, 2), "utf8");
+    await writeDemo(initialData);
   }
+}
+
+function isOutdatedState(value: unknown): boolean {
+  if (!value || typeof value !== "object") return true;
+  const state = value as Partial<DemoState>;
+  if (state.version !== DEMO_DATA_VERSION) return true;
+  if (!Array.isArray(state.locations) || state.locations.length < 8) return true;
+  if (!Array.isArray(state.tours) || state.tours.length < 12) return true;
+  if (!Array.isArray(state.users) || state.users.length < 5) return true;
+  return false;
 }
 
 async function readDemo(): Promise<DemoState> {
   await ensureDemoFile();
   const content = await fs.readFile(DEMO_FILE, "utf8");
-  const parsed = JSON.parse(content) as DemoState;
-  parsed.locations = parsed.locations.map((location) => ({
+  const parsed = JSON.parse(content) as unknown;
+  if (isOutdatedState(parsed)) {
+    await writeDemo(initialData);
+    return createInitialDemoState();
+  }
+  const state = parsed as DemoState;
+  state.locations = state.locations.map((location) => ({
     ...location,
     gallery: Array.isArray(location.gallery) ? location.gallery : [location.imageUrl],
   }));
-  return parsed;
+  return state;
 }
 
 async function writeDemo(state: DemoState) {
   await fs.mkdir(DEMO_DIR, { recursive: true });
-  await fs.writeFile(DEMO_FILE, JSON.stringify(state, null, 2), "utf8");
+  const normalized: DemoState = {
+    ...state,
+    version: DEMO_DATA_VERSION,
+  };
+  await fs.writeFile(DEMO_FILE, JSON.stringify(normalized, null, 2), "utf8");
 }
 
 function searchIncludes(source: string, keyword?: string) {
@@ -737,7 +707,7 @@ export async function demoGetHomePublicData() {
     .filter((review) => review.isVisible)
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .slice(0, 6)
-    .map((review) => {
+    .map((review, index) => {
       const user = userMap.get(review.userId);
       const tour = allTours.find((item) => item.id === review.tourId);
       return {
@@ -745,7 +715,7 @@ export async function demoGetHomePublicData() {
         createdAt: toDate(review.createdAt),
         user: {
           fullName: user?.fullName ?? "Người dùng",
-          avatarUrl: null,
+          avatarUrl: localAvatarPool[index % localAvatarPool.length],
         },
         tour: {
           title: tour?.title ?? "Tour",
@@ -918,14 +888,14 @@ export async function demoGetPublicReviews(limit = 24) {
     .filter((review) => review.isVisible)
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .slice(0, limit)
-    .map((review) => {
+    .map((review, index) => {
       const tour = tours.find((item) => item.id === review.tourId);
       return {
         ...review,
         createdAt: toDate(review.createdAt),
         user: {
           fullName: userMap.get(review.userId)?.fullName ?? "Người dùng",
-          avatarUrl: null,
+          avatarUrl: localAvatarPool[index % localAvatarPool.length],
         },
         tour: {
           title: tour?.title ?? "Tour",

@@ -55,7 +55,7 @@ export const authOptions: NextAuthOptions = {
                 role: UserRole.ADMIN,
                 status: UserStatus.ACTIVE,
                 phone: "0909000001",
-                avatarUrl: "https://api.dicebear.com/9.x/notionists/svg?seed=admin",
+                avatarUrl: "/immerse-vietnam/images/test-1.jpg",
               },
             });
           }
