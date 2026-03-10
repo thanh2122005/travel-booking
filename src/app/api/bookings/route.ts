@@ -2,6 +2,8 @@ import { Prisma, TourStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-options";
+import { isDatabaseUnavailableError } from "@/lib/db/db-error";
+import { demoCreatePublicBooking } from "@/lib/demo/admin-demo-store";
 import { db } from "@/lib/db/prisma";
 import { bookingSchema } from "@/lib/validations/booking";
 
@@ -51,26 +53,26 @@ function parseDepartureDate(value?: string) {
 }
 
 export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ message: "Vui lòng đăng nhập để đặt tour." }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const parsed = bookingSchema.safeParse(body);
+
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    return NextResponse.json(
+      {
+        message: firstIssue?.message ?? "Dữ liệu đặt tour không hợp lệ.",
+      },
+      { status: 400 },
+    );
+  }
+
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ message: "Vui lòng đăng nhập để đặt tour." }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const parsed = bookingSchema.safeParse(body);
-
-    if (!parsed.success) {
-      const firstIssue = parsed.error.issues[0];
-      return NextResponse.json(
-        {
-          message: firstIssue?.message ?? "Dữ liệu đặt tour không hợp lệ.",
-        },
-        { status: 400 },
-      );
-    }
-
     const tour = await db.tour.findUnique({
       where: { id: parsed.data.tourId },
       select: {
@@ -139,6 +141,45 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      const fallbackBooking = await demoCreatePublicBooking({
+        userId: session.user.id,
+        tourId: parsed.data.tourId,
+        fullName: parsed.data.fullName,
+        email: parsed.data.email,
+        phone: parsed.data.phone,
+        numberOfGuests: parsed.data.numberOfGuests,
+        note: parsed.data.note,
+        departureDate: parsed.data.departureDate,
+      });
+
+      if (fallbackBooking === "MAX_GUEST_EXCEEDED") {
+        return NextResponse.json(
+          { message: "Số khách vượt quá giới hạn của tour." },
+          { status: 400 },
+        );
+      }
+
+      if (!fallbackBooking) {
+        return NextResponse.json(
+          { message: "Không thể xử lý đặt tour ở chế độ dự phòng." },
+          { status: 500 },
+        );
+      }
+
+      return NextResponse.json(
+        {
+          message: `Đặt tour thành công. Mã đơn của bạn là ${fallbackBooking.bookingCode}.`,
+          booking: {
+            id: fallbackBooking.id,
+            bookingCode: fallbackBooking.bookingCode,
+            totalPrice: fallbackBooking.totalPrice,
+          },
+        },
+        { status: 201 },
+      );
+    }
+
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json(
         {

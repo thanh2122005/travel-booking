@@ -2,35 +2,37 @@ import { BookingStatus, TourStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-options";
+import { isDatabaseUnavailableError } from "@/lib/db/db-error";
+import { demoUpsertPublicReview } from "@/lib/demo/admin-demo-store";
 import { db } from "@/lib/db/prisma";
 import { reviewSchema } from "@/lib/validations/tour-interactions";
 
 export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      {
+        message: "Vui lòng đăng nhập để gửi đánh giá.",
+      },
+      { status: 401 },
+    );
+  }
+
+  const body = await request.json();
+  const parsed = reviewSchema.safeParse(body);
+
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    return NextResponse.json(
+      {
+        message: firstIssue?.message ?? "Dữ liệu đánh giá không hợp lệ.",
+      },
+      { status: 400 },
+    );
+  }
+
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        {
-          message: "Vui lòng đăng nhập để gửi đánh giá.",
-        },
-        { status: 401 },
-      );
-    }
-
-    const body = await request.json();
-    const parsed = reviewSchema.safeParse(body);
-
-    if (!parsed.success) {
-      const firstIssue = parsed.error.issues[0];
-      return NextResponse.json(
-        {
-          message: firstIssue?.message ?? "Dữ liệu đánh giá không hợp lệ.",
-        },
-        { status: 400 },
-      );
-    }
-
     const tour = await db.tour.findUnique({
       where: { id: parsed.data.tourId },
       select: {
@@ -93,7 +95,26 @@ export async function POST(request: Request) {
       message: "Đánh giá của bạn đã được ghi nhận.",
       review,
     });
-  } catch {
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      const review = await demoUpsertPublicReview({
+        userId: session.user.id,
+        tourId: parsed.data.tourId,
+        rating: parsed.data.rating,
+        comment: parsed.data.comment,
+        email: session.user.email ?? undefined,
+      });
+      return NextResponse.json({
+        message: "Đánh giá của bạn đã được ghi nhận.",
+        review: {
+          id: review.id,
+          rating: review.rating,
+          comment: review.comment,
+          updatedAt: new Date(review.updatedAt),
+        },
+      });
+    }
+
     return NextResponse.json(
       {
         message: "Không thể gửi đánh giá lúc này, vui lòng thử lại sau.",

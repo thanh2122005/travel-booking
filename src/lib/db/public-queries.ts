@@ -1,4 +1,13 @@
 import { Prisma, TourStatus } from "@prisma/client";
+import {
+  demoGetHomePublicData,
+  demoGetPublicLocationBySlug,
+  demoGetPublicLocations,
+  demoGetPublicReviews,
+  demoGetPublicTourBySlug,
+  demoGetPublicTours,
+} from "@/lib/demo/admin-demo-store";
+import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { db } from "@/lib/db/prisma";
 
 export type TourFilterInput = {
@@ -70,189 +79,204 @@ function buildDurationWhere(duration?: TourFilterInput["duration"]): Prisma.Tour
 }
 
 export async function getHomePublicData() {
-  const [
-    featuredLocations,
-    featuredTours,
-    latestReviews,
-    itineraryPreview,
-    totalTours,
-    totalLocations,
-    totalBookings,
-    totalReviews,
-  ] = await Promise.all([
-    db.location.findMany({
-      where: { featured: true },
-      orderBy: { updatedAt: "desc" },
-      take: 6,
-    }),
-    db.tour.findMany({
-      where: {
-        status: TourStatus.ACTIVE,
-        featured: true,
-      },
-      include: {
-        location: true,
-      },
-      orderBy: { createdAt: "desc" },
-      take: 6,
-    }),
-    db.review.findMany({
-      where: {
-        isVisible: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 6,
-      include: {
-        user: {
-          select: {
-            fullName: true,
-            avatarUrl: true,
-          },
-        },
-        tour: {
-          select: {
-            title: true,
-            slug: true,
-            location: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    }),
-    db.tour.findMany({
-      where: {
-        status: TourStatus.ACTIVE,
-      },
-      include: {
-        location: true,
-        itineraries: {
-          orderBy: {
-            dayNumber: "asc",
-          },
-          take: 3,
-        },
-      },
-      orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
-      take: 4,
-    }),
-    db.tour.count({
-      where: {
-        status: TourStatus.ACTIVE,
-      },
-    }),
-    db.location.count(),
-    db.booking.count(),
-    db.review.count({
-      where: {
-        isVisible: true,
-      },
-    }),
-  ]);
-
-  const ratings = await getTourRatings(featuredTours.map((item) => item.id));
-
-  return {
-    featuredLocations,
-    featuredTours: featuredTours.map((item) => ({
-      ...item,
-      avgRating: ratings[item.id]?.avgRating ?? 0,
-      reviewCount: ratings[item.id]?.reviewCount ?? 0,
-    })),
-    latestReviews,
-    itineraryPreview,
-    stats: {
+  try {
+    const [
+      featuredLocations,
+      featuredTours,
+      latestReviews,
+      itineraryPreview,
       totalTours,
       totalLocations,
       totalBookings,
       totalReviews,
-    },
-  };
+    ] = await Promise.all([
+      db.location.findMany({
+        where: { featured: true },
+        orderBy: { updatedAt: "desc" },
+        take: 6,
+      }),
+      db.tour.findMany({
+        where: {
+          status: TourStatus.ACTIVE,
+          featured: true,
+        },
+        include: {
+          location: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+      }),
+      db.review.findMany({
+        where: {
+          isVisible: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 6,
+        include: {
+          user: {
+            select: {
+              fullName: true,
+              avatarUrl: true,
+            },
+          },
+          tour: {
+            select: {
+              title: true,
+              slug: true,
+              location: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+      db.tour.findMany({
+        where: {
+          status: TourStatus.ACTIVE,
+        },
+        include: {
+          location: true,
+          itineraries: {
+            orderBy: {
+              dayNumber: "asc",
+            },
+            take: 3,
+          },
+        },
+        orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+        take: 4,
+      }),
+      db.tour.count({
+        where: {
+          status: TourStatus.ACTIVE,
+        },
+      }),
+      db.location.count(),
+      db.booking.count(),
+      db.review.count({
+        where: {
+          isVisible: true,
+        },
+      }),
+    ]);
+
+    const ratings = await getTourRatings(featuredTours.map((item) => item.id));
+
+    return {
+      featuredLocations,
+      featuredTours: featuredTours.map((item) => ({
+        ...item,
+        avgRating: ratings[item.id]?.avgRating ?? 0,
+        reviewCount: ratings[item.id]?.reviewCount ?? 0,
+      })),
+      latestReviews,
+      itineraryPreview,
+      stats: {
+        totalTours,
+        totalLocations,
+        totalBookings,
+        totalReviews,
+      },
+    };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetHomePublicData();
+    }
+    throw error;
+  }
 }
 
 export async function getTours(filters: TourFilterInput) {
-  const page = Math.max(filters.page ?? 1, 1);
-  const pageSize = filters.pageSize ?? 9;
+  try {
+    const page = Math.max(filters.page ?? 1, 1);
+    const pageSize = filters.pageSize ?? 9;
 
-  const where: Prisma.TourWhereInput = {
-    status: TourStatus.ACTIVE,
-    ...(filters.search
-      ? {
-          OR: [
-            { title: { contains: filters.search, mode: "insensitive" } },
-            { shortDescription: { contains: filters.search, mode: "insensitive" } },
-          ],
-        }
-      : {}),
-    ...(filters.location ? { location: { slug: filters.location } } : {}),
-    ...(typeof filters.minPrice === "number" ? { price: { gte: filters.minPrice } } : {}),
-    ...(typeof filters.maxPrice === "number" ? { price: { lte: filters.maxPrice } } : {}),
-    ...(filters.featured ? { featured: true } : {}),
-    ...buildDurationWhere(filters.duration),
-  };
-
-  const [total, tours, allLocations] = await Promise.all([
-    db.tour.count({ where }),
-    db.tour.findMany({
-      where,
-      include: {
-        location: true,
-      },
-      orderBy:
-        filters.sort === "gia-tang"
-          ? { price: "asc" }
-          : filters.sort === "gia-giam"
-            ? { price: "desc" }
-            : { createdAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-    db.location.findMany({
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-      },
-      orderBy: {
-        name: "asc",
-      },
-    }),
-  ]);
-
-  const ratings = await getTourRatings(tours.map((item) => item.id));
-
-  const enrichedTours = tours.map((item) => ({
-    ...item,
-    avgRating: ratings[item.id]?.avgRating ?? 0,
-    reviewCount: ratings[item.id]?.reviewCount ?? 0,
-  }));
-
-  const sortedTours =
-    filters.sort === "danh-gia-cao"
-      ? enrichedTours.sort((a, b) => {
-          if (b.avgRating === a.avgRating) {
-            return b.reviewCount - a.reviewCount;
+    const where: Prisma.TourWhereInput = {
+      status: TourStatus.ACTIVE,
+      ...(filters.search
+        ? {
+            OR: [
+              { title: { contains: filters.search, mode: "insensitive" } },
+              { shortDescription: { contains: filters.search, mode: "insensitive" } },
+            ],
           }
-          return b.avgRating - a.avgRating;
-        })
-      : enrichedTours;
+        : {}),
+      ...(filters.location ? { location: { slug: filters.location } } : {}),
+      ...(typeof filters.minPrice === "number" ? { price: { gte: filters.minPrice } } : {}),
+      ...(typeof filters.maxPrice === "number" ? { price: { lte: filters.maxPrice } } : {}),
+      ...(filters.featured ? { featured: true } : {}),
+      ...buildDurationWhere(filters.duration),
+    };
 
-  return {
-    tours: sortedTours,
-    locations: allLocations,
-    total,
-    page,
-    pageSize,
-    totalPages: Math.max(Math.ceil(total / pageSize), 1),
-  };
+    const [total, tours, allLocations] = await Promise.all([
+      db.tour.count({ where }),
+      db.tour.findMany({
+        where,
+        include: {
+          location: true,
+        },
+        orderBy:
+          filters.sort === "gia-tang"
+            ? { price: "asc" }
+            : filters.sort === "gia-giam"
+              ? { price: "desc" }
+              : { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      db.location.findMany({
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+        orderBy: {
+          name: "asc",
+        },
+      }),
+    ]);
+
+    const ratings = await getTourRatings(tours.map((item) => item.id));
+
+    const enrichedTours = tours.map((item) => ({
+      ...item,
+      avgRating: ratings[item.id]?.avgRating ?? 0,
+      reviewCount: ratings[item.id]?.reviewCount ?? 0,
+    }));
+
+    const sortedTours =
+      filters.sort === "danh-gia-cao"
+        ? enrichedTours.sort((a, b) => {
+            if (b.avgRating === a.avgRating) {
+              return b.reviewCount - a.reviewCount;
+            }
+            return b.avgRating - a.avgRating;
+          })
+        : enrichedTours;
+
+    return {
+      tours: sortedTours,
+      locations: allLocations,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(Math.ceil(total / pageSize), 1),
+    };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetPublicTours(filters);
+    }
+    throw error;
+  }
 }
 
 export async function getTourBySlug(slug: string, userId?: string) {
-  const tour = await db.tour.findUnique({
+  try {
+    const tour = await db.tour.findUnique({
     where: { slug },
     include: {
       location: true,
@@ -270,11 +294,11 @@ export async function getTourBySlug(slug: string, userId?: string) {
     },
   });
 
-  if (!tour || tour.status === TourStatus.INACTIVE) {
-    return null;
-  }
+    if (!tour || tour.status === TourStatus.INACTIVE) {
+      return null;
+    }
 
-  const relatedTours = await db.tour.findMany({
+    const relatedTours = await db.tour.findMany({
     where: {
       status: TourStatus.ACTIVE,
       locationId: tour.locationId,
@@ -287,160 +311,187 @@ export async function getTourBySlug(slug: string, userId?: string) {
     take: 4,
   });
 
-  const ratings = await getTourRatings([tour.id, ...relatedTours.map((item) => item.id)]);
+    const ratings = await getTourRatings([tour.id, ...relatedTours.map((item) => item.id)]);
 
-  let viewer: TourViewerData | null = null;
-  if (userId) {
-    const [favorite, ownReview, ownProfile] = await Promise.all([
-      db.favorite.findUnique({
-        where: {
-          userId_tourId: {
-            userId,
-            tourId: tour.id,
+    let viewer: TourViewerData | null = null;
+    if (userId) {
+      const [favorite, ownReview, ownProfile] = await Promise.all([
+        db.favorite.findUnique({
+          where: {
+            userId_tourId: {
+              userId,
+              tourId: tour.id,
+            },
           },
-        },
-        select: { id: true },
-      }),
-      db.review.findUnique({
-        where: {
-          userId_tourId: {
-            userId,
-            tourId: tour.id,
+          select: { id: true },
+        }),
+        db.review.findUnique({
+          where: {
+            userId_tourId: {
+              userId,
+              tourId: tour.id,
+            },
           },
-        },
-        select: {
-          rating: true,
-          comment: true,
-        },
-      }),
-      db.user.findUnique({
-        where: { id: userId },
-        select: { phone: true },
-      }),
-    ]);
+          select: {
+            rating: true,
+            comment: true,
+          },
+        }),
+        db.user.findUnique({
+          where: { id: userId },
+          select: { phone: true },
+        }),
+      ]);
 
-    viewer = {
-      isFavorite: Boolean(favorite),
-      review: ownReview
-        ? {
-            rating: ownReview.rating,
-            comment: ownReview.comment,
-          }
-        : null,
-      phone: ownProfile?.phone ?? "",
+      viewer = {
+        isFavorite: Boolean(favorite),
+        review: ownReview
+          ? {
+              rating: ownReview.rating,
+              comment: ownReview.comment,
+            }
+          : null,
+        phone: ownProfile?.phone ?? "",
+      };
+    }
+
+    return {
+      tour: {
+        ...tour,
+        avgRating: ratings[tour.id]?.avgRating ?? 0,
+        reviewCount: ratings[tour.id]?.reviewCount ?? 0,
+      },
+      relatedTours: relatedTours.map((item) => ({
+        ...item,
+        avgRating: ratings[item.id]?.avgRating ?? 0,
+        reviewCount: ratings[item.id]?.reviewCount ?? 0,
+      })),
+      viewer,
     };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetPublicTourBySlug(slug, userId);
+    }
+    throw error;
   }
-
-  return {
-    tour: {
-      ...tour,
-      avgRating: ratings[tour.id]?.avgRating ?? 0,
-      reviewCount: ratings[tour.id]?.reviewCount ?? 0,
-    },
-    relatedTours: relatedTours.map((item) => ({
-      ...item,
-      avgRating: ratings[item.id]?.avgRating ?? 0,
-      reviewCount: ratings[item.id]?.reviewCount ?? 0,
-    })),
-    viewer,
-  };
 }
 
 export async function getLocations(search?: string) {
-  return db.location.findMany({
-    where: search
-      ? {
-          OR: [
-            { name: { contains: search, mode: "insensitive" } },
-            { provinceOrCity: { contains: search, mode: "insensitive" } },
-          ],
-        }
-      : undefined,
-    orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
-  });
+  try {
+    return db.location.findMany({
+      where: search
+        ? {
+            OR: [
+              { name: { contains: search, mode: "insensitive" } },
+              { provinceOrCity: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : undefined,
+      orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetPublicLocations(search);
+    }
+    throw error;
+  }
 }
 
 export async function getLocationBySlug(slug: string) {
-  const location = await db.location.findUnique({
-    where: { slug },
-    include: {
-      tours: {
-        where: { status: TourStatus.ACTIVE },
-        orderBy: { createdAt: "desc" },
+  try {
+    const location = await db.location.findUnique({
+      where: { slug },
+      include: {
+        tours: {
+          where: { status: TourStatus.ACTIVE },
+          orderBy: { createdAt: "desc" },
+        },
       },
-    },
-  });
+    });
 
-  if (!location) {
-    return null;
+    if (!location) {
+      return null;
+    }
+
+    const ratings = await getTourRatings(location.tours.map((item) => item.id));
+
+    return {
+      ...location,
+      tours: location.tours.map((item) => ({
+        ...item,
+        avgRating: ratings[item.id]?.avgRating ?? 0,
+        reviewCount: ratings[item.id]?.reviewCount ?? 0,
+      })),
+    };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetPublicLocationBySlug(slug);
+    }
+    throw error;
   }
-
-  const ratings = await getTourRatings(location.tours.map((item) => item.id));
-
-  return {
-    ...location,
-    tours: location.tours.map((item) => ({
-      ...item,
-      avgRating: ratings[item.id]?.avgRating ?? 0,
-      reviewCount: ratings[item.id]?.reviewCount ?? 0,
-    })),
-  };
 }
 
 export async function getPublicReviews(limit = 24) {
-  const [reviews, grouped] = await Promise.all([
-    db.review.findMany({
-      where: {
-        isVisible: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: limit,
-      include: {
-        user: {
-          select: {
-            fullName: true,
-            avatarUrl: true,
-          },
+  try {
+    const [reviews, grouped] = await Promise.all([
+      db.review.findMany({
+        where: {
+          isVisible: true,
         },
-        tour: {
-          select: {
-            title: true,
-            slug: true,
-            location: {
-              select: {
-                name: true,
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: limit,
+        include: {
+          user: {
+            select: {
+              fullName: true,
+              avatarUrl: true,
+            },
+          },
+          tour: {
+            select: {
+              title: true,
+              slug: true,
+              location: {
+                select: {
+                  name: true,
+                },
               },
             },
           },
         },
-      },
-    }),
-    db.review.groupBy({
-      by: ["rating"],
-      where: {
-        isVisible: true,
-      },
-      _count: {
-        _all: true,
-      },
-    }),
-  ]);
+      }),
+      db.review.groupBy({
+        by: ["rating"],
+        where: {
+          isVisible: true,
+        },
+        _count: {
+          _all: true,
+        },
+      }),
+    ]);
 
-  const total = grouped.reduce((acc, item) => acc + item._count._all, 0);
-  const totalScore = grouped.reduce((acc, item) => acc + item.rating * item._count._all, 0);
-  const avgRating = total ? Number((totalScore / total).toFixed(1)) : 0;
+    const total = grouped.reduce((acc, item) => acc + item._count._all, 0);
+    const totalScore = grouped.reduce((acc, item) => acc + item.rating * item._count._all, 0);
+    const avgRating = total ? Number((totalScore / total).toFixed(1)) : 0;
 
-  return {
-    reviews,
-    summary: {
-      total,
-      avgRating,
-      byRating: grouped.reduce<Record<number, number>>((acc, item) => {
-        acc[item.rating] = item._count._all;
-        return acc;
-      }, {}),
-    },
-  };
+    return {
+      reviews,
+      summary: {
+        total,
+        avgRating,
+        byRating: grouped.reduce<Record<number, number>>((acc, item) => {
+          acc[item.rating] = item._count._all;
+          return acc;
+        }, {}),
+      },
+    };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetPublicReviews(limit);
+    }
+    throw error;
+  }
 }
