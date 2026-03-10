@@ -5,6 +5,37 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+const tourImageSuggestions = [
+  "/immerse-vietnam/images/DaNang/DN1.jpg",
+  "/immerse-vietnam/images/HaNoi/HN1.jpg",
+  "/immerse-vietnam/images/HaLong/HL1.webp",
+  "/immerse-vietnam/images/HoiAn/HA1.jpg",
+  "/immerse-vietnam/images/Hue/huecover.jpg",
+  "/immerse-vietnam/images/NhaTrang/NT1.jpg",
+  "/immerse-vietnam/images/PhuQuoc/PQ1.jpg",
+  "/immerse-vietnam/images/DaLat/dalatcover.jpg",
+  "/immerse-vietnam/images/HCM/HCM1.jpg",
+  "/immerse-vietnam/images/HaiPhong/HP1.jpg",
+  "/immerse-vietnam/images/PhuYen/PY1.jpg",
+  "/immerse-vietnam/images/PhuQuy/PQuy1.jpg",
+] as const;
+
+const departureSuggestions = [
+  "TP. Hồ Chí Minh",
+  "Hà Nội",
+  "Đà Nẵng",
+  "Nha Trang",
+  "Hải Phòng",
+] as const;
+
+const transportationSuggestions = [
+  "Máy bay + xe du lịch",
+  "Xe du lịch",
+  "Xe giường nằm",
+  "Limousine",
+  "Xe du lịch + tàu cao tốc",
+] as const;
+
 type TourStatusValue = "ACTIVE" | "INACTIVE";
 
 type LocationOption = {
@@ -67,8 +98,8 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
   return (
     <form onSubmit={handleSubmit} className="iv-card grid gap-3 p-4 md:grid-cols-3">
       <h3 className="md:col-span-3 text-base font-semibold text-slate-900">Thêm tour mới</h3>
-      <input name="title" placeholder="Tên tour" className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-2" />
-      <input name="slug" placeholder="Slug tour" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
+      <input name="title" required placeholder="Tên tour" className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-2" />
+      <input name="slug" required placeholder="Slug tour" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
       <select name="locationId" defaultValue="" className="h-10 rounded-xl border border-slate-200 px-3 text-sm">
         <option value="">Chọn điểm đến</option>
         {locations.map((location) => (
@@ -77,20 +108,61 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
           </option>
         ))}
       </select>
-      <input name="departureLocation" placeholder="Điểm khởi hành" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-      <input name="transportation" placeholder="Phương tiện" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-      <input name="shortDescription" placeholder="Mô tả ngắn" className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-3" />
-      <input name="description" placeholder="Mô tả chi tiết" className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-3" />
-      <input name="featuredImage" placeholder="Ảnh đại diện" className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-3" />
-      <input name="price" type="number" placeholder="Giá gốc" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
+      <input
+        name="departureLocation"
+        required
+        list="departure-options"
+        placeholder="Điểm khởi hành"
+        className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+      />
+      <datalist id="departure-options">
+        {departureSuggestions.map((departure) => (
+          <option key={departure} value={departure} />
+        ))}
+      </datalist>
+      <input
+        name="transportation"
+        required
+        list="transportation-options"
+        placeholder="Phương tiện"
+        className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+      />
+      <datalist id="transportation-options">
+        {transportationSuggestions.map((transportation) => (
+          <option key={transportation} value={transportation} />
+        ))}
+      </datalist>
+      <input name="shortDescription" required placeholder="Mô tả ngắn" className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-3" />
+      <textarea
+        name="description"
+        required
+        placeholder="Mô tả chi tiết"
+        className="min-h-24 rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-3"
+      />
+      <input
+        name="featuredImage"
+        required
+        list="tour-image-options"
+        placeholder="Ảnh đại diện (gợi ý từ thư viện local)"
+        className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-3"
+      />
+      <datalist id="tour-image-options">
+        {tourImageSuggestions.map((imagePath) => (
+          <option key={imagePath} value={imagePath} />
+        ))}
+      </datalist>
+      <input name="price" required type="number" placeholder="Giá gốc" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
       <input name="discountPrice" type="number" placeholder="Giá khuyến mãi (tuỳ chọn)" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-      <input name="maxGuests" type="number" placeholder="Số khách tối đa" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-      <input name="durationDays" type="number" placeholder="Số ngày" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-      <input name="durationNights" type="number" placeholder="Số đêm" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
+      <input name="maxGuests" required type="number" placeholder="Số khách tối đa" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
+      <input name="durationDays" required type="number" placeholder="Số ngày" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
+      <input name="durationNights" required type="number" placeholder="Số đêm" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
       <select value={status} onChange={(event) => setStatus(event.target.value as TourStatusValue)} className="h-10 rounded-xl border border-slate-200 px-3 text-sm">
         <option value="ACTIVE">Đang hoạt động</option>
         <option value="INACTIVE">Ngừng hoạt động</option>
       </select>
+      <p className="md:col-span-3 text-xs text-slate-500">
+        Mẹo: dùng đường dẫn ảnh local để tour hiển thị ổn định trong môi trường dev/offline.
+      </p>
       <label className="inline-flex items-center gap-2 text-sm text-slate-600 md:col-span-2">
         <input type="checkbox" checked={featured} onChange={(event) => setFeatured(event.target.checked)} />
         Đánh dấu tour nổi bật

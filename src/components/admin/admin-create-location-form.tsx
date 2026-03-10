@@ -5,6 +5,21 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+const locationImageSuggestions = [
+  "/immerse-vietnam/images/HaNoi/hanoicover.jpg",
+  "/immerse-vietnam/images/DaNang/danangcover.jpg",
+  "/immerse-vietnam/images/HoiAn/hoiancover.jpg",
+  "/immerse-vietnam/images/Hue/huecover.jpg",
+  "/immerse-vietnam/images/NhaTrang/nhatrangcover.jpg",
+  "/immerse-vietnam/images/PQ.jpg",
+  "/immerse-vietnam/images/DaLat/dalatcover.jpg",
+  "/immerse-vietnam/images/HaLong/halongcover.jpg",
+  "/immerse-vietnam/images/HCM/hcmcover.jpg",
+  "/immerse-vietnam/images/HaiPhong/HP1.jpg",
+  "/immerse-vietnam/images/PhuYen/PY1.jpg",
+  "/immerse-vietnam/images/PhuQuy/PQuy1.jpg",
+] as const;
+
 export function AdminCreateLocationForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -46,13 +61,32 @@ export function AdminCreateLocationForm() {
   return (
     <form onSubmit={handleSubmit} className="iv-card grid gap-3 p-4 md:grid-cols-2">
       <h3 className="md:col-span-2 text-base font-semibold text-slate-900">Thêm điểm đến mới</h3>
-      <input name="name" placeholder="Tên điểm đến" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-      <input name="slug" placeholder="Slug (vd: phu-quoc)" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-      <input name="provinceOrCity" placeholder="Tỉnh/Thành phố" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
+      <input name="name" required placeholder="Tên điểm đến" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
+      <input name="slug" required placeholder="Slug (vd: phu-quoc)" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
+      <input name="provinceOrCity" required placeholder="Tỉnh/Thành phố" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
       <input name="country" defaultValue="Việt Nam" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-      <input name="shortDescription" placeholder="Mô tả ngắn" className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-2" />
-      <input name="description" placeholder="Mô tả chi tiết" className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-2" />
-      <input name="imageUrl" placeholder="URL ảnh đại diện" className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-2" />
+      <input name="shortDescription" required placeholder="Mô tả ngắn" className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-2" />
+      <textarea
+        name="description"
+        required
+        placeholder="Mô tả chi tiết"
+        className="min-h-24 rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2"
+      />
+      <input
+        name="imageUrl"
+        required
+        list="location-image-options"
+        placeholder="URL ảnh đại diện (gợi ý từ thư viện local)"
+        className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-2"
+      />
+      <datalist id="location-image-options">
+        {locationImageSuggestions.map((imagePath) => (
+          <option key={imagePath} value={imagePath} />
+        ))}
+      </datalist>
+      <p className="md:col-span-2 text-xs text-slate-500">
+        Gợi ý: chọn ảnh trong `public/immerse-vietnam/images` để hiển thị ổn định ngay cả khi mạng chặn ảnh ngoài.
+      </p>
       <label className="inline-flex items-center gap-2 text-sm text-slate-600">
         <input type="checkbox" checked={featured} onChange={(event) => setFeatured(event.target.checked)} />
         Đánh dấu nổi bật
