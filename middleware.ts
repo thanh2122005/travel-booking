@@ -1,6 +1,7 @@
 ﻿import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { authSecret } from "@/lib/auth/auth-secret";
 
 const authRoutes = ["/dang-nhap", "/dang-ky"];
 const userRoutes = ["/tai-khoan"];
@@ -9,7 +10,7 @@ const adminRoutes = ["/admin"];
 export async function middleware(request: NextRequest) {
   const token = await getToken({
     req: request,
-    secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+    secret: authSecret,
   });
 
   const { pathname } = request.nextUrl;

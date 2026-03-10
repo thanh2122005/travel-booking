@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,9 @@ import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/tai-khoan";
+  const rawCallbackUrl = searchParams.get("callbackUrl");
+  const callbackUrl =
+    rawCallbackUrl && rawCallbackUrl.startsWith("/") ? rawCallbackUrl : undefined;
 
   const {
     register,
@@ -34,7 +36,7 @@ export function LoginForm() {
     const result = await signIn("credentials", {
       email: values.email,
       password: values.password,
-      callbackUrl,
+      callbackUrl: callbackUrl ?? "/",
       redirect: false,
     });
 
@@ -44,7 +46,12 @@ export function LoginForm() {
     }
 
     toast.success("Đăng nhập thành công.");
-    router.push(result.url ?? callbackUrl);
+    const session = await getSession();
+    const destination =
+      callbackUrl ??
+      (session?.user?.role === "ADMIN" ? "/admin" : "/tai-khoan");
+
+    router.replace(destination);
     router.refresh();
   });
 

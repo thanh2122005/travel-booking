@@ -2,6 +2,7 @@ import { UserRole, UserStatus } from "@prisma/client";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { authSecret } from "@/lib/auth/auth-secret";
 import { db } from "@/lib/db/prisma";
 import { loginSchema } from "@/lib/validations/auth";
 
@@ -9,7 +10,7 @@ const DEV_ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "admin@example.com";
 const DEV_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "Admin@123";
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.AUTH_SECRET,
+  secret: authSecret,
   session: {
     strategy: "jwt",
   },
