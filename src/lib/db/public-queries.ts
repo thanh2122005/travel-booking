@@ -386,3 +386,61 @@ export async function getLocationBySlug(slug: string) {
     })),
   };
 }
+
+export async function getPublicReviews(limit = 24) {
+  const [reviews, grouped] = await Promise.all([
+    db.review.findMany({
+      where: {
+        isVisible: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: limit,
+      include: {
+        user: {
+          select: {
+            fullName: true,
+            avatarUrl: true,
+          },
+        },
+        tour: {
+          select: {
+            title: true,
+            slug: true,
+            location: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+    db.review.groupBy({
+      by: ["rating"],
+      where: {
+        isVisible: true,
+      },
+      _count: {
+        _all: true,
+      },
+    }),
+  ]);
+
+  const total = grouped.reduce((acc, item) => acc + item._count._all, 0);
+  const totalScore = grouped.reduce((acc, item) => acc + item.rating * item._count._all, 0);
+  const avgRating = total ? Number((totalScore / total).toFixed(1)) : 0;
+
+  return {
+    reviews,
+    summary: {
+      total,
+      avgRating,
+      byRating: grouped.reduce<Record<number, number>>((acc, item) => {
+        acc[item.rating] = item._count._all;
+        return acc;
+      }, {}),
+    },
+  };
+}
