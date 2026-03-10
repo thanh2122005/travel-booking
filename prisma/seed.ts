@@ -104,12 +104,23 @@ async function main() {
 
   const tours = await prisma.tour.findMany();
   const tourMap = new Map(tours.map((tour) => [tour.slug, tour]));
+  const locationGalleryMap = new Map(
+    catalogLocations.map((location) => [location.slug, location.gallery]),
+  );
 
   await prisma.tourImage.createMany({
     data: catalogTours.flatMap((tour) => {
       const currentTour = tourMap.get(tour.slug);
       if (!currentTour) return [];
-      return tour.gallery.map((imageUrl, index) => ({
+      const mergedGallery = Array.from(
+        new Set([
+          tour.featuredImage,
+          ...tour.gallery,
+          ...(locationGalleryMap.get(tour.locationSlug) ?? []),
+        ]),
+      ).slice(0, 6);
+
+      return mergedGallery.map((imageUrl, index) => ({
         tourId: currentTour.id,
         imageUrl,
         sortOrder: index + 1,

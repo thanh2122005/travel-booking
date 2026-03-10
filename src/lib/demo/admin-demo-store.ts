@@ -162,6 +162,9 @@ function createInitialDemoState(): DemoState {
   }));
 
   const locationIdMap = new Map(locations.map((location) => [location.slug, location.id]));
+  const locationGalleryMap = new Map(
+    catalogLocations.map((location) => [location.slug, location.gallery]),
+  );
 
   const tours: DemoTour[] = catalogTours.map((tour) => ({
     id: `tour_${cleanId(tour.slug)}`,
@@ -177,7 +180,13 @@ function createInitialDemoState(): DemoState {
     transportation: tour.transportation,
     departureLocation: tour.departureLocation,
     featuredImage: tour.featuredImage,
-    gallery: Array.from(new Set(tour.gallery)),
+    gallery: Array.from(
+      new Set([
+        tour.featuredImage,
+        ...tour.gallery,
+        ...(locationGalleryMap.get(tour.locationSlug) ?? []),
+      ]),
+    ).slice(0, 6),
     status: tour.status === "INACTIVE" ? TourStatus.INACTIVE : TourStatus.ACTIVE,
     featured: Boolean(tour.featured),
     locationId: locationIdMap.get(tour.locationSlug) ?? locations[0]?.id ?? "",
