@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { AdminBookingRevenueChart } from "@/components/admin/admin-booking-revenue-chart";
 import { EmptyState } from "@/components/common/empty-state";
 import { adminLabels, getAdminDashboardData } from "@/lib/db/admin-queries";
 import { formatDate, formatPrice } from "@/lib/utils/format";
@@ -47,6 +48,8 @@ export default async function AdminPage() {
           </article>
         ))}
       </section>
+
+      <AdminBookingRevenueChart timeline={data.bookingRevenueTimeline} />
 
       <section className="grid gap-4 lg:grid-cols-2">
         <article className="iv-card p-5">
