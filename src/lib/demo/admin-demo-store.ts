@@ -224,13 +224,13 @@ function createInitialDemoState(): DemoState {
     transportation: tour.transportation,
     departureLocation: tour.departureLocation,
     featuredImage: tour.featuredImage,
-    gallery: Array.from(
-      new Set([
-        tour.featuredImage,
-        ...tour.gallery,
-        ...(locationGalleryMap.get(tour.locationSlug) ?? []),
-      ]),
-    ).slice(0, 6),
+    gallery: (() => {
+      const baseGallery = Array.from(new Set([tour.featuredImage, ...tour.gallery].filter(Boolean)));
+      const locationGallery = (locationGalleryMap.get(tour.locationSlug) ?? []).filter(
+        (image) => !baseGallery.includes(image),
+      );
+      return [...baseGallery, ...locationGallery].slice(0, 8);
+    })(),
     status: tour.status === "INACTIVE" ? TourStatus.INACTIVE : TourStatus.ACTIVE,
     featured: Boolean(tour.featured),
     locationId: locationIdMap.get(tour.locationSlug) ?? locations[0]?.id ?? "",
@@ -248,8 +248,9 @@ function createInitialDemoState(): DemoState {
     BookingStatus.COMPLETED,
     BookingStatus.CANCELLED,
   ];
+  const bookingCount = Math.max(72, activeTours.length * 4);
 
-  const bookings: DemoBooking[] = Array.from({ length: 30 }).map((_, index) => {
+  const bookings: DemoBooking[] = Array.from({ length: bookingCount }).map((_, index) => {
     const user = regularUsers[index % regularUsers.length]!;
     const tour = activeTours[(index * 3) % activeTours.length]!;
     const guests = Math.min((index % 4) + 1, tour.maxGuests);

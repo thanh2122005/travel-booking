@@ -112,13 +112,11 @@ async function main() {
     data: catalogTours.flatMap((tour) => {
       const currentTour = tourMap.get(tour.slug);
       if (!currentTour) return [];
-      const mergedGallery = Array.from(
-        new Set([
-          tour.featuredImage,
-          ...tour.gallery,
-          ...(locationGalleryMap.get(tour.locationSlug) ?? []),
-        ]),
-      ).slice(0, 6);
+      const baseGallery = Array.from(new Set([tour.featuredImage, ...tour.gallery].filter(Boolean)));
+      const locationGallery = (locationGalleryMap.get(tour.locationSlug) ?? []).filter(
+        (image) => !baseGallery.includes(image),
+      );
+      const mergedGallery = [...baseGallery, ...locationGallery].slice(0, 8);
 
       return mergedGallery.map((imageUrl, index) => ({
         tourId: currentTour.id,
@@ -149,7 +147,7 @@ async function main() {
 
   const activeTours = tours.filter((tour) => tour.status === TourStatus.ACTIVE);
 
-  const bookingCount = 48;
+  const bookingCount = Math.max(72, activeTours.length * 4);
   await prisma.booking.createMany({
     data: Array.from({ length: bookingCount }).map((_, index) => {
       const user = users[index % users.length]!;

@@ -237,7 +237,7 @@ export const catalogLocations: CatalogLocation[] = [
   },
 ];
 
-export const catalogTours: CatalogTour[] = [
+const coreCatalogTours: CatalogTour[] = [
   {
     title: "Đà Nẵng - Hội An Trọn Vẹn 4N3Đ",
     slug: "da-nang-hoi-an-tron-ven-4n3d",
@@ -785,6 +785,54 @@ export const catalogTours: CatalogTour[] = [
     itineraryTitles: ["Di chuyển ra đảo", "Hoạt động biển và kết thúc"],
   },
 ];
+
+const supplementalDepartures = ["Hà Nội", "TP. Hồ Chí Minh", "Đà Nẵng"] as const;
+const supplementalTransportations = [
+  "Máy bay + xe du lịch",
+  "Xe du lịch",
+  "Limousine + xe du lịch",
+] as const;
+
+const supplementalCatalogTours: CatalogTour[] = catalogLocations
+  .slice(0, 10)
+  .map((location, index) => {
+    const durationDays = index % 2 === 0 ? 2 : 3;
+    const durationNights = Math.max(durationDays - 1, 1);
+    const imagePool = Array.from(
+      new Set([location.imageUrl, ...location.gallery].filter(Boolean)),
+    );
+    const featuredImage = imagePool[0] ?? "/immerse-vietnam/images/header-bg.jpg";
+    const gallery = imagePool.slice(1, 5).length ? imagePool.slice(1, 5) : [featuredImage];
+    const tourSuffix = durationDays === 2 ? "2N1Đ" : "3N2Đ";
+    const slug = `${location.slug}-kham-pha-nhanh-${durationDays}n${durationNights}d`;
+    const price = 2490000 + index * 260000;
+    const discountPrice = price - 300000;
+
+    return {
+      title: `${location.name} Khám Phá Nhanh ${tourSuffix}`,
+      slug,
+      shortDescription: `${location.shortDescription} Lịch trình gọn, dễ đi trong cuối tuần.`,
+      description: `Hành trình ngắn ngày tại ${location.name}, tối ưu trải nghiệm địa phương, phù hợp nhóm bạn và gia đình nhỏ.`,
+      price,
+      discountPrice,
+      durationDays,
+      durationNights,
+      maxGuests: 16 + (index % 4) * 2,
+      transportation: supplementalTransportations[index % supplementalTransportations.length]!,
+      departureLocation: supplementalDepartures[index % supplementalDepartures.length]!,
+      featuredImage,
+      gallery,
+      featured: index % 3 === 0,
+      status: "ACTIVE",
+      locationSlug: location.slug,
+      itineraryTitles: Array.from({ length: durationDays }).map(
+        (_, day) => `Ngày ${day + 1}: Trải nghiệm tại ${location.name}`,
+      ),
+    } satisfies CatalogTour;
+  })
+  .filter((candidate) => !coreCatalogTours.some((tour) => tour.slug === candidate.slug));
+
+export const catalogTours: CatalogTour[] = [...coreCatalogTours, ...supplementalCatalogTours];
 
 export const catalogTravelerProfiles: CatalogTravelerProfile[] = [
   { fullName: "Nguyễn Minh Anh", email: "user1@example.com", phone: "0909000001" },
