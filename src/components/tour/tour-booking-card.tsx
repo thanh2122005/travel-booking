@@ -62,6 +62,7 @@ export function TourBookingCard({
   const isLoggedIn = Boolean(session?.user);
 
   const [activeStep, setActiveStep] = useState<BookingStep>(1);
+  const [lastBookingCode, setLastBookingCode] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [isFavoriteSubmitting, setIsFavoriteSubmitting] = useState(false);
   const [reviewRating, setReviewRating] = useState(initialReview?.rating ?? 5);
@@ -161,7 +162,12 @@ export function TourBookingCard({
       body: JSON.stringify(values),
     });
 
-    const payload = (await response.json()) as { message?: string };
+    const payload = (await response.json()) as {
+      message?: string;
+      booking?: {
+        bookingCode?: string;
+      };
+    };
 
     if (!response.ok) {
       toast.error(payload.message ?? "Không thể đặt tour, vui lòng thử lại.");
@@ -169,6 +175,7 @@ export function TourBookingCard({
     }
 
     toast.success(payload.message ?? "Đặt tour thành công.");
+    setLastBookingCode(payload.booking?.bookingCode ?? null);
     setActiveStep(1);
     reset({
       ...values,
@@ -303,6 +310,18 @@ export function TourBookingCard({
               );
             })}
           </div>
+
+          {lastBookingCode ? (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+              <p className="font-semibold">Đặt tour thành công</p>
+              <p className="mt-1 text-xs">
+                Mã đơn của bạn: <span className="font-bold">{lastBookingCode}</span>
+              </p>
+              <Link href="/tai-khoan" className="mt-2 inline-flex text-xs font-semibold text-emerald-700 underline">
+                Xem chi tiết trong trang tài khoản
+              </Link>
+            </div>
+          ) : null}
 
           {activeStep === 1 ? (
             <div className="space-y-3">
