@@ -57,6 +57,7 @@ type DemoTour = {
   transportation: string;
   departureLocation: string;
   featuredImage: string;
+  gallery: string[];
   status: TourStatus;
   featured: boolean;
   locationId: string;
@@ -115,7 +116,7 @@ type ListFilter = {
 
 const DEMO_DIR = path.join(process.cwd(), ".data");
 const DEMO_FILE = path.join(DEMO_DIR, "admin-demo.json");
-const DEMO_DATA_VERSION = 2;
+const DEMO_DATA_VERSION = 3;
 
 const nowIso = () => new Date().toISOString();
 const toDate = (value: string) => new Date(value);
@@ -176,6 +177,7 @@ function createInitialDemoState(): DemoState {
     transportation: tour.transportation,
     departureLocation: tour.departureLocation,
     featuredImage: tour.featuredImage,
+    gallery: Array.from(new Set(tour.gallery)),
     status: tour.status === "INACTIVE" ? TourStatus.INACTIVE : TourStatus.ACTIVE,
     featured: Boolean(tour.featured),
     locationId: locationIdMap.get(tour.locationSlug) ?? locations[0]?.id ?? "",
@@ -304,6 +306,12 @@ async function readDemo(): Promise<DemoState> {
   state.locations = state.locations.map((location) => ({
     ...location,
     gallery: Array.isArray(location.gallery) ? location.gallery : [location.imageUrl],
+  }));
+  state.tours = state.tours.map((tour) => ({
+    ...tour,
+    gallery: Array.isArray((tour as Partial<DemoTour>).gallery)
+      ? (tour as Partial<DemoTour>).gallery!.filter((image): image is string => Boolean(image))
+      : [tour.featuredImage],
   }));
   return state;
 }
@@ -652,6 +660,7 @@ export async function demoCreateTour(input: {
     transportation: input.transportation,
     departureLocation: input.departureLocation,
     featuredImage: input.featuredImage,
+    gallery: [input.featuredImage],
     status: input.status ?? TourStatus.ACTIVE,
     featured: Boolean(input.featured),
     locationId: input.locationId,
@@ -825,14 +834,18 @@ export async function demoGetPublicTourBySlug(slug: string, userId?: string) {
   const relatedTours = tours.filter((item) => item.id !== tour.id && item.locationId === tour.locationId && item.status === TourStatus.ACTIVE).slice(0, 4);
   const viewerReview = userId ? state.reviews.find((review) => review.userId === userId && review.tourId === tour.id) : null;
   const viewerFavorite = Boolean(userId && state.favorites.some((favorite) => favorite.userId === userId && favorite.tourId === tour.id));
+  const uniqueGallery = Array.from(
+    new Set([tour.featuredImage, ...tour.gallery, ...tour.location.gallery].filter(Boolean)),
+  );
 
   return {
     tour: {
       ...tour,
-      images: [
-        { id: `${tour.id}_img_1`, imageUrl: tour.featuredImage, sortOrder: 1 },
-        { id: `${tour.id}_img_2`, imageUrl: tour.location.imageUrl, sortOrder: 2 },
-      ],
+      images: uniqueGallery.map((imageUrl, index) => ({
+        id: `${tour.id}_img_${index + 1}`,
+        imageUrl,
+        sortOrder: index + 1,
+      })),
       itineraries: Array.from({ length: Math.max(2, Math.min(tour.durationDays, 5)) }).map((_, index) => ({
         id: `${tour.id}_it_${index + 1}`,
         dayNumber: index + 1,

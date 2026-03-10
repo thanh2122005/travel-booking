@@ -3,10 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock3, MapPin, Plane, Users } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
-import { SafeImage } from "@/components/common/safe-image";
 import { SectionHeading } from "@/components/common/section-heading";
 import { TourBookingCard } from "@/components/tour/tour-booking-card";
 import { TourCard } from "@/components/tour/tour-card";
+import { TourImageGallery } from "@/components/tour/tour-image-gallery";
 import { StarRating } from "@/components/tour/star-rating";
 import { getAuthSession } from "@/lib/auth/session";
 import { getTourBySlug } from "@/lib/db/public-queries";
@@ -45,6 +45,13 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
 
   const { tour, relatedTours, viewer } = data;
   const finalPrice = getTourDisplayPrice(tour.price, tour.discountPrice);
+  const galleryImages = Array.from(
+    new Set(
+      [tour.featuredImage, ...tour.images.map((item) => item.imageUrl), ...tour.location.gallery].filter(
+        (image): image is string => Boolean(image && image.trim()),
+      ),
+    ),
+  );
 
   return (
     <div className="space-y-10 py-6">
@@ -74,33 +81,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
 
       <section className="grid gap-6 lg:grid-cols-[1fr_340px] xl:gap-8">
         <div className="space-y-8">
-          <div className="space-y-3">
-            <div className="relative h-[380px] overflow-hidden rounded-3xl border shadow-sm">
-              <SafeImage
-                src={tour.featuredImage}
-                alt={tour.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 70vw"
-                priority
-              />
-            </div>
-            {tour.images.length ? (
-              <div className="grid grid-cols-3 gap-3">
-                {tour.images.slice(0, 3).map((item) => (
-                  <div key={item.id} className="relative h-28 overflow-hidden rounded-2xl border">
-                    <SafeImage
-                      src={item.imageUrl}
-                      alt={`Hình ảnh tour ${tour.title}`}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 33vw, 20vw"
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
+          <TourImageGallery title={tour.title} images={galleryImages} />
 
           <article className="space-y-4 rounded-3xl border bg-card p-6">
             <h2 className="text-2xl font-bold">Tổng quan tour</h2>
