@@ -1,4 +1,4 @@
-import { BookingStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
+﻿import { BookingStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
 import {
   demoCreateLocation,
   demoCreateItinerary,
