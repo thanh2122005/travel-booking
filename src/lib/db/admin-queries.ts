@@ -6,6 +6,7 @@ import {
   demoCreateTour,
   demoGetBookings,
   demoGetDashboardData,
+  demoGetLocationDetail,
   demoGetLocationOptions,
   demoGetLocations,
   demoGetReviews,
@@ -15,6 +16,8 @@ import {
   demoDeleteItinerary,
   demoDeleteTourImage,
   demoReorderTourImages,
+  demoUpdateLocationContent,
+  demoUpdateLocationGallery,
   demoUpdateTourContent,
   demoUpdateItinerary,
   demoUpdateBooking,
@@ -428,6 +431,63 @@ export async function getAdminLocations(filter: AdminListFilter = {}) {
   }
 }
 
+export async function getAdminLocationDetail(locationId: string) {
+  try {
+    const location = await db.location.findUnique({
+      where: { id: locationId },
+      include: {
+        tours: {
+          orderBy: { updatedAt: "desc" },
+          include: {
+            _count: {
+              select: {
+                bookings: true,
+                reviews: true,
+                favorites: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            tours: true,
+          },
+        },
+      },
+    });
+
+    if (!location) return null;
+
+    const stats = location.tours.reduce(
+      (acc, tour) => ({
+        bookings: acc.bookings + tour._count.bookings,
+        reviews: acc.reviews + tour._count.reviews,
+        favorites: acc.favorites + tour._count.favorites,
+      }),
+      {
+        bookings: 0,
+        reviews: 0,
+        favorites: 0,
+      },
+    );
+
+    return {
+      ...location,
+      _count: {
+        ...location._count,
+        bookings: stats.bookings,
+        reviews: stats.reviews,
+        favorites: stats.favorites,
+      },
+    };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetLocationDetail(locationId);
+    }
+    throw error;
+  }
+}
+
 export async function getAdminBookings(filter: AdminListFilter = {}) {
   try {
     const { page, pageSize, skip } = getPagination(filter);
@@ -686,6 +746,78 @@ export async function updateAdminLocation(locationId: string, payload: { feature
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoUpdateLocation(locationId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function updateAdminLocationContent(
+  locationId: string,
+  payload: {
+    name?: string;
+    slug?: string;
+    provinceOrCity?: string;
+    country?: string;
+    shortDescription?: string;
+    description?: string;
+    imageUrl?: string;
+    featured?: boolean;
+  },
+) {
+  try {
+    const updated = await db.location.update({
+      where: { id: locationId },
+      data: {
+        ...(payload.name ? { name: payload.name } : {}),
+        ...(payload.slug ? { slug: payload.slug } : {}),
+        ...(payload.provinceOrCity ? { provinceOrCity: payload.provinceOrCity } : {}),
+        ...(payload.country ? { country: payload.country } : {}),
+        ...(payload.shortDescription ? { shortDescription: payload.shortDescription } : {}),
+        ...(payload.description ? { description: payload.description } : {}),
+        ...(payload.imageUrl ? { imageUrl: payload.imageUrl } : {}),
+        ...(typeof payload.featured === "boolean" ? { featured: payload.featured } : {}),
+      },
+    });
+
+    if (payload.imageUrl) {
+      const nextGallery = Array.from(
+        new Set([payload.imageUrl, ...updated.gallery.filter((image) => image !== payload.imageUrl)]),
+      ).filter(Boolean);
+      return db.location.update({
+        where: { id: locationId },
+        data: {
+          gallery: nextGallery.length ? nextGallery : [payload.imageUrl],
+          imageUrl: payload.imageUrl,
+        },
+      });
+    }
+
+    return updated;
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateLocationContent(locationId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function updateAdminLocationGallery(locationId: string, gallery: string[]) {
+  try {
+    const nextGallery = Array.from(new Set(gallery.map((image) => image.trim()).filter(Boolean)));
+    if (!nextGallery.length) {
+      return null;
+    }
+
+    return db.location.update({
+      where: { id: locationId },
+      data: {
+        gallery: nextGallery,
+        imageUrl: nextGallery[0]!,
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateLocationGallery(locationId, gallery);
     }
     throw error;
   }

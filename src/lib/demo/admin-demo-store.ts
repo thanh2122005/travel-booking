@@ -639,6 +639,51 @@ export async function demoGetLocations(filter: ListFilter = {}) {
   return paginate(rows, filter);
 }
 
+export async function demoGetLocationDetail(locationId: string) {
+  const state = await readDemo();
+  const location = state.locations.find((item) => item.id === locationId);
+  if (!location) return null;
+
+  const tours = state.tours
+    .filter((tour) => tour.locationId === location.id)
+    .sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt))
+    .map((tour) => ({
+      ...tour,
+      updatedAt: toDate(tour.updatedAt),
+      _count: {
+        bookings: state.bookings.filter((item) => item.tourId === tour.id).length,
+        reviews: state.reviews.filter((item) => item.tourId === tour.id).length,
+        favorites: state.favorites.filter((item) => item.tourId === tour.id).length,
+      },
+    }));
+
+  const stats = tours.reduce(
+    (acc, tour) => ({
+      totalBookings: acc.totalBookings + tour._count.bookings,
+      totalReviews: acc.totalReviews + tour._count.reviews,
+      totalFavorites: acc.totalFavorites + tour._count.favorites,
+    }),
+    {
+      totalBookings: 0,
+      totalReviews: 0,
+      totalFavorites: 0,
+    },
+  );
+
+  return {
+    ...location,
+    createdAt: toDate(location.createdAt),
+    updatedAt: toDate(location.updatedAt),
+    tours,
+    _count: {
+      tours: tours.length,
+      bookings: stats.totalBookings,
+      reviews: stats.totalReviews,
+      favorites: stats.totalFavorites,
+    },
+  };
+}
+
 export async function demoGetBookings(filter: ListFilter = {}) {
   const state = await readDemo();
   const userMap = new Map(state.users.map((user) => [user.id, user]));
@@ -1029,6 +1074,68 @@ export async function demoUpdateLocation(id: string, payload: { featured?: boole
   const location = state.locations.find((item) => item.id === id);
   if (!location) return null;
   if (typeof payload.featured === "boolean") location.featured = payload.featured;
+  location.updatedAt = nowIso();
+  await writeDemo(state);
+  return location;
+}
+
+export async function demoUpdateLocationContent(
+  id: string,
+  payload: {
+    name?: string;
+    slug?: string;
+    provinceOrCity?: string;
+    country?: string;
+    shortDescription?: string;
+    description?: string;
+    imageUrl?: string;
+    featured?: boolean;
+  },
+) {
+  const state = await readDemo();
+  const location = state.locations.find((item) => item.id === id);
+  if (!location) return null;
+
+  if (payload.slug && payload.slug !== location.slug) {
+    const existed = state.locations.some((item) => item.id !== id && item.slug === payload.slug);
+    if (existed) {
+      return null;
+    }
+    location.slug = payload.slug;
+  }
+
+  if (payload.name) location.name = payload.name;
+  if (payload.provinceOrCity) location.provinceOrCity = payload.provinceOrCity;
+  if (payload.country) location.country = payload.country;
+  if (payload.shortDescription) location.shortDescription = payload.shortDescription;
+  if (payload.description) location.description = payload.description;
+  if (typeof payload.featured === "boolean") location.featured = payload.featured;
+
+  if (payload.imageUrl) {
+    location.imageUrl = payload.imageUrl;
+    const nextGallery = Array.from(
+      new Set([payload.imageUrl, ...location.gallery.filter((image) => image !== payload.imageUrl)]),
+    ).filter(Boolean);
+    location.gallery = nextGallery.length ? nextGallery : [payload.imageUrl];
+  }
+
+  location.updatedAt = nowIso();
+  await writeDemo(state);
+  return location;
+}
+
+export async function demoUpdateLocationGallery(id: string, gallery: string[]) {
+  const state = await readDemo();
+  const location = state.locations.find((item) => item.id === id);
+  if (!location) return null;
+
+  const nextGallery = Array.from(new Set(gallery.map((image) => image.trim()).filter(Boolean)));
+  if (!nextGallery.length) {
+    return null;
+  }
+
+  location.gallery = nextGallery;
+  location.imageUrl = nextGallery[0]!;
   location.updatedAt = nowIso();
   await writeDemo(state);
   return location;
