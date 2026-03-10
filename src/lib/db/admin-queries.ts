@@ -14,6 +14,8 @@ import {
   demoGetUsers,
   demoDeleteItinerary,
   demoDeleteTourImage,
+  demoReorderTourImages,
+  demoUpdateTourContent,
   demoUpdateItinerary,
   demoUpdateBooking,
   demoUpdateLocation,
@@ -37,8 +39,65 @@ function getPagination(filter: AdminListFilter) {
   return { page, pageSize, skip: (page - 1) * pageSize };
 }
 
+function getMonthKey(value: Date) {
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function getRecentMonthKeys(monthCount = 6) {
+  const now = new Date();
+  now.setDate(1);
+  now.setHours(0, 0, 0, 0);
+
+  const keys: string[] = [];
+  for (let index = monthCount - 1; index >= 0; index -= 1) {
+    const current = new Date(now.getFullYear(), now.getMonth() - index, 1);
+    keys.push(getMonthKey(current));
+  }
+  return keys;
+}
+
+function formatMonthLabel(monthKey: string) {
+  const [year, month] = monthKey.split("-");
+  return `${month}/${year}`;
+}
+
+function buildBookingRevenueTimeline(
+  bookings: Array<{ createdAt: Date; totalPrice: number; status: BookingStatus }>,
+  monthCount = 6,
+) {
+  const keys = getRecentMonthKeys(monthCount);
+  const map = new Map(
+    keys.map((key) => [
+      key,
+      {
+        monthKey: key,
+        label: formatMonthLabel(key),
+        bookings: 0,
+        confirmedRevenue: 0,
+      },
+    ]),
+  );
+
+  for (const booking of bookings) {
+    const key = getMonthKey(booking.createdAt);
+    const row = map.get(key);
+    if (!row) continue;
+    row.bookings += 1;
+    if (booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED) {
+      row.confirmedRevenue += booking.totalPrice;
+    }
+  }
+
+  return keys.map((key) => map.get(key)!);
+}
+
 export async function getAdminDashboardData() {
   try {
+    const timelineStart = new Date();
+    timelineStart.setDate(1);
+    timelineStart.setHours(0, 0, 0, 0);
+    timelineStart.setMonth(timelineStart.getMonth() - 5);
+
     const [
       totalUsers,
       totalTours,
@@ -49,6 +108,7 @@ export async function getAdminDashboardData() {
       revenueAgg,
       bookingStatusGroups,
       paymentStatusGroups,
+      bookingTimelineRows,
       recentBookings,
       recentReviews,
       recentUsers,
@@ -79,6 +139,18 @@ export async function getAdminDashboardData() {
         by: ["paymentStatus"],
         _count: {
           _all: true,
+        },
+      }),
+      db.booking.findMany({
+        where: {
+          createdAt: {
+            gte: timelineStart,
+          },
+        },
+        select: {
+          createdAt: true,
+          totalPrice: true,
+          status: true,
         },
       }),
       db.booking.findMany({
@@ -160,6 +232,7 @@ export async function getAdminDashboardData() {
         PAID: 0,
       },
     );
+    const bookingRevenueTimeline = buildBookingRevenueTimeline(bookingTimelineRows);
 
     return {
       metrics: {
@@ -173,6 +246,7 @@ export async function getAdminDashboardData() {
       },
       bookingsByStatus,
       paymentsByStatus,
+      bookingRevenueTimeline,
       recentBookings,
       recentReviews,
       recentUsers,
@@ -527,6 +601,80 @@ export async function updateAdminTour(
   }
 }
 
+export async function updateAdminTourContent(
+  tourId: string,
+  payload: {
+    title?: string;
+    slug?: string;
+    shortDescription?: string;
+    description?: string;
+    price?: number;
+    discountPrice?: number | null;
+    durationDays?: number;
+    durationNights?: number;
+    maxGuests?: number;
+    transportation?: string;
+    departureLocation?: string;
+    featuredImage?: string;
+    locationId?: string;
+    status?: TourStatus;
+    featured?: boolean;
+  },
+) {
+  try {
+    const updated = await db.tour.update({
+      where: { id: tourId },
+      data: {
+        ...(payload.title ? { title: payload.title } : {}),
+        ...(payload.slug ? { slug: payload.slug } : {}),
+        ...(payload.shortDescription ? { shortDescription: payload.shortDescription } : {}),
+        ...(payload.description ? { description: payload.description } : {}),
+        ...(typeof payload.price === "number" ? { price: payload.price } : {}),
+        ...(payload.discountPrice === null || typeof payload.discountPrice === "number"
+          ? { discountPrice: payload.discountPrice }
+          : {}),
+        ...(typeof payload.durationDays === "number" ? { durationDays: payload.durationDays } : {}),
+        ...(typeof payload.durationNights === "number" ? { durationNights: payload.durationNights } : {}),
+        ...(typeof payload.maxGuests === "number" ? { maxGuests: payload.maxGuests } : {}),
+        ...(payload.transportation ? { transportation: payload.transportation } : {}),
+        ...(payload.departureLocation ? { departureLocation: payload.departureLocation } : {}),
+        ...(payload.featuredImage ? { featuredImage: payload.featuredImage } : {}),
+        ...(payload.locationId ? { locationId: payload.locationId } : {}),
+        ...(payload.status ? { status: payload.status } : {}),
+        ...(typeof payload.featured === "boolean" ? { featured: payload.featured } : {}),
+      },
+    });
+
+    if (payload.featuredImage) {
+      const firstImage = await db.tourImage.findFirst({
+        where: { tourId },
+        orderBy: { sortOrder: "asc" },
+      });
+      if (firstImage) {
+        await db.tourImage.update({
+          where: { id: firstImage.id },
+          data: { imageUrl: payload.featuredImage },
+        });
+      } else {
+        await db.tourImage.create({
+          data: {
+            tourId,
+            imageUrl: payload.featuredImage,
+            sortOrder: 1,
+          },
+        });
+      }
+    }
+
+    return updated;
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateTourContent(tourId, payload);
+    }
+    throw error;
+  }
+}
+
 export async function updateAdminLocation(locationId: string, payload: { featured?: boolean }) {
   try {
     return db.location.update({
@@ -736,15 +884,23 @@ export async function deleteAdminTourImage(imageId: string) {
       },
     });
 
-    const firstImage = await db.tourImage.findFirst({
+    const orderedImages = await db.tourImage.findMany({
       where: { tourId: deleted.tourId },
       orderBy: { sortOrder: "asc" },
-      select: { imageUrl: true },
+      select: { id: true, imageUrl: true },
     });
-    if (firstImage) {
+    if (orderedImages.length) {
+      await db.$transaction(
+        orderedImages.map((image, index) =>
+          db.tourImage.update({
+            where: { id: image.id },
+            data: { sortOrder: index + 1 },
+          }),
+        ),
+      );
       await db.tour.update({
         where: { id: deleted.tourId },
-        data: { featuredImage: firstImage.imageUrl },
+        data: { featuredImage: orderedImages[0]!.imageUrl },
       });
     }
 
@@ -752,6 +908,73 @@ export async function deleteAdminTourImage(imageId: string) {
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoDeleteTourImage(imageId);
+    }
+    throw error;
+  }
+}
+
+export async function reorderAdminTourImages(
+  tourId: string,
+  items: Array<{ id: string; sortOrder: number }>,
+) {
+  try {
+    const currentImages = await db.tourImage.findMany({
+      where: { tourId },
+      select: { id: true, imageUrl: true },
+    });
+    if (!currentImages.length) {
+      return [];
+    }
+
+    const currentIds = new Set(currentImages.map((image) => image.id));
+    const uniqueItems = Array.from(
+      new Map(
+        items
+          .filter((item) => currentIds.has(item.id))
+          .map((item) => [
+            item.id,
+            {
+              id: item.id,
+              sortOrder: Math.max(1, Math.trunc(item.sortOrder)),
+            },
+          ]),
+      ).values(),
+    ).sort((a, b) => a.sortOrder - b.sortOrder);
+
+    const missingIds = currentImages
+      .map((image) => image.id)
+      .filter((id) => !uniqueItems.some((item) => item.id === id));
+    const normalizedOrder = [
+      ...uniqueItems.map((item) => item.id),
+      ...missingIds,
+    ];
+
+    await db.$transaction(
+      normalizedOrder.map((imageId, index) =>
+        db.tourImage.update({
+          where: { id: imageId },
+          data: { sortOrder: index + 1 },
+        }),
+      ),
+    );
+
+    const orderedImages = await db.tourImage.findMany({
+      where: { tourId },
+      orderBy: { sortOrder: "asc" },
+      select: { id: true, tourId: true, imageUrl: true, sortOrder: true },
+    });
+
+    if (orderedImages.length) {
+      await db.tour.update({
+        where: { id: tourId },
+        data: { featuredImage: orderedImages[0]!.imageUrl },
+      });
+    }
+
+    return orderedImages;
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoReorderTourImages(tourId, items);
     }
     throw error;
   }

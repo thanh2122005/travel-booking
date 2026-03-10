@@ -444,6 +444,58 @@ function syncTourGalleryFromImages(state: DemoState, tourId: string) {
   tour.featuredImage = images[0]!.imageUrl;
 }
 
+function getMonthKey(value: Date) {
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function getRecentMonthKeys(monthCount = 6) {
+  const now = new Date();
+  now.setDate(1);
+  now.setHours(0, 0, 0, 0);
+
+  const keys: string[] = [];
+  for (let index = monthCount - 1; index >= 0; index -= 1) {
+    const current = new Date(now.getFullYear(), now.getMonth() - index, 1);
+    keys.push(getMonthKey(current));
+  }
+  return keys;
+}
+
+function formatMonthLabel(monthKey: string) {
+  const [year, month] = monthKey.split("-");
+  return `${month}/${year}`;
+}
+
+function buildBookingRevenueTimeline(
+  bookings: Array<{ createdAt: string; totalPrice: number; status: BookingStatus }>,
+  monthCount = 6,
+) {
+  const keys = getRecentMonthKeys(monthCount);
+  const map = new Map(
+    keys.map((key) => [
+      key,
+      {
+        monthKey: key,
+        label: formatMonthLabel(key),
+        bookings: 0,
+        confirmedRevenue: 0,
+      },
+    ]),
+  );
+
+  for (const booking of bookings) {
+    const key = getMonthKey(new Date(booking.createdAt));
+    const row = map.get(key);
+    if (!row) continue;
+    row.bookings += 1;
+    if (booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED) {
+      row.confirmedRevenue += booking.totalPrice;
+    }
+  }
+
+  return keys.map((key) => map.get(key)!);
+}
+
 export async function demoGetLocationOptions() {
   const state = await readDemo();
   return state.locations
@@ -476,6 +528,8 @@ export async function demoGetDashboardData() {
     paymentsByStatus[booking.paymentStatus] += 1;
   }
 
+  const bookingRevenueTimeline = buildBookingRevenueTimeline(state.bookings);
+
   return {
     metrics: {
       totalUsers: state.users.length,
@@ -488,6 +542,7 @@ export async function demoGetDashboardData() {
     },
     bookingsByStatus,
     paymentsByStatus,
+    bookingRevenueTimeline,
     recentBookings: state.bookings.slice().sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).slice(0, 8).map((booking) => ({
       ...booking,
       createdAt: toDate(booking.createdAt),
@@ -857,6 +912,116 @@ export async function demoUpdateTour(id: string, payload: { status?: TourStatus;
   tour.updatedAt = nowIso();
   await writeDemo(state);
   return tour;
+}
+
+export async function demoUpdateTourContent(
+  id: string,
+  payload: {
+    title?: string;
+    slug?: string;
+    shortDescription?: string;
+    description?: string;
+    price?: number;
+    discountPrice?: number | null;
+    durationDays?: number;
+    durationNights?: number;
+    maxGuests?: number;
+    transportation?: string;
+    departureLocation?: string;
+    featuredImage?: string;
+    locationId?: string;
+    status?: TourStatus;
+    featured?: boolean;
+  },
+) {
+  const state = await readDemo();
+  const tour = state.tours.find((item) => item.id === id);
+  if (!tour) return null;
+
+  if (payload.slug && payload.slug !== tour.slug) {
+    const existed = state.tours.some((item) => item.id !== id && item.slug === payload.slug);
+    if (existed) {
+      return null;
+    }
+    tour.slug = payload.slug;
+  }
+
+  if (payload.locationId && !state.locations.some((item) => item.id === payload.locationId)) {
+    return null;
+  }
+
+  if (payload.title) tour.title = payload.title;
+  if (payload.shortDescription) tour.shortDescription = payload.shortDescription;
+  if (payload.description) tour.description = payload.description;
+  if (typeof payload.price === "number" && Number.isFinite(payload.price)) tour.price = payload.price;
+  if (payload.discountPrice === null || typeof payload.discountPrice === "number") {
+    tour.discountPrice = payload.discountPrice;
+  }
+  if (typeof payload.durationDays === "number" && Number.isFinite(payload.durationDays)) {
+    tour.durationDays = Math.max(1, Math.trunc(payload.durationDays));
+  }
+  if (typeof payload.durationNights === "number" && Number.isFinite(payload.durationNights)) {
+    tour.durationNights = Math.max(0, Math.trunc(payload.durationNights));
+  }
+  if (typeof payload.maxGuests === "number" && Number.isFinite(payload.maxGuests)) {
+    tour.maxGuests = Math.max(1, Math.trunc(payload.maxGuests));
+  }
+  if (payload.transportation) tour.transportation = payload.transportation;
+  if (payload.departureLocation) tour.departureLocation = payload.departureLocation;
+  if (payload.locationId) tour.locationId = payload.locationId;
+  if (payload.status) tour.status = payload.status;
+  if (typeof payload.featured === "boolean") tour.featured = payload.featured;
+
+  if (payload.featuredImage) {
+    tour.featuredImage = payload.featuredImage;
+    const firstImage = state.tourImages
+      .filter((item) => item.tourId === id)
+      .sort((a, b) => a.sortOrder - b.sortOrder)[0];
+    if (firstImage) {
+      firstImage.imageUrl = payload.featuredImage;
+    } else {
+      state.tourImages.push({
+        id: `${tour.id}_img_${randomUUID().slice(0, 6)}`,
+        tourId: id,
+        imageUrl: payload.featuredImage,
+        sortOrder: 1,
+      });
+    }
+    syncTourGalleryFromImages(state, id);
+  }
+
+  tour.updatedAt = nowIso();
+  await writeDemo(state);
+  return tour;
+}
+
+export async function demoReorderTourImages(
+  tourId: string,
+  items: Array<{ id: string; sortOrder: number }>,
+) {
+  const state = await readDemo();
+  const belongs = state.tourImages.filter((image) => image.tourId === tourId);
+  if (!belongs.length) return [];
+
+  const orderMap = new Map(
+    items.map((item) => [item.id, Math.max(1, Math.trunc(item.sortOrder))]),
+  );
+
+  for (const image of belongs) {
+    const nextOrder = orderMap.get(image.id);
+    if (typeof nextOrder === "number") {
+      image.sortOrder = nextOrder;
+    }
+  }
+
+  const sorted = belongs.sort((a, b) => a.sortOrder - b.sortOrder);
+  sorted.forEach((item, index) => {
+    item.sortOrder = index + 1;
+  });
+
+  syncTourGalleryFromImages(state, tourId);
+  await writeDemo(state);
+  return sorted;
 }
 
 export async function demoUpdateLocation(id: string, payload: { featured?: boolean }) {
