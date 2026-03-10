@@ -94,6 +94,12 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
                     Đặt tour: {tour._count.bookings} · Đánh giá: {tour._count.reviews} · Yêu thích: {tour._count.favorites}
                   </p>
                   <p className="text-xs text-slate-500">Cập nhật: {formatDate(tour.updatedAt)}</p>
+                  <Link
+                    href={`/admin/tours/${tour.id}`}
+                    className="inline-flex h-8 items-center rounded-md border border-slate-300 px-3 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
+                  >
+                    Quản lý ảnh & lịch trình
+                  </Link>
                   <AdminTourActions tourId={tour.id} status={tour.status} featured={tour.featured} />
                 </div>
               </article>
