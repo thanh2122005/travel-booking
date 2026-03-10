@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Compass, MapPin } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
+import { SafeImage } from "@/components/common/safe-image";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { TourCard } from "@/components/tour/tour-card";
 import { getLocationBySlug } from "@/lib/db/public-queries";
@@ -42,7 +42,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
     <div className="space-y-10">
       <section className="iv-page-hero">
         <div className="absolute inset-0">
-          <Image src={location.imageUrl} alt={location.name} fill className="object-cover opacity-80" sizes="100vw" priority />
+          <SafeImage src={location.imageUrl} alt={location.name} fill className="object-cover opacity-80" sizes="100vw" priority />
         </div>
         <div className="relative px-5 py-16 md:px-8 md:py-24">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-100">Chi tiết điểm đến</p>
@@ -66,7 +66,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
           <div className="grid gap-3 sm:grid-cols-3">
             {location.gallery.slice(0, 3).map((image, index) => (
               <div key={`${image}-${index}`} className="relative h-32 overflow-hidden rounded-xl border border-slate-200">
-                <Image src={image} alt={`${location.name} gallery ${index + 1}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 20vw" />
+                <SafeImage src={image} alt={`${location.name} gallery ${index + 1}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 20vw" />
               </div>
             ))}
           </div>

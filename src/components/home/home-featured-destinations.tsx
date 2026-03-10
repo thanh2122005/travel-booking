@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
+import { SafeImage } from "@/components/common/safe-image";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 
 type FeaturedLocation = {
@@ -30,7 +30,7 @@ export function HomeFeaturedDestinations({ locations }: HomeFeaturedDestinations
           <article key={location.id} className="group relative overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
             <Link href={`/destinations/${location.slug}`} className="absolute inset-0 z-20" aria-label={location.name} />
             <div className="relative h-[300px]">
-              <Image
+              <SafeImage
                 src={location.imageUrl}
                 alt={location.name}
                 fill

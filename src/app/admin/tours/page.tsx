@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { AdminCreateTourForm } from "@/components/admin/admin-create-tour-form";
 import { AdminTourActions } from "@/components/admin/admin-tour-actions";
+import { SafeImage } from "@/components/common/safe-image";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
 import { adminLabels, getAdminLocationOptions, getAdminTours } from "@/lib/db/admin-queries";
@@ -74,7 +74,7 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
             {data.items.map((tour) => (
               <article key={tour.id} className="iv-card overflow-hidden">
                 <div className="relative h-44">
-                  <Image src={tour.featuredImage} alt={tour.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
+                  <SafeImage src={tour.featuredImage} alt={tour.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
                 </div>
                 <div className="space-y-2 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{tour.location.name}</p>

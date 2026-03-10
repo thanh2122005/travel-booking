@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
+import { SafeImage } from "@/components/common/safe-image";
 import { getAuthSession } from "@/lib/auth/session";
 import { getUserDashboardData } from "@/lib/db/user-queries";
 import { formatPrice } from "@/lib/utils/format";
@@ -43,7 +43,7 @@ export default async function FavoritesPage() {
                 <article key={favorite.id} className="iv-card overflow-hidden">
                   <Link href={`/tours/${favorite.tour.slug}`} className="group block">
                     <div className="relative h-52">
-                      <Image
+                      <SafeImage
                         src={favorite.tour.featuredImage}
                         alt={favorite.tour.title}
                         fill

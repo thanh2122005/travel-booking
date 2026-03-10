@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Search } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
+import { SafeImage } from "@/components/common/safe-image";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { getLocations } from "@/lib/db/public-queries";
 
@@ -62,7 +62,7 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
             <article key={location.id} className="iv-card overflow-hidden">
               <Link href={`/destinations/${location.slug}`} className="group block">
                 <div className="relative h-52">
-                  <Image
+                  <SafeImage
                     src={location.imageUrl}
                     alt={location.name}
                     fill

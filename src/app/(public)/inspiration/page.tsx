@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 import { PageHeroBanner } from "@/components/common/page-hero-banner";
+import { SafeImage } from "@/components/common/safe-image";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { getLocations } from "@/lib/db/public-queries";
 
@@ -30,7 +30,7 @@ export default async function InspirationPage() {
             <article key={location.id} className="iv-card overflow-hidden">
               <Link href={`/destinations/${location.slug}`} className="group block">
                 <div className="relative h-52">
-                  <Image
+                  <SafeImage
                     src={location.imageUrl}
                     alt={location.name}
                     fill

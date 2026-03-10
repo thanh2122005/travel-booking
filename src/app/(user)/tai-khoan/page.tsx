@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { BookingStatus, PaymentStatus } from "@prisma/client";
 import { CalendarClock, Heart, MessageSquareText, Phone, TicketCheck, UserCircle2 } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
+import { SafeImage } from "@/components/common/safe-image";
 import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth/session";
 import { getUserDashboardData } from "@/lib/db/user-queries";
@@ -175,7 +175,7 @@ export default async function AccountPage() {
               return (
                 <article key={item.id} className="overflow-hidden rounded-2xl border bg-background">
                   <Link href={`/tours/${item.tour.slug}`} className="relative block h-40">
-                    <Image
+                    <SafeImage
                       src={item.tour.featuredImage}
                       alt={item.tour.title}
                       fill

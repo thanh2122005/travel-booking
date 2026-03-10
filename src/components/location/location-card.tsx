@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
+import { SafeImage } from "@/components/common/safe-image";
 
 type LocationCardProps = {
   location: {
@@ -17,7 +17,7 @@ export function LocationCard({ location }: LocationCardProps) {
   return (
     <article className="group overflow-hidden rounded-3xl border bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg">
       <Link href={`/destinations/${location.slug}`} className="relative block h-52 overflow-hidden">
-        <Image
+        <SafeImage
           src={location.imageUrl}
           alt={location.name}
           fill

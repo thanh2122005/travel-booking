@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock3, MapPin, Plane, Users } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
+import { SafeImage } from "@/components/common/safe-image";
 import { SectionHeading } from "@/components/common/section-heading";
 import { TourBookingCard } from "@/components/tour/tour-booking-card";
 import { TourCard } from "@/components/tour/tour-card";
@@ -76,7 +76,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
         <div className="space-y-8">
           <div className="space-y-3">
             <div className="relative h-[380px] overflow-hidden rounded-3xl border shadow-sm">
-              <Image
+              <SafeImage
                 src={tour.featuredImage}
                 alt={tour.title}
                 fill
@@ -89,7 +89,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
               <div className="grid grid-cols-3 gap-3">
                 {tour.images.slice(0, 3).map((item) => (
                   <div key={item.id} className="relative h-28 overflow-hidden rounded-2xl border">
-                    <Image
+                    <SafeImage
                       src={item.imageUrl}
                       alt={`Hình ảnh tour ${tour.title}`}
                       fill

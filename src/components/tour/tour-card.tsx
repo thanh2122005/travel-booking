@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Clock3, MapPin, Users } from "lucide-react";
+import { SafeImage } from "@/components/common/safe-image";
 import { getTourDisplayPrice, formatDuration, formatPrice } from "@/lib/utils/format";
 import { StarRating } from "@/components/tour/star-rating";
 
@@ -29,7 +29,7 @@ export function TourCard({ tour }: TourCardProps) {
   return (
     <article className="group overflow-hidden rounded-3xl border bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg">
       <Link href={`/tours/${tour.slug}`} className="relative block h-52 overflow-hidden">
-        <Image
+        <SafeImage
           src={tour.featuredImage}
           alt={tour.title}
           fill

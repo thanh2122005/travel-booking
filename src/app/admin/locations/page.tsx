@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { AdminCreateLocationForm } from "@/components/admin/admin-create-location-form";
 import { AdminLocationActions } from "@/components/admin/admin-location-actions";
+import { SafeImage } from "@/components/common/safe-image";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
 import { getAdminLocations } from "@/lib/db/admin-queries";
@@ -73,7 +73,7 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
             {data.items.map((location) => (
               <article key={location.id} className="iv-card overflow-hidden">
                 <div className="relative h-44">
-                  <Image src={location.imageUrl} alt={location.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
+                  <SafeImage src={location.imageUrl} alt={location.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
                 </div>
                 <div className="space-y-2 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{location.provinceOrCity}</p>
