@@ -1,4 +1,4 @@
-import "server-only";
+﻿import "server-only";
 
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
@@ -65,6 +65,21 @@ type DemoTour = {
   updatedAt: string;
 };
 
+type DemoTourImage = {
+  id: string;
+  tourId: string;
+  imageUrl: string;
+  sortOrder: number;
+};
+
+type DemoItinerary = {
+  id: string;
+  tourId: string;
+  dayNumber: number;
+  title: string;
+  description: string;
+};
+
 type DemoBooking = {
   id: string;
   bookingCode: string;
@@ -103,6 +118,8 @@ type DemoState = {
   users: DemoUser[];
   locations: DemoLocation[];
   tours: DemoTour[];
+  tourImages: DemoTourImage[];
+  itineraries: DemoItinerary[];
   bookings: DemoBooking[];
   reviews: DemoReview[];
   favorites: DemoFavorite[];
@@ -122,13 +139,40 @@ const nowIso = () => new Date().toISOString();
 const toDate = (value: string) => new Date(value);
 const cleanId = (value: string) => value.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
 
+function buildDemoTourImages(tours: DemoTour[]) {
+  return tours.flatMap((tour) =>
+    tour.gallery.map((imageUrl, index) => ({
+      id: `${tour.id}_img_${index + 1}`,
+      tourId: tour.id,
+      imageUrl,
+      sortOrder: index + 1,
+    })),
+  );
+}
+
+function buildDemoItineraries(tours: DemoTour[]) {
+  const catalogMap = new Map(catalogTours.map((tour) => [tour.slug, tour]));
+  return tours.flatMap((tour) => {
+    const catalogTour = catalogMap.get(tour.slug);
+    return Array.from({ length: Math.max(tour.durationDays, 1) }).map((_, index) => ({
+      id: `${tour.id}_it_${index + 1}`,
+      tourId: tour.id,
+      dayNumber: index + 1,
+      title:
+        catalogTour?.itineraryTitles[index] ??
+        `NgÃ y ${index + 1}: Tráº£i nghiá»‡m táº¡i ${tour.departureLocation}`,
+      description: "Lá»‹ch trÃ¬nh chi tiáº¿t sáº½ Ä‘Æ°á»£c cáº­p nháº­t theo thá»i tiáº¿t vÃ  nhu cáº§u Ä‘oÃ n khÃ¡ch.",
+    }));
+  });
+}
+
 function createInitialDemoState(): DemoState {
   const createdAt = nowIso();
 
   const users: DemoUser[] = [
     {
       id: "usr_admin",
-      fullName: "Quản trị viên hệ thống",
+      fullName: "Quáº£n trá»‹ viÃªn há»‡ thá»‘ng",
       email: "admin@example.com",
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
@@ -193,6 +237,8 @@ function createInitialDemoState(): DemoState {
     createdAt,
     updatedAt: createdAt,
   }));
+  const tourImages = buildDemoTourImages(tours);
+  const itineraries = buildDemoItineraries(tours);
 
   const regularUsers = users.filter((user) => user.role === UserRole.USER);
   const activeTours = tours.filter((tour) => tour.status === TourStatus.ACTIVE);
@@ -277,6 +323,8 @@ function createInitialDemoState(): DemoState {
     users,
     locations,
     tours,
+    tourImages,
+    itineraries,
     bookings,
     reviews,
     favorites,
@@ -322,6 +370,21 @@ async function readDemo(): Promise<DemoState> {
       ? (tour as Partial<DemoTour>).gallery!.filter((image): image is string => Boolean(image))
       : [tour.featuredImage],
   }));
+  const fallbackTourImages = buildDemoTourImages(state.tours);
+  const fallbackItineraries = buildDemoItineraries(state.tours);
+  state.tourImages = Array.isArray((state as Partial<DemoState>).tourImages)
+    ? (state as Partial<DemoState>).tourImages!.filter(
+        (item): item is DemoTourImage =>
+          Boolean(item?.id && item.tourId && item.imageUrl) && Number.isFinite(item.sortOrder),
+      )
+    : fallbackTourImages;
+  state.itineraries = Array.isArray((state as Partial<DemoState>).itineraries)
+    ? (state as Partial<DemoState>).itineraries!.filter(
+        (item): item is DemoItinerary =>
+          Boolean(item?.id && item.tourId && item.title && item.description) &&
+          Number.isFinite(item.dayNumber),
+      )
+    : fallbackItineraries;
   return state;
 }
 
@@ -352,6 +415,33 @@ function paginate<T>(items: T[], filter: ListFilter) {
     pageSize,
     totalPages,
   };
+}
+
+function syncTourGalleryFromImages(state: DemoState, tourId: string) {
+  const tour = state.tours.find((item) => item.id === tourId);
+  if (!tour) return;
+
+  const images = state.tourImages
+    .filter((item) => item.tourId === tourId)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  if (!images.length) {
+    const location = state.locations.find((item) => item.id === tour.locationId);
+    const fallbackImage = location?.imageUrl ?? tour.featuredImage;
+    const seededImage: DemoTourImage = {
+      id: `${tour.id}_img_${randomUUID().slice(0, 6)}`,
+      tourId: tour.id,
+      imageUrl: fallbackImage,
+      sortOrder: 1,
+    };
+    state.tourImages.push(seededImage);
+    tour.gallery = [fallbackImage];
+    tour.featuredImage = fallbackImage;
+    return;
+  }
+
+  tour.gallery = images.map((item) => item.imageUrl);
+  tour.featuredImage = images[0]!.imageUrl;
 }
 
 export async function demoGetLocationOptions() {
@@ -417,7 +507,7 @@ export async function demoGetDashboardData() {
       createdAt: toDate(review.createdAt),
       user: {
         id: review.userId,
-        fullName: userMap.get(review.userId)?.fullName ?? "Người dùng",
+        fullName: userMap.get(review.userId)?.fullName ?? "NgÆ°á»i dÃ¹ng",
       },
       tour: {
         id: review.tourId,
@@ -467,7 +557,7 @@ export async function demoGetTours(filter: ListFilter = {}) {
       updatedAt: toDate(tour.updatedAt),
       location: {
         id: tour.locationId,
-        name: locationMap.get(tour.locationId)?.name ?? "Điểm đến",
+        name: locationMap.get(tour.locationId)?.name ?? "Äiá»ƒm Ä‘áº¿n",
         slug: locationMap.get(tour.locationId)?.slug ?? "",
       },
       _count: {
@@ -537,7 +627,7 @@ export async function demoGetReviews(filter: ListFilter = {}) {
       createdAt: toDate(review.createdAt),
       user: {
         id: review.userId,
-        fullName: userMap.get(review.userId)?.fullName ?? "Người dùng",
+        fullName: userMap.get(review.userId)?.fullName ?? "NgÆ°á»i dÃ¹ng",
         email: userMap.get(review.userId)?.email ?? "",
       },
       tour: {
@@ -547,6 +637,194 @@ export async function demoGetReviews(filter: ListFilter = {}) {
       },
     }));
   return paginate(rows, filter);
+}
+
+export async function demoGetTourDetail(tourId: string) {
+  const state = await readDemo();
+  const tour = state.tours.find((item) => item.id === tourId);
+  if (!tour) return null;
+
+  const location = state.locations.find((item) => item.id === tour.locationId);
+  if (!location) return null;
+
+  const images = state.tourImages
+    .filter((item) => item.tourId === tour.id)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+  const itineraries = state.itineraries
+    .filter((item) => item.tourId === tour.id)
+    .sort((a, b) => a.dayNumber - b.dayNumber);
+
+  return {
+    ...tour,
+    location: {
+      id: location.id,
+      name: location.name,
+      slug: location.slug,
+    },
+    images,
+    itineraries,
+    _count: {
+      bookings: state.bookings.filter((item) => item.tourId === tour.id).length,
+      reviews: state.reviews.filter((item) => item.tourId === tour.id).length,
+      favorites: state.favorites.filter((item) => item.tourId === tour.id).length,
+    },
+  };
+}
+
+export async function demoCreateTourImage(input: {
+  tourId: string;
+  imageUrl: string;
+  sortOrder?: number;
+}) {
+  const state = await readDemo();
+  const tour = state.tours.find((item) => item.id === input.tourId);
+  if (!tour) return null;
+
+  const currentImages = state.tourImages
+    .filter((item) => item.tourId === input.tourId)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  const targetSort =
+    typeof input.sortOrder === "number" && Number.isFinite(input.sortOrder)
+      ? Math.min(Math.max(Math.trunc(input.sortOrder), 1), currentImages.length + 1)
+      : currentImages.length + 1;
+
+  currentImages.forEach((item) => {
+    if (item.sortOrder >= targetSort) {
+      item.sortOrder += 1;
+    }
+  });
+
+  const image: DemoTourImage = {
+    id: `img_${randomUUID().slice(0, 10)}`,
+    tourId: input.tourId,
+    imageUrl: input.imageUrl,
+    sortOrder: targetSort,
+  };
+  state.tourImages.push(image);
+  syncTourGalleryFromImages(state, input.tourId);
+  await writeDemo(state);
+  return image;
+}
+
+export async function demoUpdateTourImage(
+  imageId: string,
+  payload: { imageUrl?: string; sortOrder?: number },
+) {
+  const state = await readDemo();
+  const targetImage = state.tourImages.find((item) => item.id === imageId);
+  if (!targetImage) return null;
+
+  if (payload.imageUrl) {
+    targetImage.imageUrl = payload.imageUrl;
+  }
+
+  if (typeof payload.sortOrder === "number" && Number.isFinite(payload.sortOrder)) {
+    const group = state.tourImages
+      .filter((item) => item.tourId === targetImage.tourId)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+    const withoutTarget = group.filter((item) => item.id !== targetImage.id);
+    const nextSort = Math.min(Math.max(Math.trunc(payload.sortOrder), 1), group.length);
+    withoutTarget.splice(nextSort - 1, 0, targetImage);
+    withoutTarget.forEach((item, index) => {
+      item.sortOrder = index + 1;
+    });
+  }
+
+  syncTourGalleryFromImages(state, targetImage.tourId);
+  await writeDemo(state);
+  return targetImage;
+}
+
+export async function demoDeleteTourImage(imageId: string) {
+  const state = await readDemo();
+  const targetImage = state.tourImages.find((item) => item.id === imageId);
+  if (!targetImage) return null;
+
+  state.tourImages = state.tourImages.filter((item) => item.id !== imageId);
+  const remain = state.tourImages
+    .filter((item) => item.tourId === targetImage.tourId)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+  remain.forEach((item, index) => {
+    item.sortOrder = index + 1;
+  });
+  syncTourGalleryFromImages(state, targetImage.tourId);
+  await writeDemo(state);
+  return targetImage;
+}
+
+export async function demoCreateItinerary(input: {
+  tourId: string;
+  dayNumber: number;
+  title: string;
+  description: string;
+}) {
+  const state = await readDemo();
+  const tour = state.tours.find((item) => item.id === input.tourId);
+  if (!tour) return null;
+  if (
+    state.itineraries.some(
+      (item) => item.tourId === input.tourId && item.dayNumber === input.dayNumber,
+    )
+  ) {
+    return null;
+  }
+
+  const itinerary: DemoItinerary = {
+    id: `it_${randomUUID().slice(0, 10)}`,
+    tourId: input.tourId,
+    dayNumber: input.dayNumber,
+    title: input.title,
+    description: input.description,
+  };
+  state.itineraries.push(itinerary);
+  await writeDemo(state);
+  return itinerary;
+}
+
+export async function demoUpdateItinerary(
+  itineraryId: string,
+  payload: { dayNumber?: number; title?: string; description?: string },
+) {
+  const state = await readDemo();
+  const itinerary = state.itineraries.find((item) => item.id === itineraryId);
+  if (!itinerary) return null;
+
+  if (
+    typeof payload.dayNumber === "number" &&
+    Number.isFinite(payload.dayNumber) &&
+    payload.dayNumber !== itinerary.dayNumber
+  ) {
+    const hasDuplicate = state.itineraries.some(
+      (item) =>
+        item.id !== itinerary.id &&
+        item.tourId === itinerary.tourId &&
+        item.dayNumber === payload.dayNumber,
+    );
+    if (hasDuplicate) {
+      return null;
+    }
+    itinerary.dayNumber = Math.max(1, Math.trunc(payload.dayNumber));
+  }
+
+  if (payload.title) {
+    itinerary.title = payload.title;
+  }
+  if (payload.description) {
+    itinerary.description = payload.description;
+  }
+
+  await writeDemo(state);
+  return itinerary;
+}
+
+export async function demoDeleteItinerary(itineraryId: string) {
+  const state = await readDemo();
+  const itinerary = state.itineraries.find((item) => item.id === itineraryId);
+  if (!itinerary) return null;
+  state.itineraries = state.itineraries.filter((item) => item.id !== itineraryId);
+  await writeDemo(state);
+  return itinerary;
 }
 
 export async function demoUpdateBooking(id: string, payload: { status?: BookingStatus; paymentStatus?: PaymentStatus }) {
@@ -677,6 +955,21 @@ export async function demoCreateTour(input: {
     updatedAt: createdAt,
   };
   state.tours.push(tour);
+  state.tourImages.push({
+    id: `${tour.id}_img_1`,
+    tourId: tour.id,
+    imageUrl: input.featuredImage,
+    sortOrder: 1,
+  });
+  state.itineraries.push(
+    ...Array.from({ length: Math.max(input.durationDays, 1) }).map((_, index) => ({
+      id: `${tour.id}_it_${index + 1}`,
+      tourId: tour.id,
+      dayNumber: index + 1,
+      title: `NgÃ y ${index + 1}: Hoáº¡t Ä‘á»™ng táº¡i Ä‘iá»ƒm Ä‘áº¿n`,
+      description: "Lá»‹ch trÃ¬nh cÃ³ thá»ƒ Ä‘iá»u chá»‰nh theo Ä‘iá»u kiá»‡n thá»±c táº¿ vÃ  nhu cáº§u Ä‘oÃ n.",
+    })),
+  );
   await writeDemo(state);
   return tour;
 }
@@ -716,7 +1009,7 @@ export async function demoGetHomePublicData() {
     itineraries: Array.from({ length: Math.min(3, tour.durationDays) }).map((_, index) => ({
       id: `${tour.id}_it_${index + 1}`,
       dayNumber: index + 1,
-      title: `Ngày ${index + 1}: Trải nghiệm tại ${tour.location.name}`,
+      title: `NgÃ y ${index + 1}: Tráº£i nghiá»‡m táº¡i ${tour.location.name}`,
     })),
   }));
 
@@ -732,7 +1025,7 @@ export async function demoGetHomePublicData() {
         ...review,
         createdAt: toDate(review.createdAt),
         user: {
-          fullName: user?.fullName ?? "Người dùng",
+          fullName: user?.fullName ?? "NgÆ°á»i dÃ¹ng",
           avatarUrl: localAvatarPool[index % localAvatarPool.length],
         },
         tour: {
@@ -840,27 +1133,55 @@ export async function demoGetPublicTourBySlug(slug: string, userId?: string) {
       },
     }));
 
-  const relatedTours = tours.filter((item) => item.id !== tour.id && item.locationId === tour.locationId && item.status === TourStatus.ACTIVE).slice(0, 4);
-  const viewerReview = userId ? state.reviews.find((review) => review.userId === userId && review.tourId === tour.id) : null;
-  const viewerFavorite = Boolean(userId && state.favorites.some((favorite) => favorite.userId === userId && favorite.tourId === tour.id));
-  const uniqueGallery = Array.from(
-    new Set([tour.featuredImage, ...tour.gallery, ...tour.location.gallery].filter(Boolean)),
+  const relatedTours = tours
+    .filter(
+      (item) =>
+        item.id !== tour.id &&
+        item.locationId === tour.locationId &&
+        item.status === TourStatus.ACTIVE,
+    )
+    .slice(0, 4);
+  const viewerReview = userId
+    ? state.reviews.find((review) => review.userId === userId && review.tourId === tour.id)
+    : null;
+  const viewerFavorite = Boolean(
+    userId &&
+      state.favorites.some((favorite) => favorite.userId === userId && favorite.tourId === tour.id),
   );
+
+  const savedImages = state.tourImages
+    .filter((item) => item.tourId === tour.id)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+  const savedItineraries = state.itineraries
+    .filter((item) => item.tourId === tour.id)
+    .sort((a, b) => a.dayNumber - b.dayNumber);
+
+  const images = savedImages.length
+    ? savedImages
+    : Array.from(new Set([tour.featuredImage, ...tour.gallery, ...tour.location.gallery].filter(Boolean))).map(
+        (imageUrl, index) => ({
+          id: `${tour.id}_img_${index + 1}`,
+          tourId: tour.id,
+          imageUrl,
+          sortOrder: index + 1,
+        }),
+      );
+
+  const itineraries = savedItineraries.length
+    ? savedItineraries
+    : Array.from({ length: Math.max(2, Math.min(tour.durationDays, 5)) }).map((_, index) => ({
+        id: `${tour.id}_it_${index + 1}`,
+        tourId: tour.id,
+        dayNumber: index + 1,
+        title: `Ngày ${index + 1}: Hoạt động tại ${tour.location.name}`,
+        description: "Lịch trình chi tiết sẽ được điều phối theo thời tiết và nhóm khách.",
+      }));
 
   return {
     tour: {
       ...tour,
-      images: uniqueGallery.map((imageUrl, index) => ({
-        id: `${tour.id}_img_${index + 1}`,
-        imageUrl,
-        sortOrder: index + 1,
-      })),
-      itineraries: Array.from({ length: Math.max(2, Math.min(tour.durationDays, 5)) }).map((_, index) => ({
-        id: `${tour.id}_it_${index + 1}`,
-        dayNumber: index + 1,
-        title: `Ngày ${index + 1}: Hoạt động tại ${tour.location.name}`,
-        description: "Lịch trình chi tiết sẽ được điều phối theo thời tiết và nhóm khách.",
-      })),
+      images,
+      itineraries,
       reviews,
     },
     relatedTours,
@@ -916,7 +1237,7 @@ export async function demoGetPublicReviews(limit = 24) {
         ...review,
         createdAt: toDate(review.createdAt),
         user: {
-          fullName: userMap.get(review.userId)?.fullName ?? "Người dùng",
+          fullName: userMap.get(review.userId)?.fullName ?? "NgÆ°á»i dÃ¹ng",
           avatarUrl: localAvatarPool[index % localAvatarPool.length],
         },
         tour: {
@@ -951,7 +1272,7 @@ async function ensureDemoUser(state: DemoState, userId: string, profile?: { full
     const createdAt = nowIso();
     user = {
       id: userId,
-      fullName: profile?.fullName ?? "Người dùng",
+      fullName: profile?.fullName ?? "NgÆ°á»i dÃ¹ng",
       email: profile?.email ?? `${userId}@local.dev`,
       role: UserRole.USER,
       status: UserStatus.ACTIVE,
@@ -1058,3 +1379,4 @@ export async function demoUpsertPublicReview(input: {
   await writeDemo(state);
   return review;
 }
+

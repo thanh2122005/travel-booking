@@ -1,17 +1,24 @@
 import { BookingStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
 import {
   demoCreateLocation,
+  demoCreateItinerary,
+  demoCreateTourImage,
   demoCreateTour,
   demoGetBookings,
   demoGetDashboardData,
   demoGetLocationOptions,
   demoGetLocations,
   demoGetReviews,
+  demoGetTourDetail,
   demoGetTours,
   demoGetUsers,
+  demoDeleteItinerary,
+  demoDeleteTourImage,
+  demoUpdateItinerary,
   demoUpdateBooking,
   demoUpdateLocation,
   demoUpdateReview,
+  demoUpdateTourImage,
   demoUpdateTour,
   demoUpdateUser,
 } from "@/lib/demo/admin-demo-store";
@@ -263,6 +270,45 @@ export async function getAdminTours(filter: AdminListFilter = {}) {
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoGetTours(filter);
+    }
+    throw error;
+  }
+}
+
+export async function getAdminTourDetail(tourId: string) {
+  try {
+    return db.tour.findUnique({
+      where: { id: tourId },
+      include: {
+        location: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        images: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+        },
+        itineraries: {
+          orderBy: {
+            dayNumber: "asc",
+          },
+        },
+        _count: {
+          select: {
+            bookings: true,
+            reviews: true,
+            favorites: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetTourDetail(tourId);
     }
     throw error;
   }
@@ -589,6 +635,182 @@ export async function createAdminTour(input: {
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoCreateTour(input);
+    }
+    throw error;
+  }
+}
+
+export async function createAdminTourImage(input: {
+  tourId: string;
+  imageUrl: string;
+  sortOrder?: number;
+}) {
+  try {
+    const maxSortOrder = await db.tourImage.aggregate({
+      where: { tourId: input.tourId },
+      _max: { sortOrder: true },
+    });
+    const nextSortOrder =
+      typeof input.sortOrder === "number" && Number.isFinite(input.sortOrder)
+        ? Math.max(1, Math.trunc(input.sortOrder))
+        : (maxSortOrder._max.sortOrder ?? 0) + 1;
+
+    const created = await db.tourImage.create({
+      data: {
+        tourId: input.tourId,
+        imageUrl: input.imageUrl,
+        sortOrder: nextSortOrder,
+      },
+    });
+
+    const firstImage = await db.tourImage.findFirst({
+      where: { tourId: input.tourId },
+      orderBy: { sortOrder: "asc" },
+      select: { imageUrl: true },
+    });
+    if (firstImage) {
+      await db.tour.update({
+        where: { id: input.tourId },
+        data: { featuredImage: firstImage.imageUrl },
+      });
+    }
+
+    return created;
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoCreateTourImage(input);
+    }
+    throw error;
+  }
+}
+
+export async function updateAdminTourImage(
+  imageId: string,
+  payload: { imageUrl?: string; sortOrder?: number },
+) {
+  try {
+    const updated = await db.tourImage.update({
+      where: { id: imageId },
+      data: {
+        ...(payload.imageUrl ? { imageUrl: payload.imageUrl } : {}),
+        ...(typeof payload.sortOrder === "number" && Number.isFinite(payload.sortOrder)
+          ? { sortOrder: Math.max(1, Math.trunc(payload.sortOrder)) }
+          : {}),
+      },
+      select: {
+        id: true,
+        tourId: true,
+        imageUrl: true,
+        sortOrder: true,
+      },
+    });
+
+    const firstImage = await db.tourImage.findFirst({
+      where: { tourId: updated.tourId },
+      orderBy: { sortOrder: "asc" },
+      select: { imageUrl: true },
+    });
+    if (firstImage) {
+      await db.tour.update({
+        where: { id: updated.tourId },
+        data: { featuredImage: firstImage.imageUrl },
+      });
+    }
+
+    return updated;
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateTourImage(imageId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function deleteAdminTourImage(imageId: string) {
+  try {
+    const deleted = await db.tourImage.delete({
+      where: { id: imageId },
+      select: {
+        id: true,
+        tourId: true,
+      },
+    });
+
+    const firstImage = await db.tourImage.findFirst({
+      where: { tourId: deleted.tourId },
+      orderBy: { sortOrder: "asc" },
+      select: { imageUrl: true },
+    });
+    if (firstImage) {
+      await db.tour.update({
+        where: { id: deleted.tourId },
+        data: { featuredImage: firstImage.imageUrl },
+      });
+    }
+
+    return deleted;
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoDeleteTourImage(imageId);
+    }
+    throw error;
+  }
+}
+
+export async function createAdminItinerary(input: {
+  tourId: string;
+  dayNumber: number;
+  title: string;
+  description: string;
+}) {
+  try {
+    return db.itinerary.create({
+      data: {
+        tourId: input.tourId,
+        dayNumber: input.dayNumber,
+        title: input.title,
+        description: input.description,
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoCreateItinerary(input);
+    }
+    throw error;
+  }
+}
+
+export async function updateAdminItinerary(
+  itineraryId: string,
+  payload: { dayNumber?: number; title?: string; description?: string },
+) {
+  try {
+    return db.itinerary.update({
+      where: { id: itineraryId },
+      data: {
+        ...(typeof payload.dayNumber === "number" && Number.isFinite(payload.dayNumber)
+          ? { dayNumber: Math.max(1, Math.trunc(payload.dayNumber)) }
+          : {}),
+        ...(payload.title ? { title: payload.title } : {}),
+        ...(payload.description ? { description: payload.description } : {}),
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateItinerary(itineraryId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function deleteAdminItinerary(itineraryId: string) {
+  try {
+    return db.itinerary.delete({
+      where: { id: itineraryId },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoDeleteItinerary(itineraryId);
     }
     throw error;
   }
