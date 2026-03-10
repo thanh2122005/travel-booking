@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarDays, Heart, Loader2, Star } from "lucide-react";
+import { CalendarDays, CheckCircle2, Heart, Loader2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,20 @@ type TourBookingCardProps = {
   initialPhone: string;
 };
 
+const BOOKING_STEPS = [
+  { key: 1, title: "Liên hệ" },
+  { key: 2, title: "Lịch trình" },
+  { key: 3, title: "Xác nhận" },
+] as const;
+
+type BookingStep = (typeof BOOKING_STEPS)[number]["key"];
+
+const STEP_FIELDS: Record<BookingStep, (keyof BookingInput)[]> = {
+  1: ["fullName", "email", "phone"],
+  2: ["numberOfGuests", "departureDate", "note"],
+  3: [],
+};
+
 export function TourBookingCard({
   tourId,
   tourSlug,
@@ -47,6 +61,7 @@ export function TourBookingCard({
   const { data: session, status } = useSession();
   const isLoggedIn = Boolean(session?.user);
 
+  const [activeStep, setActiveStep] = useState<BookingStep>(1);
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [isFavoriteSubmitting, setIsFavoriteSubmitting] = useState(false);
   const [reviewRating, setReviewRating] = useState(initialReview?.rating ?? 5);
@@ -58,7 +73,9 @@ export function TourBookingCard({
     control,
     register,
     setValue,
+    getValues,
     reset,
+    trigger,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<BookingInput>({
@@ -85,10 +102,7 @@ export function TourBookingCard({
   }, [initialPhone, setValue]);
 
   useEffect(() => {
-    if (!session?.user) {
-      return;
-    }
-
+    if (!session?.user) return;
     setValue("fullName", session.user.name ?? "");
     setValue("email", session.user.email ?? "");
   }, [session, setValue]);
@@ -103,11 +117,40 @@ export function TourBookingCard({
     setHasExistingReview(Boolean(initialReview));
   }, [initialReview]);
 
+  useEffect(() => {
+    setActiveStep(1);
+  }, [tourId]);
+
   const numberOfGuests = useWatch({
     control,
     name: "numberOfGuests",
   }) || 1;
+
   const totalPrice = unitPrice * numberOfGuests;
+  const bookingSummary = {
+    fullName: getValues("fullName"),
+    email: getValues("email"),
+    phone: getValues("phone"),
+    departureDate: getValues("departureDate"),
+    note: getValues("note"),
+  };
+
+  async function goToNextStep() {
+    const fields = STEP_FIELDS[activeStep];
+    const valid = fields.length ? await trigger(fields) : true;
+    if (!valid) return;
+
+    if (activeStep === 2 && numberOfGuests > maxGuests) {
+      toast.error(`Tour này chỉ nhận tối đa ${maxGuests} khách cho một đơn.`);
+      return;
+    }
+
+    setActiveStep((prev) => (prev < 3 ? ((prev + 1) as BookingStep) : prev));
+  }
+
+  function goToPreviousStep() {
+    setActiveStep((prev) => (prev > 1 ? ((prev - 1) as BookingStep) : prev));
+  }
 
   const onSubmitBooking = handleSubmit(async (values) => {
     const response = await fetch("/api/bookings", {
@@ -126,6 +169,7 @@ export function TourBookingCard({
     }
 
     toast.success(payload.message ?? "Đặt tour thành công.");
+    setActiveStep(1);
     reset({
       ...values,
       tourId,
@@ -227,9 +271,7 @@ export function TourBookingCard({
         Có thể chọn ngày khởi hành linh hoạt
       </p>
 
-      {status === "loading" ? (
-        <div className="h-10 animate-pulse rounded-xl bg-muted" />
-      ) : null}
+      {status === "loading" ? <div className="h-10 animate-pulse rounded-xl bg-muted" /> : null}
 
       {!isLoggedIn && status !== "loading" ? (
         <Link
@@ -242,74 +284,138 @@ export function TourBookingCard({
 
       {isLoggedIn ? (
         <form onSubmit={onSubmitBooking} className="space-y-3 border-t pt-4">
-          <div className="space-y-1.5">
-            <Label htmlFor={`fullName-${tourId}`}>Họ và tên</Label>
-            <Input id={`fullName-${tourId}`} placeholder="Nguyễn Văn A" {...register("fullName")} />
-            {errors.fullName ? <p className="text-xs text-destructive">{errors.fullName.message}</p> : null}
+          <div className="grid grid-cols-3 gap-2">
+            {BOOKING_STEPS.map((step) => {
+              const isActive = step.key === activeStep;
+              const isDone = step.key < activeStep;
+              return (
+                <div
+                  key={step.key}
+                  className={cn(
+                    "rounded-lg border px-2 py-2 text-center text-xs font-medium",
+                    isDone && "border-teal-200 bg-teal-50 text-teal-700",
+                    isActive && "border-primary bg-primary/10 text-primary",
+                    !isActive && !isDone && "border-slate-200 bg-slate-50 text-slate-500",
+                  )}
+                >
+                  <p>{step.title}</p>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor={`email-${tourId}`}>Email</Label>
-            <Input id={`email-${tourId}`} type="email" placeholder="ban@example.com" {...register("email")} />
-            {errors.email ? <p className="text-xs text-destructive">{errors.email.message}</p> : null}
-          </div>
+          {activeStep === 1 ? (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor={`fullName-${tourId}`}>Họ và tên</Label>
+                <Input id={`fullName-${tourId}`} placeholder="Nguyễn Văn A" {...register("fullName")} />
+                {errors.fullName ? <p className="text-xs text-destructive">{errors.fullName.message}</p> : null}
+              </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor={`phone-${tourId}`}>Số điện thoại</Label>
-            <Input id={`phone-${tourId}`} type="tel" placeholder="0909123456" {...register("phone")} />
-            {errors.phone ? <p className="text-xs text-destructive">{errors.phone.message}</p> : null}
-          </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`email-${tourId}`}>Email</Label>
+                <Input id={`email-${tourId}`} type="email" placeholder="ban@example.com" {...register("email")} />
+                {errors.email ? <p className="text-xs text-destructive">{errors.email.message}</p> : null}
+              </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor={`guests-${tourId}`}>Số khách</Label>
-              <Input
-                id={`guests-${tourId}`}
-                type="number"
-                min={1}
-                max={maxGuests}
-                {...register("numberOfGuests", { valueAsNumber: true })}
-              />
-              {errors.numberOfGuests ? (
-                <p className="text-xs text-destructive">{errors.numberOfGuests.message}</p>
-              ) : null}
+              <div className="space-y-1.5">
+                <Label htmlFor={`phone-${tourId}`}>Số điện thoại</Label>
+                <Input id={`phone-${tourId}`} type="tel" placeholder="0909123456" {...register("phone")} />
+                {errors.phone ? <p className="text-xs text-destructive">{errors.phone.message}</p> : null}
+              </div>
             </div>
+          ) : null}
 
-            <div className="space-y-1.5">
-              <Label htmlFor={`departure-${tourId}`}>Ngày đi</Label>
-              <Input id={`departure-${tourId}`} type="date" {...register("departureDate")} />
-              {errors.departureDate ? (
-                <p className="text-xs text-destructive">{errors.departureDate.message}</p>
-              ) : null}
+          {activeStep === 2 ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor={`guests-${tourId}`}>Số khách</Label>
+                  <Input
+                    id={`guests-${tourId}`}
+                    type="number"
+                    min={1}
+                    max={maxGuests}
+                    {...register("numberOfGuests", { valueAsNumber: true })}
+                  />
+                  {errors.numberOfGuests ? (
+                    <p className="text-xs text-destructive">{errors.numberOfGuests.message}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Tối đa {maxGuests} khách cho một đơn.</p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor={`departure-${tourId}`}>Ngày đi</Label>
+                  <Input id={`departure-${tourId}`} type="date" {...register("departureDate")} />
+                  {errors.departureDate ? (
+                    <p className="text-xs text-destructive">{errors.departureDate.message}</p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor={`note-${tourId}`}>Ghi chú</Label>
+                <Textarea
+                  id={`note-${tourId}`}
+                  placeholder="Ví dụ: cần hỗ trợ suất ăn chay, ghế gần nhau..."
+                  rows={3}
+                  {...register("note")}
+                />
+                {errors.note ? <p className="text-xs text-destructive">{errors.note.message}</p> : null}
+              </div>
             </div>
-          </div>
+          ) : null}
 
-          <div className="space-y-1.5">
-            <Label htmlFor={`note-${tourId}`}>Ghi chú</Label>
-            <Textarea
-              id={`note-${tourId}`}
-              placeholder="Ví dụ: cần hỗ trợ suất ăn chay, ghế gần nhau..."
-              rows={3}
-              {...register("note")}
-            />
-            {errors.note ? <p className="text-xs text-destructive">{errors.note.message}</p> : null}
-          </div>
+          {activeStep === 3 ? (
+            <div className="space-y-3">
+              <div className="rounded-xl border bg-muted/40 p-3 text-sm">
+                <p className="font-medium">Thông tin xác nhận</p>
+                <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                  <li>Họ tên: {bookingSummary.fullName || "-"}</li>
+                  <li>Email: {bookingSummary.email || "-"}</li>
+                  <li>Điện thoại: {bookingSummary.phone || "-"}</li>
+                  <li>Số khách: {numberOfGuests}</li>
+                  <li>Ngày đi: {bookingSummary.departureDate || "Linh hoạt"}</li>
+                </ul>
+              </div>
 
-          <div className="rounded-xl border bg-muted/40 p-3 text-sm">
-            <p className="font-medium">Tổng tạm tính: {formatPrice(totalPrice)}</p>
-            <p className="text-xs text-muted-foreground">Số khách tối đa cho đơn này: {maxGuests} người.</p>
-          </div>
+              <div className="rounded-xl border bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                <p className="inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Sau khi gửi, đơn của bạn sẽ ở trạng thái chờ xác nhận.
+                </p>
+              </div>
 
-          <Button type="submit" className="h-10 w-full" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Đang gửi yêu cầu...
-              </>
+              <div className="rounded-xl border bg-muted/40 p-3 text-sm">
+                <p className="font-medium">Tổng tạm tính: {formatPrice(totalPrice)}</p>
+                <p className="text-xs text-muted-foreground">Số khách tối đa cho đơn này: {maxGuests} người.</p>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" className="h-10 flex-1" onClick={goToPreviousStep} disabled={activeStep === 1 || isSubmitting}>
+              Quay lại
+            </Button>
+
+            {activeStep < 3 ? (
+              <Button type="button" className="h-10 flex-1" onClick={goToNextStep} disabled={isSubmitting}>
+                Tiếp tục
+              </Button>
             ) : (
-              "Đặt tour ngay"
+              <Button type="submit" className="h-10 flex-1" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Đang gửi yêu cầu...
+                  </>
+                ) : (
+                  "Xác nhận đặt tour"
+                )}
+              </Button>
             )}
-          </Button>
+          </div>
         </form>
       ) : null}
 

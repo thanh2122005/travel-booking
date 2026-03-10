@@ -29,7 +29,7 @@ export const bookingSchema = z.object({
     .number({ message: "Số lượng khách không hợp lệ" })
     .int("Số lượng khách phải là số nguyên")
     .min(1, "Số lượng khách tối thiểu là 1")
-    .max(20, "Số lượng khách tối đa là 20"),
+    .max(100, "Số lượng khách tối đa cho một đơn là 100"),
   note: z.string().trim().max(500, "Ghi chú tối đa 500 ký tự").optional().or(z.literal("")),
   departureDate: departureDateSchema,
 });
