@@ -31,17 +31,17 @@ export default async function ReviewsPage() {
           <MessageSquareText className="h-4 w-4" />
           Real Reviews
         </p>
-        <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">Danh gia tu khach hang</h1>
+        <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">Đánh giá từ khách hàng</h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100 md:text-base">
-          Tong hop danh gia thuc te tu nguoi da co booking hop le. Data lay truc tiep tu model Review.
+          Tổng hợp đánh giá thực tế từ người đã có booking hợp lệ. Data lấy trực tiếp từ model Review.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-2">
-            <p className="text-xs uppercase tracking-[0.14em] text-teal-100">Tong review</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-teal-100">Tổng review</p>
             <p className="text-xl font-bold">{data.summary.total}</p>
           </div>
           <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-2">
-            <p className="text-xs uppercase tracking-[0.14em] text-teal-100">Diem trung binh</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-teal-100">Điểm trung bình</p>
             <p className="text-xl font-bold">{data.summary.avgRating}/5</p>
           </div>
         </div>
@@ -50,8 +50,8 @@ export default async function ReviewsPage() {
       <section className="space-y-5">
         <HomeSectionHeading
           eyebrow="Community Feedback"
-          title="Trai nghiem duoc xac thuc"
-          description="Chi review visible va co booking hop le moi hien thi trong he thong."
+          title="Trải nghiệm được xác thực"
+          description="Chỉ review visible và có booking hợp lệ mới hiển thị trong hệ thống."
         />
 
         {data.reviews.length ? (
@@ -92,10 +92,10 @@ export default async function ReviewsPage() {
           </div>
         ) : (
           <EmptyState
-            title="Chua co review hien thi"
-            description="Hien tai chua co danh gia nao du dieu kien hien thi."
+            title="Chưa có review hiển thị"
+            description="Hiện tại chưa có đánh giá nào đủ điều kiện hiển thị."
             ctaHref="/tours"
-            ctaLabel="Xem danh sach tours"
+            ctaLabel="Xem danh sách tour"
           />
         )}
       </section>

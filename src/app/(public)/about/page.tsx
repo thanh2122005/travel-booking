@@ -19,22 +19,22 @@ export default async function AboutPage() {
   const factItems = [
     {
       icon: Camera,
-      label: "Anh du lich",
+      label: "Ảnh du lịch",
       value: `${data.stats.totalReviews * 20 + 120}`,
     },
     {
       icon: Umbrella,
-      label: "Diem nghi duong",
+      label: "Điểm nghỉ dưỡng",
       value: `${Math.max(data.stats.totalLocations, 1) * 8}`,
     },
     {
       icon: Mountain,
-      label: "Hanh trinh trekking",
+      label: "Hành trình trekking",
       value: `${Math.max(data.stats.totalTours, 1) * 4}`,
     },
     {
       icon: Ship,
-      label: "Chuyen du thuyen",
+      label: "Chuyến du thuyền",
       value: `${Math.max(data.stats.totalBookings, 1)}`,
     },
   ];
@@ -43,8 +43,8 @@ export default async function AboutPage() {
     <div className="space-y-10">
       <PageHeroBanner
         eyebrow="Our Story"
-        title="Ve Immersive Vietnam"
-        description="Tu tinh than cua template showcase, chung toi xay dung thanh he thong booking tour co du lieu dong, tap trung vao trai nghiem du lich Viet Nam."
+        title="Về Immersive Vietnam"
+        description="Từ tinh thần của template showcase, chúng tôi xây dựng thành hệ thống booking tour có dữ liệu động, tập trung vào trải nghiệm du lịch Việt Nam."
         videoSrc="/immerse-vietnam/videos/blogcover.mp4"
       />
 
@@ -52,7 +52,7 @@ export default async function AboutPage() {
         <HomeSectionHeading
           eyebrow="Our Story"
           title="Years of growing together"
-          description="Noi dung duoc migrate tu template about va refactor thanh block noi dung de tai su dung."
+          description="Nội dung được migrate từ template about và refactor thành block nội dung để tái sử dụng."
         />
 
         <div className="grid items-center gap-5 lg:grid-cols-2">
@@ -64,12 +64,12 @@ export default async function AboutPage() {
           <article className="iv-card space-y-3 p-6">
             <h3 className="text-2xl font-bold tracking-tight">From student project to product mindset</h3>
             <p className="text-sm leading-7 text-slate-600">
-              Bat dau tu nhu cau gioi thieu ve dep Viet Nam cho ban be quoc te, du an da duoc nang cap thanh website
-              booking co cau truc du lieu ro rang va mo rong duoc trong thuc te.
+              Bắt đầu từ nhu cầu giới thiệu vẻ đẹp Việt Nam cho bạn bè quốc tế, dự án đã được nâng cấp thành website
+              booking có cấu trúc dữ liệu rõ ràng và mở rộng được trong thực tế.
             </p>
             <p className="text-sm leading-7 text-slate-600">
-              Chung toi uu tien hinh anh lon, ke chuyen bang diem den va trien khai luong dat tour phu hop voi nguoi
-              dung Viet Nam.
+              Chúng tôi ưu tiên hình ảnh lớn, kể chuyện bằng điểm đến và triển khai luồng đặt tour phù hợp với người
+              dùng Việt Nam.
             </p>
           </article>
         </div>
@@ -78,12 +78,12 @@ export default async function AboutPage() {
           <article className="iv-card order-2 space-y-3 p-6 lg:order-1">
             <h3 className="text-2xl font-bold tracking-tight">Vision: practical travel booking platform</h3>
             <p className="text-sm leading-7 text-slate-600">
-              Muc tieu khong chi la giao dien dep. He thong can map duoc Tour, Location, Booking, Review, Favorite va
-              Itinerary de day du nghiep vu san pham.
+              Mục tiêu không chỉ là giao diện đẹp. Hệ thống cần map được Tour, Location, Booking, Review, Favorite và
+              Itinerary để đầy đủ nghiệp vụ sản phẩm.
             </p>
             <p className="text-sm leading-7 text-slate-600">
-              Nhom tiep tuc dau tu responsive, animation vua du va luong dieu huong hop ly de tao trai nghiem dat tour
-              truc quan tren mobile lan desktop.
+              Nhóm tiếp tục đầu tư responsive, animation vừa đủ và luồng điều hướng hợp lý để tạo trải nghiệm đặt tour
+              trực quan trên mobile lẫn desktop.
             </p>
           </article>
           <article className="iv-card order-1 overflow-hidden lg:order-2">
@@ -97,8 +97,8 @@ export default async function AboutPage() {
       <section className="iv-card overflow-hidden bg-[linear-gradient(130deg,#072236,#0a324f)] p-7 text-white md:p-9">
         <HomeSectionHeading
           eyebrow="Fun Facts"
-          title="Some facts about our journey"
-          description="Lay cam hung tu section facts cua template cu, nhung map theo du lieu he thong hien tai."
+          title="Một vài con số về hành trình của chúng tôi"
+          description="Lấy cảm hứng từ section facts của template cũ, nhưng map theo dữ liệu hệ thống hiện tại."
         />
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {factItems.map((item) => (

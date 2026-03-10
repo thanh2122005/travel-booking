@@ -24,8 +24,8 @@ export function HomeItineraryPreview({ tours }: HomeItineraryPreviewProps) {
     <section className="space-y-5">
       <HomeSectionHeading
         eyebrow="Itinerary Preview"
-        title="Xem nhanh lo trinh truoc khi dat"
-        description="Section moi de tao cam giac san pham booking that: khach nhin duoc cac moc hanh trinh ngay tu homepage."
+        title="Xem nhanh lộ trình trước khi đặt"
+        description="Section mới để tạo cảm giác sản phẩm booking thật: khách nhìn được các mốc hành trình ngay từ homepage."
       />
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -37,14 +37,14 @@ export function HomeItineraryPreview({ tours }: HomeItineraryPreviewProps) {
                 <h3 className="mt-1 text-xl font-bold tracking-tight text-slate-900">{tour.title}</h3>
               </div>
               <Link href={`/tours/${tour.slug}`} className="iv-btn-soft inline-flex h-9 items-center px-3 text-xs font-semibold">
-                Chi tiet
+                Chi tiết
               </Link>
             </div>
 
             <div className="mt-4 space-y-2">
               {tour.itineraries.map((item) => (
                 <div key={item.id} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Ngay {item.dayNumber}</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Ngày {item.dayNumber}</p>
                   <p className="mt-1 text-sm font-medium text-slate-800">{item.title}</p>
                 </div>
               ))}

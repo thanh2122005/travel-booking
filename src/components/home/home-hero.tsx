@@ -42,60 +42,60 @@ export function HomeHero({ featuredLocations, stats }: HomeHeroProps) {
             Leave Your Footprints
           </p>
           <h1 className="max-w-3xl text-4xl font-black leading-tight tracking-tight md:text-6xl">
-            Dat tour Viet Nam theo phong cach premium, ro rang va de mo rong.
+            Đặt tour Việt Nam theo phong cách premium, rõ ràng và dễ mở rộng.
           </h1>
           <p className="max-w-2xl text-base leading-8 text-slate-200 md:text-lg">
-            Giu tinh than thiet ke cua Immerse Vietnam va nang cap thanh mot booking platform hoan chinh cho tour,
-            diem den, review, yeu thich va hanh trinh chi tiet.
+            Giữ tinh thần thiết kế của Immerse Vietnam và nâng cấp thành một booking platform hoàn chỉnh cho tour,
+            điểm đến, review, yêu thích và hành trình chi tiết.
           </p>
 
           <div className="flex flex-wrap gap-3">
             <Link href="/tours" className="iv-btn-primary inline-flex h-11 items-center px-6 text-sm font-semibold">
-              Kham pha tours
+              Khám phá tour
             </Link>
             <Link href="/destinations" className="iv-btn-soft inline-flex h-11 items-center px-6 text-sm font-semibold">
-              Xem diem den
+              Xem điểm đến
             </Link>
           </div>
 
           <div className="grid max-w-2xl grid-cols-2 gap-4 pt-2 sm:grid-cols-4">
             <div className="rounded-2xl border border-white/20 bg-white/8 px-4 py-3">
               <p className="text-2xl font-bold">{stats.totalTours}+</p>
-              <p className="text-xs text-slate-300">Tours dang mo</p>
+              <p className="text-xs text-slate-300">Tour đang mở</p>
             </div>
             <div className="rounded-2xl border border-white/20 bg-white/8 px-4 py-3">
               <p className="text-2xl font-bold">{stats.totalLocations}+</p>
-              <p className="text-xs text-slate-300">Diem den</p>
+              <p className="text-xs text-slate-300">Điểm đến</p>
             </div>
             <div className="rounded-2xl border border-white/20 bg-white/8 px-4 py-3">
               <p className="text-2xl font-bold">{stats.totalBookings}+</p>
-              <p className="text-xs text-slate-300">Luot dat tour</p>
+              <p className="text-xs text-slate-300">Lượt đặt tour</p>
             </div>
             <div className="rounded-2xl border border-white/20 bg-white/8 px-4 py-3">
               <p className="text-2xl font-bold">{stats.totalReviews}+</p>
-              <p className="text-xs text-slate-300">Danh gia that</p>
+              <p className="text-xs text-slate-300">Đánh giá thật</p>
             </div>
           </div>
         </div>
 
         <div className="iv-glass h-fit rounded-3xl p-5 shadow-2xl iv-fade-up lg:p-6">
-          <h2 className="text-xl font-bold text-white">Tim nhanh tour phu hop</h2>
-          <p className="mt-2 text-sm text-slate-100/90">Loc theo diem den, khoang gia va nhu cau du lich cua ban.</p>
+          <h2 className="text-xl font-bold text-white">Tìm nhanh tour phù hợp</h2>
+          <p className="mt-2 text-sm text-slate-100/90">Lọc theo điểm đến, khoảng giá và nhu cầu du lịch của bạn.</p>
           <form action="/tours" className="mt-5 space-y-3">
             <div>
               <label htmlFor="hero-search" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-100">
-                Tu khoa
+                Từ khóa
               </label>
               <input
                 id="hero-search"
                 name="search"
-                placeholder="Vi du: bien, Da Nang, nghi duong"
+                placeholder="Ví dụ: biển, Đà Nẵng, nghỉ dưỡng"
                 className="h-11 w-full rounded-xl border border-white/30 bg-white/10 px-3 text-sm text-white placeholder:text-slate-300 focus:border-teal-300 focus:outline-none"
               />
             </div>
             <div>
               <label htmlFor="hero-location" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-100">
-                Diem den
+                Điểm đến
               </label>
               <select
                 id="hero-location"
@@ -104,7 +104,7 @@ export function HomeHero({ featuredLocations, stats }: HomeHeroProps) {
                 className="h-11 w-full rounded-xl border border-white/30 bg-white/10 px-3 text-sm text-white focus:border-teal-300 focus:outline-none"
               >
                 <option value="" className="text-slate-900">
-                  Tat ca diem den
+                  Tất cả điểm đến
                 </option>
                 {featuredLocations.map((location) => (
                   <option key={location.id} value={location.slug} className="text-slate-900">
@@ -119,7 +119,7 @@ export function HomeHero({ featuredLocations, stats }: HomeHeroProps) {
                   htmlFor="hero-min-price"
                   className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-100"
                 >
-                  Gia tu
+                  Giá từ
                 </label>
                 <input
                   id="hero-min-price"
@@ -134,7 +134,7 @@ export function HomeHero({ featuredLocations, stats }: HomeHeroProps) {
                   htmlFor="hero-max-price"
                   className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-100"
                 >
-                  Den
+                  Đến
                 </label>
                 <input
                   id="hero-max-price"
@@ -146,7 +146,7 @@ export function HomeHero({ featuredLocations, stats }: HomeHeroProps) {
               </div>
             </div>
             <button type="submit" className="iv-btn-primary inline-flex h-11 w-full items-center justify-center text-sm font-semibold">
-              Tim tour ngay
+              Tìm tour ngay
             </button>
           </form>
         </div>

@@ -5,23 +5,23 @@ import { HomeSectionHeading } from "@/components/home/home-section-heading";
 const services = [
   {
     icon: Gem,
-    title: "Lu tru premium",
-    description: "Goi tour uu tien khach san va resort chat luong cao, minh bach tieu chuan dich vu.",
+    title: "Lưu trú premium",
+    description: "Gói tour ưu tiên khách sạn và resort chất lượng cao, minh bạch tiêu chuẩn dịch vụ.",
   },
   {
     icon: Handshake,
-    title: "Tu van 1-1",
-    description: "Ho tro ca nhan hoa theo nhom khach, lich trinh va ngan sach, tu y tuong den dat tour.",
+    title: "Tư vấn 1-1",
+    description: "Hỗ trợ cá nhân hóa theo nhóm khách, lịch trình và ngân sách, từ ý tưởng đến đặt tour.",
   },
   {
     icon: ShieldCheck,
-    title: "Thanh toan an toan",
-    description: "Xac nhan don nhanh, theo doi trang thai booking va chinh sach ro rang trong suot hanh trinh.",
+    title: "Thanh toán an toàn",
+    description: "Xác nhận đơn nhanh, theo dõi trạng thái booking và chính sách rõ ràng trong suốt hành trình.",
   },
   {
     icon: Sparkles,
-    title: "Trai nghiem thuc te",
-    description: "Map du lieu review/favorite/itinerary tu he thong thay vi landing tinh, de mo rong thanh san pham.",
+    title: "Trải nghiệm thực tế",
+    description: "Map dữ liệu review/favorite/itinerary từ hệ thống thay vì landing tĩnh, dễ mở rộng thành sản phẩm.",
   },
 ];
 
@@ -32,11 +32,11 @@ export function HomeServices() {
         <div>
           <HomeSectionHeading
             eyebrow="Our Services"
-            title="Dat tour de, chuyen nghiep va dang tin cay"
-            description="Refactor tu section services cua template cu, nang cap thanh proposition ro rang cho website booking."
+            title="Đặt tour dễ, chuyên nghiệp và đáng tin cậy"
+            description="Refactor từ section services của template cũ, nâng cấp thành proposition rõ ràng cho website booking."
           />
           <Link href="/booking" className="iv-btn-primary mt-5 inline-flex h-10 items-center px-5 text-sm font-semibold">
-            Bat dau dat tour
+            Bắt đầu đặt tour
           </Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">

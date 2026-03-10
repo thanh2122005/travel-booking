@@ -40,17 +40,17 @@ export function HomeVideoShowcase() {
       <div className="absolute inset-x-0 bottom-0 z-10 p-6 text-white md:p-8">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-100">Vietnam in motion</p>
         <h2 className="mt-2 max-w-2xl text-2xl font-black leading-tight md:text-4xl">
-          Cam nhan khong khi du lich Viet Nam truoc khi chon tour.
+          Cảm nhận không khí du lịch Việt Nam trước khi chọn tour.
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
-          Section video tu template cu duoc viet lai bang React hook, khong thao tac DOM truc tiep.
+          Section video từ template cũ được viết lại bằng React hook, không thao tác DOM trực tiếp.
         </p>
       </div>
       <button
         type="button"
         onClick={toggleVideo}
         className="absolute right-5 top-5 z-20 inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/35 bg-black/45 text-white transition hover:bg-black/70"
-        aria-label={isPlaying ? "Tam dung video" : "Phat video"}
+        aria-label={isPlaying ? "Tạm dừng video" : "Phát video"}
       >
         {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
       </button>

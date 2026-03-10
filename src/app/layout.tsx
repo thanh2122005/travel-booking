@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     default: "Immersive Vietnam Booking",
     template: "%s | Immersive Vietnam Booking",
   },
-  description: "Nen tang dat tour du lich Viet Nam hien dai, premium va de mo rong theo du lieu that.",
+  description: "Nền tảng đặt tour du lịch Việt Nam hiện đại, premium và dễ mở rộng theo dữ liệu thật.",
 };
 
 export default function RootLayout({

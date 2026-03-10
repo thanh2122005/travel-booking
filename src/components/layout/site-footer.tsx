@@ -11,7 +11,7 @@ export function SiteFooter() {
             Immersive<span className="text-teal-400">Vietnam</span>
           </p>
           <p className="text-sm leading-7 text-slate-300">
-            Nen tang dat tour du lich Viet Nam theo huong san pham that: de dung, dep, va co the mo rong dai han.
+            Nền tảng đặt tour du lịch Việt Nam theo hướng sản phẩm thật: dễ dùng, đẹp, và có thể mở rộng dài hạn.
           </p>
           <div className="space-y-1.5 text-sm text-slate-200">
             <p className="inline-flex items-center gap-2">
@@ -24,13 +24,13 @@ export function SiteFooter() {
             </p>
             <p className="inline-flex items-center gap-2">
               <MapPin className="h-4 w-4 text-teal-400" />
-              Ha Noi, Viet Nam
+              Hà Nội, Việt Nam
             </p>
           </div>
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-white">Dieu huong nhanh</h3>
+          <h3 className="text-base font-semibold text-white">Điều hướng nhanh</h3>
           <ul className="space-y-2 text-sm">
             {footerQuickLinks.map((item) => (
               <li key={item.href}>
@@ -41,7 +41,7 @@ export function SiteFooter() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-white">Diem den pho bien</h3>
+          <h3 className="text-base font-semibold text-white">Điểm đến phổ biến</h3>
           <ul className="space-y-2 text-sm">
             {footerPopularDestinations.map((item) => (
               <li key={item.href}>
@@ -52,21 +52,21 @@ export function SiteFooter() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-white">Nhan tin uu dai</h3>
+          <h3 className="text-base font-semibold text-white">Nhận tin ưu đãi</h3>
           <p className="text-sm leading-7 text-slate-300">
-            Nhan ban tin ve hanh trinh moi, tour noi bat va lo trinh du lich Viet Nam moi nhat.
+            Nhận bản tin về hành trình mới, tour nổi bật và lộ trình du lịch Việt Nam mới nhất.
           </p>
           <form className="space-y-2">
             <input
               type="email"
-              placeholder="Email cua ban"
+              placeholder="Email của bạn"
               className="h-10 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 text-sm text-white placeholder:text-slate-400 focus:border-teal-400 focus:outline-none"
             />
             <button
               type="submit"
               className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-4 text-sm font-semibold"
             >
-              Dang ky
+              Đăng ký
             </button>
           </form>
         </div>

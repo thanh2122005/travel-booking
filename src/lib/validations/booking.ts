@@ -25,7 +25,7 @@ export const bookingSchema = z.object({
     .trim()
     .min(8, "Số điện thoại phải có ít nhất 8 ký tự")
     .max(20, "Số điện thoại không hợp lệ"),
-  numberOfGuests: z.coerce
+  numberOfGuests: z
     .number({ message: "Số lượng khách không hợp lệ" })
     .int("Số lượng khách phải là số nguyên")
     .min(1, "Số lượng khách tối thiểu là 1")

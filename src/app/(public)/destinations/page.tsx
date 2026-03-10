@@ -9,8 +9,8 @@ import { getLocations } from "@/lib/db/public-queries";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Destinations",
-  description: "Danh sach diem den du lich Viet Nam voi route dynamic va du lieu tu Prisma.",
+  title: "Điểm đến",
+  description: "Danh sách điểm đến du lịch Việt Nam với route dynamic và dữ liệu từ Prisma.",
 };
 
 type DestinationsPageProps = {
@@ -31,13 +31,13 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
     <div className="space-y-8">
       <HomeSectionHeading
         eyebrow="Destinations"
-        title="Kham pha diem den Viet Nam"
-        description="Route nay thay the cho mo hinh trang thanh pho tinh, gom vao he thong dynamic /destinations/[slug]."
+        title="Khám phá điểm đến Việt Nam"
+        description="Route này thay thế cho mô hình trang thành phố tĩnh, gom vào hệ thống dynamic /destinations/[slug]."
       />
 
       <form className="iv-card p-4">
         <label htmlFor="destination-search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-          Tim diem den
+          Tìm điểm đến
         </label>
         <div className="flex flex-col gap-2 sm:flex-row">
           <div className="relative flex-1">
@@ -46,12 +46,12 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
               id="destination-search"
               name="search"
               defaultValue={search}
-              placeholder="Vi du: Da Nang, Ha Noi, Phu Quoc..."
+              placeholder="Ví dụ: Đà Nẵng, Hà Nội, Phú Quốc..."
               className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm focus:border-teal-500 focus:outline-none"
             />
           </div>
           <button type="submit" className="iv-btn-primary inline-flex h-11 items-center justify-center px-5 text-sm font-semibold">
-            Tim kiem
+            Tìm kiếm
           </button>
         </div>
       </form>
@@ -84,10 +84,10 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
         </div>
       ) : (
         <EmptyState
-          title="Khong tim thay diem den"
-          description="Thu tu khoa khac de tim thong tin diem den phu hop."
+          title="Không tìm thấy điểm đến"
+          description="Thử từ khóa khác để tìm thông tin điểm đến phù hợp."
           ctaHref="/destinations"
-          ctaLabel="Xem tat ca diem den"
+          ctaLabel="Xem tất cả điểm đến"
         />
       )}
     </div>

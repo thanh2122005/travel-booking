@@ -26,15 +26,15 @@ export default async function GalleryPage() {
       <PageHeroBanner
         eyebrow="Gallery"
         title="Vietnam Through The Lens"
-        description="Trang gallery duoc convert tu template cu, giu bo cuc anh lon va bo sung highlight theo du lieu location."
+        description="Trang gallery được convert từ template cũ, giữ bố cục ảnh lớn và bổ sung highlight theo dữ liệu location."
         videoSrc="/immerse-vietnam/videos/blogcover.mp4"
       />
 
       <section className="space-y-5">
         <HomeSectionHeading
           eyebrow="Moments"
-          title="Bo suu tap hinh anh du lich"
-          description="Toan bo asset image migrate vao public/immerse-vietnam de su dung on dinh trong Next.js."
+          title="Bộ sưu tập hình ảnh du lịch"
+          description="Toàn bộ asset image migrate vào public/immerse-vietnam để sử dụng ổn định trong Next.js."
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {galleryImages.map((src, index) => (
@@ -56,8 +56,8 @@ export default async function GalleryPage() {
       <section className="space-y-5">
         <HomeSectionHeading
           eyebrow="Popular Places"
-          title="Diem den dang duoc quan tam"
-          description="Thay cho danh sach tich hop tay trong template, du lieu nay map theo model Location."
+          title="Điểm đến đang được quan tâm"
+          description="Thay cho danh sách tích hợp tay trong template, dữ liệu này map theo model Location."
         />
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

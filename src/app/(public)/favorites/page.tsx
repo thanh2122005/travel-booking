@@ -21,17 +21,17 @@ export default async function FavoritesPage() {
           <Heart className="h-4 w-4" />
           Favorite Tours
         </p>
-        <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">Danh sach tour yeu thich</h1>
+        <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">Danh sách tour yêu thích</h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100 md:text-base">
-          Tour duoc luu tu trang chi tiet se xuat hien tai day. Du lieu map truc tiep tu model Favorite trong Prisma.
+          Tour được lưu từ trang chi tiết sẽ xuất hiện tại đây. Dữ liệu map trực tiếp từ model Favorite trong Prisma.
         </p>
       </div>
 
       <section className="space-y-5">
         <HomeSectionHeading
           eyebrow="Saved Tours"
-          title="Tour ban dang theo doi"
-          description="Danh sach nay duoc dong bo theo tai khoan nguoi dung va cap nhat theo thao tac yeu thich."
+          title="Tour bạn đang theo dõi"
+          description="Danh sách này được đồng bộ theo tài khoản người dùng và cập nhật theo thao tác yêu thích."
         />
 
         {favorites.length ? (
@@ -64,17 +64,17 @@ export default async function FavoritesPage() {
           </div>
         ) : session?.user ? (
           <EmptyState
-            title="Chua co tour yeu thich"
-            description="Ban co the nhan nut yeu thich trong trang tour detail de luu nhanh."
+            title="Chưa có tour yêu thích"
+            description="Bạn có thể nhấn nút yêu thích trong trang tour detail để lưu nhanh."
             ctaHref="/tours"
-            ctaLabel="Kham pha tours"
+            ctaLabel="Khám phá tour"
           />
         ) : (
           <EmptyState
-            title="Dang nhap de xem favorites"
-            description="Danh sach yeu thich gan voi tai khoan, vui long dang nhap de tiep tuc."
+            title="Đăng nhập để xem favorites"
+            description="Danh sách yêu thích gắn với tài khoản, vui lòng đăng nhập để tiếp tục."
             ctaHref="/dang-nhap?callbackUrl=/favorites"
-            ctaLabel="Dang nhap"
+            ctaLabel="Đăng nhập"
           />
         )}
       </section>

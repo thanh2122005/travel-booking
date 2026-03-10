@@ -15,15 +15,15 @@ export default async function InspirationPage() {
       <PageHeroBanner
         eyebrow="Inspiration"
         title="Travel Inspiration"
-        description="Chuyen doi trang blog tinh trong template thanh trang truyen cam hung co route dynamic va kha nang map du lieu that."
+        description="Chuyển đổi trang blog tĩnh trong template thành trang truyền cảm hứng có route dynamic và khả năng map dữ liệu thật."
         videoSrc="/immerse-vietnam/videos/vietnamBlog.mp4"
       />
 
       <section className="space-y-5">
         <HomeSectionHeading
           eyebrow="Stories"
-          title="Nhung hanh trinh dang truyen cam hung"
-          description="Blog khong con la static html; moi bai viet huong den destination detail va luong dat tour."
+          title="Những hành trình đang truyền cảm hứng"
+          description="Blog không còn là static html; mỗi bài viết hướng đến destination detail và luồng đặt tour."
         />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {locations.slice(0, 6).map((location, index) => (

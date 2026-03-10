@@ -14,11 +14,11 @@ export function HomeFeaturedTours({ tours }: HomeFeaturedToursProps) {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <HomeSectionHeading
           eyebrow="Featured Tours"
-          title="Hanh trinh duoc dat nhieu"
-          description="Card tour map truc tiep tu model Tour + rating tu Review de san sang phat trien booking that."
+          title="Hành trình được đặt nhiều"
+          description="Card tour map trực tiếp từ model Tour + rating từ Review để sẵn sàng phát triển booking thật."
         />
         <Link href="/tours" className="iv-btn-soft inline-flex h-10 items-center px-4 text-sm font-semibold">
-          Xem tat ca tours
+          Xem tất cả tour
         </Link>
       </div>
 

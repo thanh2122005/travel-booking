@@ -66,7 +66,7 @@ export function SiteHeader() {
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-teal-500 hover:text-teal-700 lg:hidden"
             onClick={() => setIsOpen((prev) => !prev)}
-            aria-label={isOpen ? "Dong menu" : "Mo menu"}
+            aria-label={isOpen ? "Đóng menu" : "Mở menu"}
           >
             {isOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
           </button>

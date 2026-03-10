@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: DestinationDetailPageProps): 
 
   if (!location) {
     return {
-      title: "Khong tim thay diem den",
+      title: "Không tìm thấy điểm đến",
     };
   }
 
@@ -59,7 +59,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
         <article className="iv-card space-y-4 p-6">
           <HomeSectionHeading
             eyebrow="Highlights"
-            title={`Vi sao nen den ${location.name}?`}
+            title={`Vì sao nên đến ${location.name}?`}
             description={location.shortDescription}
           />
           <p className="text-sm leading-7 text-slate-600">{location.description}</p>
@@ -75,20 +75,20 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
         <aside className="iv-card h-fit space-y-4 p-5 lg:sticky lg:top-24">
           <h3 className="text-lg font-semibold text-slate-900">Quick Actions</h3>
           <p className="text-sm leading-7 text-slate-600">
-            Xem danh sach tour dang mo ban tai {location.name} va dat tour ngay khi tim thay lich trinh phu hop.
+            Xem danh sách tour đang mở bán tại {location.name} và đặt tour ngay khi tìm thấy lịch trình phù hợp.
           </p>
           <Link href="/tours" className="iv-btn-primary inline-flex h-10 w-full items-center justify-center text-sm font-semibold">
-            Xem tat ca tours
+            Xem tất cả tour
           </Link>
           <Link href="/booking" className="iv-btn-soft inline-flex h-10 w-full items-center justify-center text-sm font-semibold">
-            Di den trang booking
+            Đi đến trang booking
           </Link>
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
             <p className="inline-flex items-center gap-1.5 font-medium text-slate-700">
               <Compass className="h-4 w-4 text-teal-600" />
-              Goi y:
+              Gợi ý:
             </p>
-            <p className="mt-2 leading-7">Dat som vao mua cao diem va uu tien lich trinh co itinerary ro rang de toi uu thoi gian.</p>
+            <p className="mt-2 leading-7">Đặt sớm vào mùa cao điểm và ưu tiên lịch trình có itinerary rõ ràng để tối ưu thời gian.</p>
           </div>
         </aside>
       </section>
@@ -96,8 +96,8 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
       <section className="space-y-5">
         <HomeSectionHeading
           eyebrow="Tours"
-          title={`Tour dang mo tai ${location.name}`}
-          description="Danh sach nay duoc map truc tiep tu model Tour theo locationId."
+          title={`Tour đang mở tại ${location.name}`}
+          description="Danh sách này được map trực tiếp từ model Tour theo locationId."
         />
 
         {location.tours.length ? (
@@ -108,10 +108,10 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
           </div>
         ) : (
           <EmptyState
-            title="Chua co tour phu hop"
-            description="Hien chua co tour dang hoat dong cho diem den nay."
+            title="Chưa có tour phù hợp"
+            description="Hiện chưa có tour đang hoạt động cho điểm đến này."
             ctaHref="/tours"
-            ctaLabel="Xem cac tour khac"
+            ctaLabel="Xem các tour khác"
           />
         )}
       </section>

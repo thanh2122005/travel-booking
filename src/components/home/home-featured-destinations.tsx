@@ -21,8 +21,8 @@ export function HomeFeaturedDestinations({ locations }: HomeFeaturedDestinations
     <section className="space-y-5">
       <HomeSectionHeading
         eyebrow="Featured Places"
-        title="Diem den noi bat tai Viet Nam"
-        description="Giu bo cuc anh lon, lop overlay va tinh than showcase cua template cu, nhung dua vao route data that."
+        title="Điểm đến nổi bật tại Việt Nam"
+        description="Giữ bố cục ảnh lớn, lớp overlay và tinh thần showcase của template cũ, nhưng đưa vào route data thật."
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
