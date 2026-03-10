@@ -45,13 +45,21 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
 
   const { tour, relatedTours, viewer } = data;
   const finalPrice = getTourDisplayPrice(tour.price, tour.discountPrice);
-  const galleryImages = Array.from(
+  const dedicatedImages = Array.from(
     new Set(
-      [tour.featuredImage, ...tour.images.map((item) => item.imageUrl), ...tour.location.gallery].filter(
+      [tour.featuredImage, ...tour.images.map((item) => item.imageUrl)].filter(
         (image): image is string => Boolean(image && image.trim()),
       ),
     ),
   );
+  const fallbackImages = Array.from(
+    new Set(
+      [tour.featuredImage, ...tour.location.gallery].filter(
+        (image): image is string => Boolean(image && image.trim()),
+      ),
+    ),
+  );
+  const galleryImages = dedicatedImages.length ? dedicatedImages : fallbackImages;
 
   return (
     <div className="space-y-10 py-6">
