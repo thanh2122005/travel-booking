@@ -212,22 +212,8 @@ export async function getTours(filters: TourFilterInput) {
       ...buildDurationWhere(filters.duration),
     };
 
-    const [total, tours, allLocations] = await Promise.all([
+    const [total, allLocations] = await Promise.all([
       db.tour.count({ where }),
-      db.tour.findMany({
-        where,
-        include: {
-          location: true,
-        },
-        orderBy:
-          filters.sort === "gia-tang"
-            ? { price: "asc" }
-            : filters.sort === "gia-giam"
-              ? { price: "desc" }
-              : { createdAt: "desc" },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
       db.location.findMany({
         select: {
           id: true,
@@ -240,26 +226,66 @@ export async function getTours(filters: TourFilterInput) {
       }),
     ]);
 
+    if (filters.sort === "danh-gia-cao") {
+      // Sorting by rating must happen before pagination to avoid incorrect ranking per page.
+      const allTours = await db.tour.findMany({
+        where,
+        include: {
+          location: true,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      const ratings = await getTourRatings(allTours.map((item) => item.id));
+      const sorted = allTours
+        .map((item) => ({
+          ...item,
+          avgRating: ratings[item.id]?.avgRating ?? 0,
+          reviewCount: ratings[item.id]?.reviewCount ?? 0,
+        }))
+        .sort((a, b) => {
+          if (b.avgRating === a.avgRating) {
+            if (b.reviewCount === a.reviewCount) {
+              return +new Date(b.createdAt) - +new Date(a.createdAt);
+            }
+            return b.reviewCount - a.reviewCount;
+          }
+          return b.avgRating - a.avgRating;
+        });
+
+      return {
+        tours: sorted.slice((page - 1) * pageSize, page * pageSize),
+        locations: allLocations,
+        total,
+        page,
+        pageSize,
+        totalPages: Math.max(Math.ceil(total / pageSize), 1),
+      };
+    }
+
+    const tours = await db.tour.findMany({
+      where,
+      include: {
+        location: true,
+      },
+      orderBy:
+        filters.sort === "gia-tang"
+          ? { price: "asc" }
+          : filters.sort === "gia-giam"
+            ? { price: "desc" }
+            : { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+
     const ratings = await getTourRatings(tours.map((item) => item.id));
 
-    const enrichedTours = tours.map((item) => ({
-      ...item,
-      avgRating: ratings[item.id]?.avgRating ?? 0,
-      reviewCount: ratings[item.id]?.reviewCount ?? 0,
-    }));
-
-    const sortedTours =
-      filters.sort === "danh-gia-cao"
-        ? enrichedTours.sort((a, b) => {
-            if (b.avgRating === a.avgRating) {
-              return b.reviewCount - a.reviewCount;
-            }
-            return b.avgRating - a.avgRating;
-          })
-        : enrichedTours;
-
     return {
-      tours: sortedTours,
+      tours: tours.map((item) => ({
+        ...item,
+        avgRating: ratings[item.id]?.avgRating ?? 0,
+        reviewCount: ratings[item.id]?.reviewCount ?? 0,
+      })),
       locations: allLocations,
       total,
       page,

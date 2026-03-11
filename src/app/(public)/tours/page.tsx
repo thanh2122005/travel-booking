@@ -17,6 +17,19 @@ type ToursPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+const durationLabels: Record<NonNullable<TourFilterInput["duration"]>, string> = {
+  "duoi-3-ngay": "Dưới 3 ngày",
+  "tu-3-den-5-ngay": "Từ 3 đến 5 ngày",
+  "tren-5-ngay": "Trên 5 ngày",
+};
+
+const sortLabels: Record<NonNullable<TourFilterInput["sort"]>, string> = {
+  "moi-nhat": "Mới nhất",
+  "gia-tang": "Giá tăng dần",
+  "gia-giam": "Giá giảm dần",
+  "danh-gia-cao": "Đánh giá cao",
+};
+
 function normalizeParam(value?: string | string[]) {
   if (!value) return "";
   return Array.isArray(value) ? value[0] ?? "" : value;
@@ -25,28 +38,56 @@ function normalizeParam(value?: string | string[]) {
 function toNumber(value?: string) {
   if (!value) return undefined;
   const num = Number(value);
-  return Number.isFinite(num) ? num : undefined;
+  if (!Number.isFinite(num)) return undefined;
+  return num >= 0 ? num : undefined;
+}
+
+function parseDuration(value: string): TourFilterInput["duration"] | undefined {
+  if (value === "duoi-3-ngay" || value === "tu-3-den-5-ngay" || value === "tren-5-ngay") {
+    return value;
+  }
+  return undefined;
+}
+
+function parseSort(value: string): NonNullable<TourFilterInput["sort"]> {
+  if (value === "gia-tang" || value === "gia-giam" || value === "danh-gia-cao") {
+    return value;
+  }
+  return "moi-nhat";
 }
 
 function parseFilters(raw: Record<string, string | string[] | undefined>): TourFilterInput {
   const search = normalizeParam(raw.search);
   const location = normalizeParam(raw.location);
-  const duration = normalizeParam(raw.duration);
+  const duration = parseDuration(normalizeParam(raw.duration));
   const featured = normalizeParam(raw.featured);
-  const sort = normalizeParam(raw.sort);
-  const page = toNumber(normalizeParam(raw.page)) ?? 1;
+  const sort = parseSort(normalizeParam(raw.sort));
+  const page = Math.max(toNumber(normalizeParam(raw.page)) ?? 1, 1);
 
   return {
     search: search || undefined,
     location: location || undefined,
     minPrice: toNumber(normalizeParam(raw.minPrice)),
     maxPrice: toNumber(normalizeParam(raw.maxPrice)),
-    duration: duration ? (duration as TourFilterInput["duration"]) : undefined,
+    duration,
     featured: featured === "1",
-    sort: sort ? (sort as TourFilterInput["sort"]) : "moi-nhat",
+    sort,
     page,
     pageSize: 9,
   };
+}
+
+function formatPriceFilter(minPrice?: number, maxPrice?: number) {
+  if (typeof minPrice === "number" && typeof maxPrice === "number") {
+    return `${minPrice.toLocaleString("vi-VN")} - ${maxPrice.toLocaleString("vi-VN")} VND`;
+  }
+  if (typeof minPrice === "number") {
+    return `Từ ${minPrice.toLocaleString("vi-VN")} VND`;
+  }
+  if (typeof maxPrice === "number") {
+    return `Đến ${maxPrice.toLocaleString("vi-VN")} VND`;
+  }
+  return "";
 }
 
 export default async function ToursPage({ searchParams }: ToursPageProps) {
@@ -60,6 +101,17 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
     pageSize: 9,
     totalPages: 1,
   }));
+  const selectedLocation = data.locations.find((location) => location.slug === filters.location);
+  const activeFilterLabels = [
+    ...(filters.search ? [`Từ khóa: ${filters.search}`] : []),
+    ...(selectedLocation ? [`Điểm đến: ${selectedLocation.name}`] : []),
+    ...(filters.duration ? [`Thời lượng: ${durationLabels[filters.duration]}`] : []),
+    ...(filters.featured ? ["Chỉ tour nổi bật"] : []),
+    ...((filters.sort && filters.sort !== "moi-nhat") ? [`Sắp xếp: ${sortLabels[filters.sort]}`] : []),
+    ...(formatPriceFilter(filters.minPrice, filters.maxPrice)
+      ? [`Giá: ${formatPriceFilter(filters.minPrice, filters.maxPrice)}`]
+      : []),
+  ];
 
   return (
     <div className="space-y-8 py-6">
@@ -70,6 +122,8 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
       />
 
       <form className="grid gap-3 rounded-2xl border bg-card p-4 md:grid-cols-2 lg:grid-cols-6">
+        <input type="hidden" name="page" value="1" />
+
         <div className="lg:col-span-2">
           <label htmlFor="search" className="mb-1.5 block text-xs font-medium text-muted-foreground">
             Từ khóa
@@ -148,6 +202,7 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
               id="minPrice"
               name="minPrice"
               type="number"
+              min={0}
               defaultValue={filters.minPrice ?? ""}
               className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
@@ -160,6 +215,7 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
               id="maxPrice"
               name="maxPrice"
               type="number"
+              min={0}
               defaultValue={filters.maxPrice ?? ""}
               className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
@@ -187,6 +243,25 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
         </div>
       </form>
 
+      <div className="rounded-xl border bg-card px-4 py-3">
+        <p className="text-sm text-muted-foreground">
+          Đang hiển thị <span className="font-semibold text-foreground">{data.tours.length}</span> tour trong trang này,
+          tổng <span className="font-semibold text-foreground">{data.total}</span> tour phù hợp.
+        </p>
+        {activeFilterLabels.length ? (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {activeFilterLabels.map((label) => (
+              <span
+                key={label}
+                className="inline-flex items-center rounded-full border border-teal-200 bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
       {data.tours.length ? (
         <>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -200,24 +275,37 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
               Trang {data.page} / {data.totalPages} • Tổng {data.total} tour
             </p>
             <div className="flex items-center gap-2">
-              <Link
-                href={{
-                  pathname: "/tours",
-                  query: { ...rawParams, page: String(Math.max(data.page - 1, 1)) },
-                }}
-                className="inline-flex h-8 items-center rounded-md border px-3 transition-colors hover:bg-muted"
-              >
-                Trang trước
-              </Link>
-              <Link
-                href={{
-                  pathname: "/tours",
-                  query: { ...rawParams, page: String(Math.min(data.page + 1, data.totalPages)) },
-                }}
-                className="inline-flex h-8 items-center rounded-md border px-3 transition-colors hover:bg-muted"
-              >
-                Trang sau
-              </Link>
+              {data.page > 1 ? (
+                <Link
+                  href={{
+                    pathname: "/tours",
+                    query: { ...rawParams, page: String(Math.max(data.page - 1, 1)) },
+                  }}
+                  className="inline-flex h-8 items-center rounded-md border px-3 transition-colors hover:bg-muted"
+                >
+                  Trang trước
+                </Link>
+              ) : (
+                <span className="inline-flex h-8 items-center rounded-md border border-slate-200 px-3 text-slate-400">
+                  Trang trước
+                </span>
+              )}
+
+              {data.page < data.totalPages ? (
+                <Link
+                  href={{
+                    pathname: "/tours",
+                    query: { ...rawParams, page: String(Math.min(data.page + 1, data.totalPages)) },
+                  }}
+                  className="inline-flex h-8 items-center rounded-md border px-3 transition-colors hover:bg-muted"
+                >
+                  Trang sau
+                </Link>
+              ) : (
+                <span className="inline-flex h-8 items-center rounded-md border border-slate-200 px-3 text-slate-400">
+                  Trang sau
+                </span>
+              )}
             </div>
           </div>
         </>
