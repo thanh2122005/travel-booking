@@ -705,6 +705,84 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
   }
 
   const bookingRevenueTimeline = buildBookingRevenueTimeline(state.bookings, timelineOptions);
+  const bookingsInRange = state.bookings.filter((booking) => {
+    const createdAt = new Date(booking.createdAt);
+    return createdAt >= timelineOptions.startDate && createdAt <= timelineOptions.endDate;
+  });
+  const timeRangeStats = bookingsInRange.reduce(
+    (acc, booking) => {
+      const isConfirmed =
+        booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED;
+      const isPaid = booking.paymentStatus === PaymentStatus.PAID;
+
+      return {
+        bookings: acc.bookings + 1,
+        confirmedBookings: acc.confirmedBookings + (isConfirmed ? 1 : 0),
+        paidBookings: acc.paidBookings + (isPaid ? 1 : 0),
+        pendingBookings: acc.pendingBookings + (booking.status === BookingStatus.PENDING ? 1 : 0),
+        cancelledBookings: acc.cancelledBookings + (booking.status === BookingStatus.CANCELLED ? 1 : 0),
+        completedBookings: acc.completedBookings + (booking.status === BookingStatus.COMPLETED ? 1 : 0),
+        confirmedRevenue: acc.confirmedRevenue + (isConfirmed ? booking.totalPrice : 0),
+      };
+    },
+    {
+      bookings: 0,
+      confirmedBookings: 0,
+      paidBookings: 0,
+      pendingBookings: 0,
+      cancelledBookings: 0,
+      completedBookings: 0,
+      confirmedRevenue: 0,
+    },
+  );
+  const topRevenueToursMap = bookingsInRange.reduce<
+    Map<
+      string,
+      {
+        tourId: string;
+        title: string;
+        slug: string;
+        bookings: number;
+        confirmedBookings: number;
+        paidBookings: number;
+        confirmedRevenue: number;
+      }
+    >
+  >((acc, booking) => {
+    const tour = tourMap.get(booking.tourId);
+    const current = acc.get(booking.tourId) ?? {
+      tourId: booking.tourId,
+      title: tour?.title ?? "Tour",
+      slug: tour?.slug ?? "",
+      bookings: 0,
+      confirmedBookings: 0,
+      paidBookings: 0,
+      confirmedRevenue: 0,
+    };
+    current.bookings += 1;
+    if (booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED) {
+      current.confirmedBookings += 1;
+      current.confirmedRevenue += booking.totalPrice;
+    }
+    if (booking.paymentStatus === PaymentStatus.PAID) {
+      current.paidBookings += 1;
+    }
+    acc.set(booking.tourId, current);
+    return acc;
+  }, new Map());
+  const topRevenueTours = Array.from(topRevenueToursMap.values())
+    .sort((a, b) => {
+      if (b.confirmedRevenue !== a.confirmedRevenue) {
+        return b.confirmedRevenue - a.confirmedRevenue;
+      }
+      if (b.confirmedBookings !== a.confirmedBookings) {
+        return b.confirmedBookings - a.confirmedBookings;
+      }
+      return b.bookings - a.bookings;
+    })
+    .slice(0, 6);
+  const bookingCount = timeRangeStats.bookings;
+  const confirmedCount = timeRangeStats.confirmedBookings;
 
   return {
     metrics: {
@@ -719,6 +797,15 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
     bookingsByStatus,
     paymentsByStatus,
     bookingRevenueTimeline,
+    timeRangeStats: {
+      ...timeRangeStats,
+      confirmationRate: bookingCount ? confirmedCount / bookingCount : 0,
+      paymentRate: bookingCount ? timeRangeStats.paidBookings / bookingCount : 0,
+      averageConfirmedOrderValue: confirmedCount
+        ? Math.round(timeRangeStats.confirmedRevenue / confirmedCount)
+        : 0,
+    },
+    topRevenueTours,
     monthCount: timelineOptions.monthCount,
     rangeDays: timelineOptions.rangeDays,
     timelineGranularity: timelineOptions.granularity,

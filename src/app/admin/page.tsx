@@ -39,6 +39,10 @@ function toInputDateValue(date: Date) {
   return localDate.toISOString().slice(0, 10);
 }
 
+function formatRate(value: number) {
+  return `${(value * 100).toFixed(1)}%`;
+}
+
 export default async function AdminPage({ searchParams }: AdminPageProps) {
   const params = await searchParams;
 
@@ -78,6 +82,28 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     { label: "Tổng đơn đặt", value: data.metrics.totalBookings.toString() },
     { label: "Tổng đánh giá", value: data.metrics.totalReviews.toString() },
     { label: "Doanh thu xác nhận", value: formatPrice(data.metrics.totalRevenue) },
+  ];
+  const periodMetricCards = [
+    {
+      label: "Đơn trong kỳ",
+      value: data.timeRangeStats.bookings.toString(),
+      hint: `${formatDate(data.timelineStartDate)} - ${formatDate(data.timelineEndDate)}`,
+    },
+    {
+      label: "Tỷ lệ xác nhận",
+      value: formatRate(data.timeRangeStats.confirmationRate),
+      hint: `${data.timeRangeStats.confirmedBookings}/${data.timeRangeStats.bookings} đơn`,
+    },
+    {
+      label: "Tỷ lệ thanh toán",
+      value: formatRate(data.timeRangeStats.paymentRate),
+      hint: `${data.timeRangeStats.paidBookings}/${data.timeRangeStats.bookings} đơn`,
+    },
+    {
+      label: "Giá trị đơn xác nhận TB",
+      value: formatPrice(data.timeRangeStats.averageConfirmedOrderValue),
+      hint: `Doanh thu kỳ: ${formatPrice(data.timeRangeStats.confirmedRevenue)}`,
+    },
   ];
 
   return (
@@ -168,6 +194,69 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           startDateLabel={formatDate(data.timelineStartDate)}
           endDateLabel={formatDate(data.timelineEndDate)}
         />
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {periodMetricCards.map((item) => (
+          <article key={item.label} className="iv-card p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{item.label}</p>
+            <p className="mt-2 text-2xl font-black text-slate-900">{item.value}</p>
+            <p className="mt-1 text-xs text-slate-500">{item.hint}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="iv-card p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Top tour theo doanh thu xác nhận</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Dữ liệu trong khoảng {formatDate(data.timelineStartDate)} đến {formatDate(data.timelineEndDate)}.
+            </p>
+          </div>
+          <Link href="/admin/tours" className="text-sm font-semibold text-teal-700 hover:text-teal-800">
+            Quản lý tour
+          </Link>
+        </div>
+
+        {data.topRevenueTours.length ? (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 text-left text-slate-500">
+                  <th className="px-2 py-2.5 font-medium">#</th>
+                  <th className="px-2 py-2.5 font-medium">Tour</th>
+                  <th className="px-2 py-2.5 font-medium">Đơn trong kỳ</th>
+                  <th className="px-2 py-2.5 font-medium">Đơn xác nhận</th>
+                  <th className="px-2 py-2.5 font-medium">Đã thanh toán</th>
+                  <th className="px-2 py-2.5 font-medium">Doanh thu xác nhận</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.topRevenueTours.map((tour, index) => (
+                  <tr key={tour.tourId} className="border-b border-slate-100 last:border-0">
+                    <td className="px-2 py-2.5 font-semibold text-slate-700">{index + 1}</td>
+                    <td className="px-2 py-2.5">
+                      {tour.slug ? (
+                        <Link href={`/tours/${tour.slug}`} className="font-semibold text-teal-700 hover:text-teal-800">
+                          {tour.title}
+                        </Link>
+                      ) : (
+                        <span className="font-semibold text-slate-800">{tour.title}</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-2.5 text-slate-700">{tour.bookings}</td>
+                    <td className="px-2 py-2.5 text-slate-700">{tour.confirmedBookings}</td>
+                    <td className="px-2 py-2.5 text-slate-700">{tour.paidBookings}</td>
+                    <td className="px-2 py-2.5 font-semibold text-slate-900">{formatPrice(tour.confirmedRevenue)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-slate-600">Chưa có tour phát sinh đơn trong kỳ đã chọn.</p>
+        )}
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">

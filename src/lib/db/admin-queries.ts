@@ -310,6 +310,15 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
           createdAt: true,
           totalPrice: true,
           status: true,
+          paymentStatus: true,
+          tourId: true,
+          tour: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+            },
+          },
         },
       }),
       db.booking.findMany({
@@ -400,6 +409,81 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
       },
     );
     const bookingRevenueTimeline = buildBookingRevenueTimeline(bookingTimelineRows, timelineOptions);
+    const timeRangeStats = bookingTimelineRows.reduce(
+      (acc, booking) => {
+        const isConfirmed =
+          booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED;
+        const isPaid = booking.paymentStatus === PaymentStatus.PAID;
+
+        return {
+          bookings: acc.bookings + 1,
+          confirmedBookings: acc.confirmedBookings + (isConfirmed ? 1 : 0),
+          paidBookings: acc.paidBookings + (isPaid ? 1 : 0),
+          pendingBookings: acc.pendingBookings + (booking.status === BookingStatus.PENDING ? 1 : 0),
+          cancelledBookings:
+            acc.cancelledBookings + (booking.status === BookingStatus.CANCELLED ? 1 : 0),
+          completedBookings:
+            acc.completedBookings + (booking.status === BookingStatus.COMPLETED ? 1 : 0),
+          confirmedRevenue: acc.confirmedRevenue + (isConfirmed ? booking.totalPrice : 0),
+        };
+      },
+      {
+        bookings: 0,
+        confirmedBookings: 0,
+        paidBookings: 0,
+        pendingBookings: 0,
+        cancelledBookings: 0,
+        completedBookings: 0,
+        confirmedRevenue: 0,
+      },
+    );
+    const topRevenueToursMap = bookingTimelineRows.reduce<
+      Map<
+        string,
+        {
+          tourId: string;
+          title: string;
+          slug: string;
+          bookings: number;
+          confirmedBookings: number;
+          paidBookings: number;
+          confirmedRevenue: number;
+        }
+      >
+    >((acc, booking) => {
+      const current = acc.get(booking.tourId) ?? {
+        tourId: booking.tourId,
+        title: booking.tour.title,
+        slug: booking.tour.slug,
+        bookings: 0,
+        confirmedBookings: 0,
+        paidBookings: 0,
+        confirmedRevenue: 0,
+      };
+      current.bookings += 1;
+      if (booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED) {
+        current.confirmedBookings += 1;
+        current.confirmedRevenue += booking.totalPrice;
+      }
+      if (booking.paymentStatus === PaymentStatus.PAID) {
+        current.paidBookings += 1;
+      }
+      acc.set(booking.tourId, current);
+      return acc;
+    }, new Map());
+    const topRevenueTours = Array.from(topRevenueToursMap.values())
+      .sort((a, b) => {
+        if (b.confirmedRevenue !== a.confirmedRevenue) {
+          return b.confirmedRevenue - a.confirmedRevenue;
+        }
+        if (b.confirmedBookings !== a.confirmedBookings) {
+          return b.confirmedBookings - a.confirmedBookings;
+        }
+        return b.bookings - a.bookings;
+      })
+      .slice(0, 6);
+    const bookingCount = timeRangeStats.bookings;
+    const confirmedCount = timeRangeStats.confirmedBookings;
 
     return {
       metrics: {
@@ -414,6 +498,15 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
       bookingsByStatus,
       paymentsByStatus,
       bookingRevenueTimeline,
+      timeRangeStats: {
+        ...timeRangeStats,
+        confirmationRate: bookingCount ? confirmedCount / bookingCount : 0,
+        paymentRate: bookingCount ? timeRangeStats.paidBookings / bookingCount : 0,
+        averageConfirmedOrderValue: confirmedCount
+          ? Math.round(timeRangeStats.confirmedRevenue / confirmedCount)
+          : 0,
+      },
+      topRevenueTours,
       monthCount: timelineOptions.monthCount,
       rangeDays: timelineOptions.rangeDays,
       timelineGranularity: timelineOptions.granularity,
