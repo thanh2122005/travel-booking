@@ -147,7 +147,7 @@ async function main() {
 
   const activeTours = tours.filter((tour) => tour.status === TourStatus.ACTIVE);
 
-  const bookingCount = Math.max(72, activeTours.length * 4);
+  const bookingCount = Math.max(180, activeTours.length * 8);
   await prisma.booking.createMany({
     data: Array.from({ length: bookingCount }).map((_, index) => {
       const user = users[index % users.length]!;
@@ -189,8 +189,8 @@ async function main() {
   for (let userIndex = 0; userIndex < users.length; userIndex += 1) {
     const user = users[userIndex]!;
 
-    for (let round = 0; round < 2; round += 1) {
-      const tour = activeTours[(userIndex * 2 + round * 5) % activeTours.length]!;
+    for (let round = 0; round < 4; round += 1) {
+      const tour = activeTours[(userIndex * 3 + round * 7) % activeTours.length]!;
       const pairKey = `${user.id}_${tour.id}`;
       if (reviewPairSet.has(pairKey)) {
         continue;
@@ -213,8 +213,8 @@ async function main() {
   const favoritePairSet = new Set<string>();
   for (let userIndex = 0; userIndex < users.length; userIndex += 1) {
     const user = users[userIndex]!;
-    for (let offset = 0; offset < 3; offset += 1) {
-      const tour = activeTours[(userIndex * 2 + offset * 7) % activeTours.length]!;
+    for (let offset = 0; offset < 6; offset += 1) {
+      const tour = activeTours[(userIndex * 3 + offset * 11) % activeTours.length]!;
       const pairKey = `${user.id}_${tour.id}`;
       if (favoritePairSet.has(pairKey)) continue;
       favoritePairSet.add(pairKey);

@@ -144,7 +144,7 @@ type TourListFilter = ListFilter & {
 
 const DEMO_DIR = path.join(process.cwd(), ".data");
 const DEMO_FILE = path.join(DEMO_DIR, "admin-demo.json");
-const DEMO_DATA_VERSION = 3;
+const DEMO_DATA_VERSION = 4;
 
 const nowIso = () => new Date().toISOString();
 const toDate = (value: string) => new Date(value);
@@ -263,7 +263,7 @@ function createInitialDemoState(): DemoState {
     BookingStatus.COMPLETED,
     BookingStatus.CANCELLED,
   ];
-  const bookingCount = Math.max(72, activeTours.length * 4);
+  const bookingCount = Math.max(180, activeTours.length * 8);
 
   const bookings: DemoBooking[] = Array.from({ length: bookingCount }).map((_, index) => {
     const user = regularUsers[index % regularUsers.length]!;
@@ -298,9 +298,9 @@ function createInitialDemoState(): DemoState {
   const reviews: DemoReview[] = [];
   const reviewPairs = new Set<string>();
   for (let userIndex = 0; userIndex < regularUsers.length; userIndex += 1) {
-    for (let round = 0; round < 2; round += 1) {
+    for (let round = 0; round < 4; round += 1) {
       const user = regularUsers[userIndex]!;
-      const tour = activeTours[(userIndex * 2 + round * 5) % activeTours.length]!;
+      const tour = activeTours[(userIndex * 3 + round * 7) % activeTours.length]!;
       const pairKey = `${user.id}_${tour.id}`;
       if (reviewPairs.has(pairKey)) {
         continue;
@@ -322,8 +322,8 @@ function createInitialDemoState(): DemoState {
   const favorites: DemoFavorite[] = [];
   const favoritePairs = new Set<string>();
   regularUsers.forEach((user, userIndex) => {
-    for (let offset = 0; offset < 3; offset += 1) {
-      const tour = activeTours[(userIndex * 2 + offset * 7) % activeTours.length]!;
+    for (let offset = 0; offset < 6; offset += 1) {
+      const tour = activeTours[(userIndex * 3 + offset * 11) % activeTours.length]!;
       const pairKey = `${user.id}_${tour.id}`;
       if (favoritePairs.has(pairKey)) {
         continue;
