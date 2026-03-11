@@ -1,5 +1,7 @@
 import { formatPrice } from "@/lib/utils/format";
 
+type TimelineGranularity = "day" | "week" | "month";
+
 type TimelineItem = {
   monthKey: string;
   label: string;
@@ -9,21 +11,38 @@ type TimelineItem = {
 
 type AdminBookingRevenueChartProps = {
   timeline: TimelineItem[];
-  monthCount?: number;
+  granularity: TimelineGranularity;
+  startDateLabel?: string;
+  endDateLabel?: string;
 };
 
-export function AdminBookingRevenueChart({ timeline, monthCount = 6 }: AdminBookingRevenueChartProps) {
+const granularityLabel: Record<TimelineGranularity, string> = {
+  day: "Ngày",
+  week: "Tuần",
+  month: "Tháng",
+};
+
+export function AdminBookingRevenueChart({
+  timeline,
+  granularity,
+  startDateLabel,
+  endDateLabel,
+}: AdminBookingRevenueChartProps) {
   if (!timeline.length) {
     return (
       <article className="iv-card p-5">
         <h2 className="text-xl font-bold text-slate-900">Xu hướng đặt tour và doanh thu</h2>
-        <p className="mt-3 text-sm text-slate-600">Chưa có dữ liệu trong giai đoạn gần đây.</p>
+        <p className="mt-3 text-sm text-slate-600">
+          Chưa có dữ liệu trong khoảng thời gian đang chọn.
+        </p>
       </article>
     );
   }
 
   const maxBookings = Math.max(...timeline.map((item) => item.bookings), 1);
   const maxRevenue = Math.max(...timeline.map((item) => item.confirmedRevenue), 1);
+  const totalBookings = timeline.reduce((sum, item) => sum + item.bookings, 0);
+  const totalRevenue = timeline.reduce((sum, item) => sum + item.confirmedRevenue, 0);
 
   return (
     <article className="iv-card p-5">
@@ -31,7 +50,16 @@ export function AdminBookingRevenueChart({ timeline, monthCount = 6 }: AdminBook
         <div>
           <h2 className="text-xl font-bold text-slate-900">Xu hướng đặt tour và doanh thu</h2>
           <p className="mt-1 text-sm text-slate-600">
-            Theo dõi {monthCount} tháng gần nhất để nhận diện mùa cao điểm và hiệu suất bán tour.
+            Hiển thị theo đơn vị <span className="font-semibold">{granularityLabel[granularity]}</span>
+            {startDateLabel && endDateLabel ? (
+              <>
+                {" "}
+                từ <span className="font-semibold">{startDateLabel}</span> đến{" "}
+                <span className="font-semibold">{endDateLabel}</span>.
+              </>
+            ) : (
+              "."
+            )}
           </p>
         </div>
         <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
@@ -46,13 +74,20 @@ export function AdminBookingRevenueChart({ timeline, monthCount = 6 }: AdminBook
         </div>
       </div>
 
+      <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <p className="text-xs text-slate-500">Tổng trong kỳ</p>
+        <p className="mt-1 text-sm font-semibold text-slate-900">
+          {totalBookings} đơn • {formatPrice(totalRevenue)}
+        </p>
+      </div>
+
       <div className="mt-5 space-y-3">
         {timeline.map((item) => (
           <div key={item.monthKey} className="rounded-xl border border-slate-200 p-3">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-slate-900">Tháng {item.label}</p>
+              <p className="text-sm font-semibold text-slate-900">{item.label}</p>
               <p className="text-xs text-slate-500">
-                {item.bookings} đơn · {formatPrice(item.confirmedRevenue)}
+                {item.bookings} đơn • {formatPrice(item.confirmedRevenue)}
               </p>
             </div>
             <div className="space-y-2">
@@ -74,7 +109,9 @@ export function AdminBookingRevenueChart({ timeline, monthCount = 6 }: AdminBook
                     style={{ width: `${Math.max((item.confirmedRevenue / maxRevenue) * 100, 4)}%` }}
                   />
                 </div>
-                <span className="text-xs font-semibold text-slate-700">{formatPrice(item.confirmedRevenue)}</span>
+                <span className="text-xs font-semibold text-slate-700">
+                  {formatPrice(item.confirmedRevenue)}
+                </span>
               </div>
             </div>
           </div>

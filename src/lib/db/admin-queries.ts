@@ -23,9 +23,11 @@ import {
   demoUpdateItinerary,
   demoUpdateBooking,
   demoUpdateBookingDetail,
+  demoUpdateBookingsBulk,
   demoUpdateLocation,
   demoDeleteLocation,
   demoUpdateReview,
+  demoUpdateReviewsBulk,
   demoUpdateTourImage,
   demoUpdateTour,
   demoDeleteTour,
@@ -48,6 +50,29 @@ type AdminTourListFilter = AdminListFilter & {
   locationId?: string;
 };
 
+type AdminBookingListFilter = AdminListFilter & {
+  status?: BookingStatus;
+  paymentStatus?: PaymentStatus;
+  createdFrom?: Date;
+  createdTo?: Date;
+};
+
+type AdminReviewListFilter = AdminListFilter & {
+  isVisible?: boolean;
+  createdFrom?: Date;
+  createdTo?: Date;
+};
+
+type TimelineGranularity = "day" | "week" | "month";
+
+type DashboardTimelineOptions = {
+  monthCount?: number;
+  rangeDays?: number;
+  granularity?: TimelineGranularity;
+  startDate?: Date | string;
+  endDate?: Date | string;
+};
+
 function getPagination(filter: AdminListFilter) {
   const page = Math.max(filter.page ?? 1, 1);
   const pageSize = Math.min(Math.max(filter.pageSize ?? 12, 1), 50);
@@ -58,43 +83,164 @@ function getMonthKey(value: Date) {
   return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function getRecentMonthKeys(monthCount = 6) {
-  const now = new Date();
-  now.setDate(1);
-  now.setHours(0, 0, 0, 0);
-
-  const keys: string[] = [];
-  for (let index = monthCount - 1; index >= 0; index -= 1) {
-    const current = new Date(now.getFullYear(), now.getMonth() - index, 1);
-    keys.push(getMonthKey(current));
-  }
-  return keys;
+function getDateKey(value: Date) {
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(
+    value.getDate(),
+  ).padStart(2, "0")}`;
 }
 
-function formatMonthLabel(monthKey: string) {
-  const [year, month] = monthKey.split("-");
+function startOfDay(value: Date) {
+  const next = new Date(value);
+  next.setHours(0, 0, 0, 0);
+  return next;
+}
+
+function endOfDay(value: Date) {
+  const next = new Date(value);
+  next.setHours(23, 59, 59, 999);
+  return next;
+}
+
+function startOfWeek(value: Date) {
+  const next = startOfDay(value);
+  const day = next.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  next.setDate(next.getDate() + diff);
+  return next;
+}
+
+function normalizeDate(value?: Date | string) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatTimelineLabel(date: Date, granularity: TimelineGranularity) {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  if (granularity === "day") return `${day}/${month}`;
+  if (granularity === "week") return `Tuần ${day}/${month}`;
   return `${month}/${year}`;
+}
+
+function getTimelineKey(date: Date, granularity: TimelineGranularity) {
+  if (granularity === "day") return getDateKey(startOfDay(date));
+  if (granularity === "week") return getDateKey(startOfWeek(date));
+  return getMonthKey(date);
+}
+
+function buildTimelineRows(
+  startDate: Date,
+  endDate: Date,
+  granularity: TimelineGranularity,
+) {
+  const rows: Array<{
+    monthKey: string;
+    label: string;
+    bookings: number;
+    confirmedRevenue: number;
+  }> = [];
+
+  if (granularity === "day") {
+    let cursor = startOfDay(startDate);
+    const end = endOfDay(endDate);
+    while (cursor <= end) {
+      rows.push({
+        monthKey: getDateKey(cursor),
+        label: formatTimelineLabel(cursor, granularity),
+        bookings: 0,
+        confirmedRevenue: 0,
+      });
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1);
+    }
+    return rows;
+  }
+
+  if (granularity === "week") {
+    let cursor = startOfWeek(startDate);
+    const end = endOfDay(endDate);
+    while (cursor <= end) {
+      rows.push({
+        monthKey: getDateKey(cursor),
+        label: formatTimelineLabel(cursor, granularity),
+        bookings: 0,
+        confirmedRevenue: 0,
+      });
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 7);
+    }
+    return rows;
+  }
+
+  let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+  while (cursor <= end) {
+    rows.push({
+      monthKey: getMonthKey(cursor),
+      label: formatTimelineLabel(cursor, granularity),
+      bookings: 0,
+      confirmedRevenue: 0,
+    });
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+  }
+  return rows;
+}
+
+function resolveDashboardOptions(options?: DashboardTimelineOptions) {
+  const now = new Date();
+  const requestedRangeDays = options?.rangeDays;
+  const rangeDays =
+    typeof requestedRangeDays === "number" && [30, 90, 180, 365].includes(requestedRangeDays)
+      ? requestedRangeDays
+      : 180;
+
+  const endDate = normalizeDate(options?.endDate) ?? now;
+  const monthCount = [3, 6, 12].includes(options?.monthCount ?? 6) ? options?.monthCount ?? 6 : 6;
+
+  const defaultStartDate = (() => {
+    const base = new Date(endDate);
+    base.setDate(1);
+    base.setHours(0, 0, 0, 0);
+    base.setMonth(base.getMonth() - (monthCount - 1));
+    return base;
+  })();
+
+  const rawStartDate = startOfDay(
+    normalizeDate(options?.startDate) ??
+      (options?.rangeDays
+        ? new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() - (rangeDays - 1))
+        : defaultStartDate),
+  );
+  const normalizedEndDate = endOfDay(endDate);
+  const startDate = rawStartDate > normalizedEndDate ? startOfDay(normalizedEndDate) : rawStartDate;
+
+  const dayDiff = Math.max(
+    1,
+    Math.ceil((normalizedEndDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)),
+  );
+  const granularity: TimelineGranularity =
+    options?.granularity ??
+    (dayDiff <= 45 ? "day" : dayDiff <= 210 ? "week" : "month");
+
+  return {
+    startDate,
+    endDate: normalizedEndDate,
+    rangeDays,
+    monthCount,
+    granularity,
+  };
 }
 
 function buildBookingRevenueTimeline(
   bookings: Array<{ createdAt: Date; totalPrice: number; status: BookingStatus }>,
-  monthCount = 6,
+  options: { startDate: Date; endDate: Date; granularity: TimelineGranularity },
 ) {
-  const keys = getRecentMonthKeys(monthCount);
-  const map = new Map(
-    keys.map((key) => [
-      key,
-      {
-        monthKey: key,
-        label: formatMonthLabel(key),
-        bookings: 0,
-        confirmedRevenue: 0,
-      },
-    ]),
-  );
+  const rows = buildTimelineRows(options.startDate, options.endDate, options.granularity);
+  const map = new Map(rows.map((row) => [row.monthKey, row]));
 
   for (const booking of bookings) {
-    const key = getMonthKey(booking.createdAt);
+    if (booking.createdAt < options.startDate || booking.createdAt > options.endDate) continue;
+    const key = getTimelineKey(booking.createdAt, options.granularity);
     const row = map.get(key);
     if (!row) continue;
     row.bookings += 1;
@@ -103,18 +249,12 @@ function buildBookingRevenueTimeline(
     }
   }
 
-  return keys.map((key) => map.get(key)!);
+  return rows;
 }
 
-export async function getAdminDashboardData(options?: { monthCount?: number }) {
+export async function getAdminDashboardData(options?: DashboardTimelineOptions) {
   try {
-    const requestedMonthCount = options?.monthCount ?? 6;
-    const monthCount = [3, 6, 12].includes(requestedMonthCount) ? requestedMonthCount : 6;
-
-    const timelineStart = new Date();
-    timelineStart.setDate(1);
-    timelineStart.setHours(0, 0, 0, 0);
-    timelineStart.setMonth(timelineStart.getMonth() - (monthCount - 1));
+    const timelineOptions = resolveDashboardOptions(options);
 
     const [
       totalUsers,
@@ -162,7 +302,8 @@ export async function getAdminDashboardData(options?: { monthCount?: number }) {
       db.booking.findMany({
         where: {
           createdAt: {
-            gte: timelineStart,
+            gte: timelineOptions.startDate,
+            lte: timelineOptions.endDate,
           },
         },
         select: {
@@ -258,7 +399,7 @@ export async function getAdminDashboardData(options?: { monthCount?: number }) {
         PAID: 0,
       },
     );
-    const bookingRevenueTimeline = buildBookingRevenueTimeline(bookingTimelineRows, monthCount);
+    const bookingRevenueTimeline = buildBookingRevenueTimeline(bookingTimelineRows, timelineOptions);
 
     return {
       metrics: {
@@ -273,14 +414,18 @@ export async function getAdminDashboardData(options?: { monthCount?: number }) {
       bookingsByStatus,
       paymentsByStatus,
       bookingRevenueTimeline,
-      monthCount,
+      monthCount: timelineOptions.monthCount,
+      rangeDays: timelineOptions.rangeDays,
+      timelineGranularity: timelineOptions.granularity,
+      timelineStartDate: timelineOptions.startDate,
+      timelineEndDate: timelineOptions.endDate,
       recentBookings,
       recentReviews,
       recentUsers,
     };
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      return demoGetDashboardData(options?.monthCount);
+      return demoGetDashboardData(options);
     }
     throw error;
   }
@@ -538,11 +683,11 @@ export async function getAdminLocationDetail(locationId: string) {
   }
 }
 
-export async function getAdminBookings(
-  filter: AdminListFilter & { status?: BookingStatus; paymentStatus?: PaymentStatus } = {},
-) {
+export async function getAdminBookings(filter: AdminBookingListFilter = {}) {
   try {
     const { page, pageSize, skip } = getPagination(filter);
+    const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
+    const createdTo = filter.createdTo ? endOfDay(filter.createdTo) : undefined;
 
     const where: Prisma.BookingWhereInput = filter.search
       ? {
@@ -559,6 +704,12 @@ export async function getAdminBookings(
     }
     if (filter.paymentStatus) {
       where.paymentStatus = filter.paymentStatus;
+    }
+    if (createdFrom || createdTo) {
+      where.createdAt = {
+        ...(createdFrom ? { gte: createdFrom } : {}),
+        ...(createdTo ? { lte: createdTo } : {}),
+      };
     }
 
     const [total, items] = await Promise.all([
@@ -600,9 +751,11 @@ export async function getAdminBookings(
   }
 }
 
-export async function getAdminReviews(filter: AdminListFilter = {}) {
+export async function getAdminReviews(filter: AdminReviewListFilter = {}) {
   try {
     const { page, pageSize, skip } = getPagination(filter);
+    const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
+    const createdTo = filter.createdTo ? endOfDay(filter.createdTo) : undefined;
 
     const where: Prisma.ReviewWhereInput = filter.search
       ? {
@@ -613,6 +766,15 @@ export async function getAdminReviews(filter: AdminListFilter = {}) {
           ],
         }
       : {};
+    if (typeof filter.isVisible === "boolean") {
+      where.isVisible = filter.isVisible;
+    }
+    if (createdFrom || createdTo) {
+      where.createdAt = {
+        ...(createdFrom ? { gte: createdFrom } : {}),
+        ...(createdTo ? { lte: createdTo } : {}),
+      };
+    }
 
     const [total, items] = await Promise.all([
       db.review.count({ where }),
@@ -682,6 +844,36 @@ export async function updateAdminBooking(
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoUpdateBooking(bookingId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function updateAdminBookingsBulk(input: {
+  ids: string[];
+  status?: BookingStatus;
+  paymentStatus?: PaymentStatus;
+}) {
+  try {
+    const ids = Array.from(new Set(input.ids.filter(Boolean)));
+    if (!ids.length) {
+      return { count: 0 };
+    }
+
+    return db.booking.updateMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      data: {
+        ...(input.status ? { status: input.status } : {}),
+        ...(input.paymentStatus ? { paymentStatus: input.paymentStatus } : {}),
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateBookingsBulk(input);
     }
     throw error;
   }
@@ -769,6 +961,31 @@ export async function updateAdminReview(reviewId: string, payload: { isVisible?:
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoUpdateReview(reviewId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function updateAdminReviewsBulk(input: { ids: string[]; isVisible: boolean }) {
+  try {
+    const ids = Array.from(new Set(input.ids.filter(Boolean)));
+    if (!ids.length) {
+      return { count: 0 };
+    }
+
+    return db.review.updateMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      data: {
+        isVisible: input.isVisible,
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateReviewsBulk(input);
     }
     throw error;
   }

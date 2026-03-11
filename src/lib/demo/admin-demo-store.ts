@@ -142,6 +142,29 @@ type TourListFilter = ListFilter & {
   locationId?: string;
 };
 
+type BookingListFilter = ListFilter & {
+  status?: BookingStatus;
+  paymentStatus?: PaymentStatus;
+  createdFrom?: Date;
+  createdTo?: Date;
+};
+
+type ReviewListFilter = ListFilter & {
+  isVisible?: boolean;
+  createdFrom?: Date;
+  createdTo?: Date;
+};
+
+type TimelineGranularity = "day" | "week" | "month";
+
+type DemoDashboardOptions = {
+  monthCount?: number;
+  rangeDays?: number;
+  granularity?: TimelineGranularity;
+  startDate?: Date | string;
+  endDate?: Date | string;
+};
+
 const DEMO_DIR = path.join(process.cwd(), ".data");
 const DEMO_FILE = path.join(DEMO_DIR, "admin-demo.json");
 const DEMO_DATA_VERSION = 4;
@@ -478,43 +501,165 @@ function getMonthKey(value: Date) {
   return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function getRecentMonthKeys(monthCount = 6) {
-  const now = new Date();
-  now.setDate(1);
-  now.setHours(0, 0, 0, 0);
-
-  const keys: string[] = [];
-  for (let index = monthCount - 1; index >= 0; index -= 1) {
-    const current = new Date(now.getFullYear(), now.getMonth() - index, 1);
-    keys.push(getMonthKey(current));
-  }
-  return keys;
+function getDateKey(value: Date) {
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(
+    value.getDate(),
+  ).padStart(2, "0")}`;
 }
 
-function formatMonthLabel(monthKey: string) {
-  const [year, month] = monthKey.split("-");
+function startOfDay(value: Date) {
+  const next = new Date(value);
+  next.setHours(0, 0, 0, 0);
+  return next;
+}
+
+function endOfDay(value: Date) {
+  const next = new Date(value);
+  next.setHours(23, 59, 59, 999);
+  return next;
+}
+
+function startOfWeek(value: Date) {
+  const next = startOfDay(value);
+  const day = next.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  next.setDate(next.getDate() + diff);
+  return next;
+}
+
+function normalizeDate(value?: Date | string) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatTimelineLabel(date: Date, granularity: TimelineGranularity) {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  if (granularity === "day") return `${day}/${month}`;
+  if (granularity === "week") return `Tuần ${day}/${month}`;
   return `${month}/${year}`;
+}
+
+function getTimelineKey(date: Date, granularity: TimelineGranularity) {
+  if (granularity === "day") return getDateKey(startOfDay(date));
+  if (granularity === "week") return getDateKey(startOfWeek(date));
+  return getMonthKey(date);
+}
+
+function buildTimelineRows(
+  startDate: Date,
+  endDate: Date,
+  granularity: TimelineGranularity,
+) {
+  const rows: Array<{
+    monthKey: string;
+    label: string;
+    bookings: number;
+    confirmedRevenue: number;
+  }> = [];
+
+  if (granularity === "day") {
+    let cursor = startOfDay(startDate);
+    const end = endOfDay(endDate);
+    while (cursor <= end) {
+      rows.push({
+        monthKey: getDateKey(cursor),
+        label: formatTimelineLabel(cursor, granularity),
+        bookings: 0,
+        confirmedRevenue: 0,
+      });
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1);
+    }
+    return rows;
+  }
+
+  if (granularity === "week") {
+    let cursor = startOfWeek(startDate);
+    const end = endOfDay(endDate);
+    while (cursor <= end) {
+      rows.push({
+        monthKey: getDateKey(cursor),
+        label: formatTimelineLabel(cursor, granularity),
+        bookings: 0,
+        confirmedRevenue: 0,
+      });
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 7);
+    }
+    return rows;
+  }
+
+  let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+  while (cursor <= end) {
+    rows.push({
+      monthKey: getMonthKey(cursor),
+      label: formatTimelineLabel(cursor, granularity),
+      bookings: 0,
+      confirmedRevenue: 0,
+    });
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+  }
+  return rows;
+}
+
+function resolveDashboardOptions(options?: DemoDashboardOptions) {
+  const now = new Date();
+  const requestedRangeDays = options?.rangeDays;
+  const rangeDays =
+    typeof requestedRangeDays === "number" && [30, 90, 180, 365].includes(requestedRangeDays)
+      ? requestedRangeDays
+      : 180;
+
+  const endDate = normalizeDate(options?.endDate) ?? now;
+  const monthCount = [3, 6, 12].includes(options?.monthCount ?? 6) ? options?.monthCount ?? 6 : 6;
+
+  const defaultStartDate = (() => {
+    const base = new Date(endDate);
+    base.setDate(1);
+    base.setHours(0, 0, 0, 0);
+    base.setMonth(base.getMonth() - (monthCount - 1));
+    return base;
+  })();
+
+  const rawStartDate = startOfDay(
+    normalizeDate(options?.startDate) ??
+      (options?.rangeDays
+        ? new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() - (rangeDays - 1))
+        : defaultStartDate),
+  );
+  const normalizedEndDate = endOfDay(endDate);
+  const startDate = rawStartDate > normalizedEndDate ? startOfDay(normalizedEndDate) : rawStartDate;
+
+  const dayDiff = Math.max(
+    1,
+    Math.ceil((normalizedEndDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)),
+  );
+  const granularity: TimelineGranularity =
+    options?.granularity ??
+    (dayDiff <= 45 ? "day" : dayDiff <= 210 ? "week" : "month");
+
+  return {
+    startDate,
+    endDate: normalizedEndDate,
+    rangeDays,
+    monthCount,
+    granularity,
+  };
 }
 
 function buildBookingRevenueTimeline(
   bookings: Array<{ createdAt: string; totalPrice: number; status: BookingStatus }>,
-  monthCount = 6,
+  options: { startDate: Date; endDate: Date; granularity: TimelineGranularity },
 ) {
-  const keys = getRecentMonthKeys(monthCount);
-  const map = new Map(
-    keys.map((key) => [
-      key,
-      {
-        monthKey: key,
-        label: formatMonthLabel(key),
-        bookings: 0,
-        confirmedRevenue: 0,
-      },
-    ]),
-  );
+  const rows = buildTimelineRows(options.startDate, options.endDate, options.granularity);
+  const map = new Map(rows.map((row) => [row.monthKey, row]));
 
   for (const booking of bookings) {
-    const key = getMonthKey(new Date(booking.createdAt));
+    const bookingDate = new Date(booking.createdAt);
+    if (bookingDate < options.startDate || bookingDate > options.endDate) continue;
+    const key = getTimelineKey(bookingDate, options.granularity);
     const row = map.get(key);
     if (!row) continue;
     row.bookings += 1;
@@ -523,7 +668,7 @@ function buildBookingRevenueTimeline(
     }
   }
 
-  return keys.map((key) => map.get(key)!);
+  return rows;
 }
 
 export async function demoGetLocationOptions() {
@@ -533,10 +678,11 @@ export async function demoGetLocationOptions() {
     .sort((a, b) => a.name.localeCompare(b.name, "vi"));
 }
 
-export async function demoGetDashboardData(monthCount = 6) {
+export async function demoGetDashboardData(options?: DemoDashboardOptions) {
   const state = await readDemo();
   const userMap = new Map(state.users.map((user) => [user.id, user]));
   const tourMap = new Map(state.tours.map((tour) => [tour.id, tour]));
+  const timelineOptions = resolveDashboardOptions(options);
 
   const revenue = state.bookings
     .filter((item) => item.status === BookingStatus.CONFIRMED || item.status === BookingStatus.COMPLETED)
@@ -558,7 +704,7 @@ export async function demoGetDashboardData(monthCount = 6) {
     paymentsByStatus[booking.paymentStatus] += 1;
   }
 
-  const bookingRevenueTimeline = buildBookingRevenueTimeline(state.bookings, monthCount);
+  const bookingRevenueTimeline = buildBookingRevenueTimeline(state.bookings, timelineOptions);
 
   return {
     metrics: {
@@ -573,6 +719,11 @@ export async function demoGetDashboardData(monthCount = 6) {
     bookingsByStatus,
     paymentsByStatus,
     bookingRevenueTimeline,
+    monthCount: timelineOptions.monthCount,
+    rangeDays: timelineOptions.rangeDays,
+    timelineGranularity: timelineOptions.granularity,
+    timelineStartDate: timelineOptions.startDate,
+    timelineEndDate: timelineOptions.endDate,
     recentBookings: state.bookings.slice().sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).slice(0, 8).map((booking) => ({
       ...booking,
       createdAt: toDate(booking.createdAt),
@@ -731,9 +882,11 @@ export async function demoGetLocationDetail(locationId: string) {
 }
 
 export async function demoGetBookings(
-  filter: ListFilter & { status?: BookingStatus; paymentStatus?: PaymentStatus } = {},
+  filter: BookingListFilter = {},
 ) {
   const state = await readDemo();
+  const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
+  const createdTo = filter.createdTo ? endOfDay(filter.createdTo) : undefined;
   const userMap = new Map(state.users.map((user) => [user.id, user]));
   const tourMap = new Map(state.tours.map((tour) => [tour.id, tour]));
   const rows = state.bookings
@@ -746,7 +899,10 @@ export async function demoGetBookings(
         searchIncludes(tourTitle, filter.search);
       const statusMatched = !filter.status || booking.status === filter.status;
       const paymentMatched = !filter.paymentStatus || booking.paymentStatus === filter.paymentStatus;
-      return searchMatched && statusMatched && paymentMatched;
+      const createdAt = new Date(booking.createdAt);
+      const fromMatched = !createdFrom || createdAt >= createdFrom;
+      const toMatched = !createdTo || createdAt <= createdTo;
+      return searchMatched && statusMatched && paymentMatched && fromMatched && toMatched;
     })
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .map((booking) => ({
@@ -770,15 +926,26 @@ export async function demoGetBookings(
   return paginate(rows, filter);
 }
 
-export async function demoGetReviews(filter: ListFilter = {}) {
+export async function demoGetReviews(filter: ReviewListFilter = {}) {
   const state = await readDemo();
+  const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
+  const createdTo = filter.createdTo ? endOfDay(filter.createdTo) : undefined;
   const userMap = new Map(state.users.map((user) => [user.id, user]));
   const tourMap = new Map(state.tours.map((tour) => [tour.id, tour]));
   const rows = state.reviews
     .filter((review) => {
       const userName = userMap.get(review.userId)?.fullName ?? "";
       const tourName = tourMap.get(review.tourId)?.title ?? "";
-      return searchIncludes(review.comment, filter.search) || searchIncludes(userName, filter.search) || searchIncludes(tourName, filter.search);
+      const searchMatched =
+        searchIncludes(review.comment, filter.search) ||
+        searchIncludes(userName, filter.search) ||
+        searchIncludes(tourName, filter.search);
+      const visibleMatched =
+        typeof filter.isVisible !== "boolean" || review.isVisible === filter.isVisible;
+      const createdAt = new Date(review.createdAt);
+      const fromMatched = !createdFrom || createdAt >= createdFrom;
+      const toMatched = !createdTo || createdAt <= createdTo;
+      return searchMatched && visibleMatched && fromMatched && toMatched;
     })
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .map((review) => ({
@@ -997,6 +1164,28 @@ export async function demoUpdateBooking(id: string, payload: { status?: BookingS
   return booking;
 }
 
+export async function demoUpdateBookingsBulk(input: {
+  ids: string[];
+  status?: BookingStatus;
+  paymentStatus?: PaymentStatus;
+}) {
+  const state = await readDemo();
+  const ids = new Set(input.ids.filter(Boolean));
+  if (!ids.size) return { count: 0 };
+
+  let count = 0;
+  for (const booking of state.bookings) {
+    if (!ids.has(booking.id)) continue;
+    if (input.status) booking.status = input.status;
+    if (input.paymentStatus) booking.paymentStatus = input.paymentStatus;
+    booking.updatedAt = nowIso();
+    count += 1;
+  }
+
+  await writeDemo(state);
+  return { count };
+}
+
 export async function demoUpdateBookingDetail(
   id: string,
   payload: {
@@ -1048,6 +1237,23 @@ export async function demoUpdateReview(id: string, payload: { isVisible?: boolea
   review.updatedAt = nowIso();
   await writeDemo(state);
   return review;
+}
+
+export async function demoUpdateReviewsBulk(input: { ids: string[]; isVisible: boolean }) {
+  const state = await readDemo();
+  const ids = new Set(input.ids.filter(Boolean));
+  if (!ids.size) return { count: 0 };
+
+  let count = 0;
+  for (const review of state.reviews) {
+    if (!ids.has(review.id)) continue;
+    review.isVisible = input.isVisible;
+    review.updatedAt = nowIso();
+    count += 1;
+  }
+
+  await writeDemo(state);
+  return { count };
 }
 
 export async function demoUpdateReviewContent(
