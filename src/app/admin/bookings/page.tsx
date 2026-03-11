@@ -1,36 +1,67 @@
 import Link from "next/link";
-import { AdminBookingActions } from "@/components/admin/admin-booking-actions";
-import { AdminBookingDetailDialog } from "@/components/admin/admin-booking-detail-dialog";
-import { Badge } from "@/components/ui/badge";
+import { AdminBookingsTable } from "@/components/admin/admin-bookings-table";
 import { EmptyState } from "@/components/common/empty-state";
 import { adminLabels, getAdminBookings } from "@/lib/db/admin-queries";
-import { formatDate, formatPrice } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
+
+type BookingStatusValue = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
+type PaymentStatusValue = "UNPAID" | "PAID";
 
 type AdminBookingsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
+
+const bookingStatusValues: BookingStatusValue[] = ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"];
+const paymentStatusValues: PaymentStatusValue[] = ["UNPAID", "PAID"];
 
 function normalizeParam(value?: string | string[]) {
   if (!value) return "";
   return Array.isArray(value) ? value[0] ?? "" : value;
 }
 
+function parseDateAtBoundary(value: string, boundary: "start" | "end") {
+  if (!value) return undefined;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return undefined;
+
+  if (boundary === "start") {
+    date.setHours(0, 0, 0, 0);
+  } else {
+    date.setHours(23, 59, 59, 999);
+  }
+  return date;
+}
+
+function toValidPage(value: string) {
+  const page = Number(value || "1");
+  if (!Number.isFinite(page) || page < 1) return 1;
+  return Math.trunc(page);
+}
+
 export default async function AdminBookingsPage({ searchParams }: AdminBookingsPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
-  const status = normalizeParam(params.status);
-  const paymentStatus = normalizeParam(params.paymentStatus);
-  const page = Number(normalizeParam(params.page) || "1");
+  const statusRaw = normalizeParam(params.status);
+  const paymentStatusRaw = normalizeParam(params.paymentStatus);
+  const createdFrom = normalizeParam(params.createdFrom);
+  const createdTo = normalizeParam(params.createdTo);
+  const page = toValidPage(normalizeParam(params.page));
+
+  const status = bookingStatusValues.includes(statusRaw as BookingStatusValue)
+    ? (statusRaw as BookingStatusValue)
+    : undefined;
+  const paymentStatus = paymentStatusValues.includes(paymentStatusRaw as PaymentStatusValue)
+    ? (paymentStatusRaw as PaymentStatusValue)
+    : undefined;
 
   const data = await getAdminBookings({
     search: search || undefined,
-    status: status
-      ? (status as "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED")
-      : undefined,
-    paymentStatus: paymentStatus ? (paymentStatus as "UNPAID" | "PAID") : undefined,
-    page: Number.isFinite(page) ? page : 1,
+    status,
+    paymentStatus,
+    createdFrom: parseDateAtBoundary(createdFrom, "start"),
+    createdTo: parseDateAtBoundary(createdTo, "end"),
+    page,
     pageSize: 15,
   }).catch(() => null);
 
@@ -49,24 +80,29 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
     <div className="space-y-5">
       <div className="iv-card p-5">
         <h1 className="text-2xl font-bold text-slate-900">Quản lý booking</h1>
-        <p className="mt-1 text-sm text-slate-600">Theo dõi đơn đặt tour, trạng thái xử lý và thanh toán.</p>
+        <p className="mt-1 text-sm text-slate-600">
+          Theo dõi đơn đặt tour, trạng thái xử lý, thanh toán và cập nhật hàng loạt theo bộ lọc.
+        </p>
       </div>
 
       <form className="iv-card p-4">
-        <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+        <label
+          htmlFor="search"
+          className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"
+        >
           Tìm kiếm booking
         </label>
-        <div className="grid gap-2 lg:grid-cols-[1fr_180px_180px_auto]">
+        <div className="grid gap-2 lg:grid-cols-[1fr_170px_170px_170px_170px_auto]">
           <input
             id="search"
             name="search"
             defaultValue={search}
             placeholder="Mã đơn, tên khách, email hoặc tên tour..."
-            className="h-10 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
           <select
             name="status"
-            defaultValue={status}
+            defaultValue={status ?? ""}
             className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="">Tất cả trạng thái đơn</option>
@@ -77,73 +113,41 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
           </select>
           <select
             name="paymentStatus"
-            defaultValue={paymentStatus}
+            defaultValue={paymentStatus ?? ""}
             className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="">Tất cả thanh toán</option>
             <option value="UNPAID">Chưa thanh toán</option>
             <option value="PAID">Đã thanh toán</option>
           </select>
-          <button type="submit" className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold">
-            Tìm kiếm
+          <input
+            type="date"
+            name="createdFrom"
+            defaultValue={createdFrom}
+            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+          />
+          <input
+            type="date"
+            name="createdTo"
+            defaultValue={createdTo}
+            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+          />
+          <button
+            type="submit"
+            className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
+          >
+            Lọc dữ liệu
           </button>
         </div>
       </form>
 
       {data.items.length ? (
         <>
-          <div className="iv-card overflow-x-auto p-4">
-            <table className="w-full min-w-[980px] text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-slate-500">
-                  <th className="px-2 py-3 font-medium">Mã đơn</th>
-                  <th className="px-2 py-3 font-medium">Khách hàng</th>
-                  <th className="px-2 py-3 font-medium">Tour</th>
-                  <th className="px-2 py-3 font-medium">Số khách</th>
-                  <th className="px-2 py-3 font-medium">Tổng tiền</th>
-                  <th className="px-2 py-3 font-medium">Trạng thái</th>
-                  <th className="px-2 py-3 font-medium">Thanh toán</th>
-                  <th className="px-2 py-3 font-medium">Ngày tạo</th>
-                  <th className="px-2 py-3 font-medium">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.items.map((booking) => (
-                  <tr key={booking.id} className="border-b border-slate-100 last:border-0">
-                    <td className="px-2 py-3 font-semibold text-slate-800">{booking.bookingCode}</td>
-                    <td className="px-2 py-3">
-                      <p className="font-medium text-slate-800">{booking.fullName}</p>
-                      <p className="text-xs text-slate-500">{booking.email}</p>
-                    </td>
-                    <td className="px-2 py-3">
-                      <Link href={`/tours/${booking.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
-                        {booking.tour.title}
-                      </Link>
-                    </td>
-                    <td className="px-2 py-3">{booking.numberOfGuests}</td>
-                    <td className="px-2 py-3 font-medium">{formatPrice(booking.totalPrice)}</td>
-                    <td className="px-2 py-3">
-                      <Badge variant="outline">{adminLabels.bookingStatus[booking.status]}</Badge>
-                    </td>
-                    <td className="px-2 py-3">
-                      <Badge variant="outline">{adminLabels.paymentStatus[booking.paymentStatus]}</Badge>
-                    </td>
-                    <td className="px-2 py-3 text-slate-500">{formatDate(booking.createdAt)}</td>
-                    <td className="px-2 py-3">
-                      <div className="space-y-2">
-                        <AdminBookingActions
-                          bookingId={booking.id}
-                          status={booking.status}
-                          paymentStatus={booking.paymentStatus}
-                        />
-                        <AdminBookingDetailDialog booking={booking} />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <AdminBookingsTable
+            items={data.items}
+            statusLabels={adminLabels.bookingStatus}
+            paymentLabels={adminLabels.paymentStatus}
+          />
 
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-slate-600">
@@ -180,7 +184,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
       ) : (
         <EmptyState
           title="Không có booking phù hợp"
-          description="Hãy thử từ khóa khác để tìm kiếm."
+          description="Hãy thử điều chỉnh bộ lọc hoặc xóa bộ lọc để xem toàn bộ dữ liệu."
           ctaHref="/admin/bookings"
           ctaLabel="Xóa bộ lọc"
         />
