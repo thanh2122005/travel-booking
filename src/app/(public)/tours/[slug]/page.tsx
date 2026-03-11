@@ -52,14 +52,14 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
       ),
     ),
   );
-  const fallbackImages = Array.from(
+  const locationImages = Array.from(
     new Set(
-      [tour.featuredImage, ...tour.location.gallery].filter(
+      [tour.location.imageUrl, ...tour.location.gallery].filter(
         (image): image is string => Boolean(image && image.trim()),
       ),
     ),
   );
-  const galleryImages = dedicatedImages.length ? dedicatedImages : fallbackImages;
+  const galleryImages = Array.from(new Set([...dedicatedImages, ...locationImages]));
 
   return (
     <div className="space-y-10 py-6">
