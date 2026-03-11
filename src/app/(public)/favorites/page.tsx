@@ -27,10 +27,18 @@ function parseSort(value: string): FavoriteSortValue {
   return "newest";
 }
 
+function parsePage(value: string) {
+  const page = Number(value);
+  if (!Number.isFinite(page)) return 1;
+  const normalized = Math.trunc(page);
+  return normalized >= 1 ? normalized : 1;
+}
+
 export default async function FavoritesPage({ searchParams }: FavoritesPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
   const sort = parseSort(normalizeParam(params.sort));
+  const requestedPage = parsePage(normalizeParam(params.page));
   const hasActiveFilters = Boolean(search || sort !== "newest");
 
   const session = await getAuthSession();
@@ -56,6 +64,27 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
       if (sort === "price-desc") return priceB - priceA;
       return +new Date(b.createdAt) - +new Date(a.createdAt);
     });
+  const pageSize = 9;
+  const totalPages = Math.max(1, Math.ceil(filteredFavorites.length / pageSize));
+  const currentPage = Math.min(requestedPage, totalPages);
+  const pagedFavorites = filteredFavorites.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const queryBase = new URLSearchParams();
+
+  if (search) {
+    queryBase.set("search", search);
+  }
+  if (sort !== "newest") {
+    queryBase.set("sort", sort);
+  }
+
+  const buildPageHref = (page: number) => {
+    const query = new URLSearchParams(queryBase);
+    if (page > 1) {
+      query.set("page", String(page));
+    }
+    const serialized = query.toString();
+    return serialized ? `/favorites?${serialized}` : "/favorites";
+  };
 
   return (
     <div className="space-y-8">
@@ -74,7 +103,7 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
         <HomeSectionHeading
           eyebrow="Đã lưu"
           title="Tour bạn đang theo dõi"
-          description={`Hiển thị ${filteredFavorites.length}/${favorites.length} tour theo bộ lọc hiện tại.`}
+          description={`Hiển thị ${pagedFavorites.length}/${filteredFavorites.length} tour trên trang ${currentPage}/${totalPages}.`}
         />
 
         <form className="iv-card p-4">
@@ -116,32 +145,68 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
         </form>
 
         {filteredFavorites.length ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredFavorites.map((favorite) => {
-              const displayPrice = favorite.tour.discountPrice ?? favorite.tour.price;
+          <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {pagedFavorites.map((favorite) => {
+                const displayPrice = favorite.tour.discountPrice ?? favorite.tour.price;
 
-              return (
-                <article key={favorite.id} className="iv-card overflow-hidden">
-                  <Link href={`/tours/${favorite.tour.slug}`} className="group block">
-                    <div className="relative h-52">
-                      <SafeImage
-                        src={favorite.tour.featuredImage}
-                        alt={favorite.tour.title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                      />
-                    </div>
-                    <div className="space-y-2 p-5">
-                      <h3 className="line-clamp-2 text-lg font-semibold text-slate-900">{favorite.tour.title}</h3>
-                      <p className="line-clamp-2 text-sm leading-7 text-slate-600">{favorite.tour.shortDescription}</p>
-                      <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">{favorite.tour.location.name}</p>
-                      <p className="text-lg font-bold text-teal-700">{formatPrice(displayPrice)}</p>
-                    </div>
-                  </Link>
-                </article>
-              );
-            })}
+                return (
+                  <article key={favorite.id} className="iv-card overflow-hidden">
+                    <Link href={`/tours/${favorite.tour.slug}`} className="group block">
+                      <div className="relative h-52">
+                        <SafeImage
+                          src={favorite.tour.featuredImage}
+                          alt={favorite.tour.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                        />
+                      </div>
+                      <div className="space-y-2 p-5">
+                        <h3 className="line-clamp-2 text-lg font-semibold text-slate-900">{favorite.tour.title}</h3>
+                        <p className="line-clamp-2 text-sm leading-7 text-slate-600">{favorite.tour.shortDescription}</p>
+                        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">{favorite.tour.location.name}</p>
+                        <p className="text-lg font-bold text-teal-700">{formatPrice(displayPrice)}</p>
+                      </div>
+                    </Link>
+                  </article>
+                );
+              })}
+            </div>
+
+            {totalPages > 1 ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+                <p className="text-slate-600">
+                  Trang <span className="font-semibold text-slate-900">{currentPage}</span> / {totalPages}
+                </p>
+                <div className="flex items-center gap-2">
+                  {currentPage > 1 ? (
+                    <Link
+                      href={buildPageHref(currentPage - 1)}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
+                    >
+                      Trang trước
+                    </Link>
+                  ) : (
+                    <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
+                      Trang trước
+                    </span>
+                  )}
+                  {currentPage < totalPages ? (
+                    <Link
+                      href={buildPageHref(currentPage + 1)}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
+                    >
+                      Trang sau
+                    </Link>
+                  ) : (
+                    <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
+                      Trang sau
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : favorites.length ? (
           <EmptyState

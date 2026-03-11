@@ -39,11 +39,19 @@ function parseRating(value: string) {
   return normalized >= 1 && normalized <= 5 ? normalized : 0;
 }
 
+function parsePage(value: string) {
+  const page = Number(value);
+  if (!Number.isFinite(page)) return 1;
+  const normalized = Math.trunc(page);
+  return normalized >= 1 ? normalized : 1;
+}
+
 export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
   const minRating = parseRating(normalizeParam(params.minRating));
   const sort = parseSort(normalizeParam(params.sort));
+  const requestedPage = parsePage(normalizeParam(params.page));
   const hasActiveFilters = Boolean(search || minRating || sort !== "newest");
   const normalizedSearch = search.trim().toLowerCase();
 
@@ -79,6 +87,30 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
       if (sort === "rating-asc") return a.rating - b.rating;
       return +new Date(b.createdAt) - +new Date(a.createdAt);
     });
+  const pageSize = 9;
+  const totalPages = Math.max(1, Math.ceil(filteredReviews.length / pageSize));
+  const currentPage = Math.min(requestedPage, totalPages);
+  const pagedReviews = filteredReviews.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const queryBase = new URLSearchParams();
+
+  if (search) {
+    queryBase.set("search", search);
+  }
+  if (minRating) {
+    queryBase.set("minRating", String(minRating));
+  }
+  if (sort !== "newest") {
+    queryBase.set("sort", sort);
+  }
+
+  const buildPageHref = (page: number) => {
+    const query = new URLSearchParams(queryBase);
+    if (page > 1) {
+      query.set("page", String(page));
+    }
+    const serialized = query.toString();
+    return serialized ? `/reviews?${serialized}` : "/reviews";
+  };
 
   return (
     <div className="space-y-8">
@@ -107,7 +139,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
         <HomeSectionHeading
           eyebrow="Phản hồi cộng đồng"
           title="Trải nghiệm được xác thực"
-          description={`Hiển thị ${filteredReviews.length}/${data.reviews.length} đánh giá theo bộ lọc hiện tại.`}
+          description={`Hiển thị ${pagedReviews.length}/${filteredReviews.length} đánh giá trên trang ${currentPage}/${totalPages}.`}
         />
 
         <article className="iv-card p-4">
@@ -179,40 +211,76 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
         </form>
 
         {filteredReviews.length ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredReviews.map((review, index) => (
-              <article key={review.id} className="iv-card p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="relative h-11 w-11 overflow-hidden rounded-full border border-slate-200">
-                      <Image
-                        src={review.user.avatarUrl || fallbackAvatar[index % fallbackAvatar.length]}
-                        alt={review.user.fullName}
-                        fill
-                        className="object-cover"
-                        sizes="44px"
-                      />
+          <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {pagedReviews.map((review, index) => (
+                <article key={review.id} className="iv-card p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="relative h-11 w-11 overflow-hidden rounded-full border border-slate-200">
+                        <Image
+                          src={review.user.avatarUrl || fallbackAvatar[((currentPage - 1) * pageSize + index) % fallbackAvatar.length]}
+                          alt={review.user.fullName}
+                          fill
+                          className="object-cover"
+                          sizes="44px"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">{review.user.fullName}</p>
+                        <p className="text-xs text-slate-500">{formatDate(review.createdAt)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">{review.user.fullName}</p>
-                      <p className="text-xs text-slate-500">{formatDate(review.createdAt)}</p>
-                    </div>
+                    <p className="inline-flex items-center gap-1 text-sm font-semibold text-amber-500">
+                      <Star className="h-4 w-4 fill-current" />
+                      {review.rating}
+                    </p>
                   </div>
-                  <p className="inline-flex items-center gap-1 text-sm font-semibold text-amber-500">
-                    <Star className="h-4 w-4 fill-current" />
-                    {review.rating}
+                  <p className="mt-3 text-sm leading-7 text-slate-600">{review.comment}</p>
+                  <p className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500">
+                    Tour:{" "}
+                    <Link href={`/tours/${review.tour.slug}`} className="font-semibold text-teal-700 hover:text-teal-800">
+                      {review.tour.title}
+                    </Link>{" "}
+                    · {review.tour.location.name}
                   </p>
-                </div>
-                <p className="mt-3 text-sm leading-7 text-slate-600">{review.comment}</p>
-                <p className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500">
-                  Tour:{" "}
-                  <Link href={`/tours/${review.tour.slug}`} className="font-semibold text-teal-700 hover:text-teal-800">
-                    {review.tour.title}
-                  </Link>{" "}
-                  · {review.tour.location.name}
+                </article>
+              ))}
+            </div>
+
+            {totalPages > 1 ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+                <p className="text-slate-600">
+                  Trang <span className="font-semibold text-slate-900">{currentPage}</span> / {totalPages}
                 </p>
-              </article>
-            ))}
+                <div className="flex items-center gap-2">
+                  {currentPage > 1 ? (
+                    <Link
+                      href={buildPageHref(currentPage - 1)}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
+                    >
+                      Trang trước
+                    </Link>
+                  ) : (
+                    <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
+                      Trang trước
+                    </span>
+                  )}
+                  {currentPage < totalPages ? (
+                    <Link
+                      href={buildPageHref(currentPage + 1)}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
+                    >
+                      Trang sau
+                    </Link>
+                  ) : (
+                    <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
+                      Trang sau
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : data.reviews.length ? (
           <EmptyState
