@@ -1221,6 +1221,23 @@ export async function demoUpdateLocation(id: string, payload: { featured?: boole
   return location;
 }
 
+export async function demoDeleteLocation(id: string) {
+  const state = await readDemo();
+  const locationIndex = state.locations.findIndex((item) => item.id === id);
+  if (locationIndex < 0) return null;
+
+  const hasTours = state.tours.some((tour) => tour.locationId === id);
+  if (hasTours) {
+    return "HAS_TOURS";
+  }
+
+  const [removedLocation] = state.locations.splice(locationIndex, 1);
+  if (!removedLocation) return null;
+
+  await writeDemo(state);
+  return removedLocation;
+}
+
 export async function demoUpdateLocationContent(
   id: string,
   payload: {

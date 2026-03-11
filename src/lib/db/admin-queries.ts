@@ -24,6 +24,7 @@ import {
   demoUpdateBooking,
   demoUpdateBookingDetail,
   demoUpdateLocation,
+  demoDeleteLocation,
   demoUpdateReview,
   demoUpdateTourImage,
   demoUpdateTour,
@@ -926,6 +927,31 @@ export async function updateAdminLocation(locationId: string, payload: { feature
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoUpdateLocation(locationId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function deleteAdminLocation(locationId: string) {
+  try {
+    const totalTours = await db.tour.count({
+      where: { locationId },
+    });
+    if (totalTours > 0) {
+      return "HAS_TOURS";
+    }
+
+    return db.location.delete({
+      where: { id: locationId },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoDeleteLocation(locationId);
     }
     throw error;
   }

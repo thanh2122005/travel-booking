@@ -1,7 +1,7 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
-import { updateAdminLocation } from "@/lib/db/admin-queries";
+import { deleteAdminLocation, updateAdminLocation } from "@/lib/db/admin-queries";
 
 const locationUpdateSchema = z.object({
   featured: z.boolean(),
@@ -28,4 +28,28 @@ export async function PATCH(request: Request, context: LocationRouteContext) {
   }
 
   return NextResponse.json({ message: "Đã cập nhật điểm đến.", location: updated });
+}
+
+export async function DELETE(_request: Request, context: LocationRouteContext) {
+  const guard = await requireAdminApi();
+  if (guard) return guard;
+
+  const { id } = await context.params;
+  const removed = await deleteAdminLocation(id).catch(() => null);
+
+  if (removed === "HAS_TOURS") {
+    return NextResponse.json(
+      { message: "Không thể xóa điểm đến đang có tour. Vui lòng xử lý tour trước." },
+      { status: 400 },
+    );
+  }
+
+  if (!removed) {
+    return NextResponse.json({ message: "Không thể xóa điểm đến." }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    message: "Đã xóa điểm đến thành công.",
+    location: removed,
+  });
 }
