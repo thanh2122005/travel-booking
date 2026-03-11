@@ -74,6 +74,13 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
     ? (paymentStatusRaw as PaymentStatusValue)
     : undefined;
   const hasActiveFilters = Boolean(search || status || paymentStatus || createdFrom || createdTo);
+  const exportQuery = {
+    ...(search ? { search } : {}),
+    ...(status ? { status } : {}),
+    ...(paymentStatus ? { paymentStatus } : {}),
+    ...(createdFrom ? { createdFrom } : {}),
+    ...(createdTo ? { createdTo } : {}),
+  };
 
   const data = await getAdminBookings({
     search: search || undefined,
@@ -195,6 +202,17 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
           >
             Lọc dữ liệu
           </button>
+        </div>
+        <div className="mt-3 flex justify-end">
+          <Link
+            href={{
+              pathname: "/api/admin/bookings/export",
+              query: exportQuery,
+            }}
+            className="inline-flex h-9 items-center rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+          >
+            Xuất CSV
+          </Link>
         </div>
       </form>
 

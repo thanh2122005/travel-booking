@@ -1013,6 +1013,46 @@ export async function demoGetBookings(
   return paginate(rows, filter);
 }
 
+export async function demoExportBookings(filter: BookingListFilter = {}) {
+  const state = await readDemo();
+  const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
+  const createdTo = filter.createdTo ? endOfDay(filter.createdTo) : undefined;
+  const userMap = new Map(state.users.map((user) => [user.id, user]));
+  const tourMap = new Map(state.tours.map((tour) => [tour.id, tour]));
+
+  return state.bookings
+    .filter((booking) => {
+      const tourTitle = tourMap.get(booking.tourId)?.title ?? "";
+      const searchMatched =
+        searchIncludes(booking.bookingCode, filter.search) ||
+        searchIncludes(booking.fullName, filter.search) ||
+        searchIncludes(booking.email, filter.search) ||
+        searchIncludes(tourTitle, filter.search);
+      const statusMatched = !filter.status || booking.status === filter.status;
+      const paymentMatched = !filter.paymentStatus || booking.paymentStatus === filter.paymentStatus;
+      const createdAt = new Date(booking.createdAt);
+      const fromMatched = !createdFrom || createdAt >= createdFrom;
+      const toMatched = !createdTo || createdAt <= createdTo;
+      return searchMatched && statusMatched && paymentMatched && fromMatched && toMatched;
+    })
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+    .map((booking) => ({
+      ...booking,
+      createdAt: toDate(booking.createdAt),
+      departureDate: booking.departureDate ? toDate(booking.departureDate) : null,
+      user: {
+        id: booking.userId,
+        fullName: userMap.get(booking.userId)?.fullName ?? booking.fullName,
+        email: userMap.get(booking.userId)?.email ?? booking.email,
+      },
+      tour: {
+        id: booking.tourId,
+        title: tourMap.get(booking.tourId)?.title ?? "Tour",
+        slug: tourMap.get(booking.tourId)?.slug ?? "",
+      },
+    }));
+}
+
 export async function demoGetReviews(filter: ReviewListFilter = {}) {
   const state = await readDemo();
   const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
@@ -1050,6 +1090,45 @@ export async function demoGetReviews(filter: ReviewListFilter = {}) {
       },
     }));
   return paginate(rows, filter);
+}
+
+export async function demoExportReviews(filter: ReviewListFilter = {}) {
+  const state = await readDemo();
+  const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
+  const createdTo = filter.createdTo ? endOfDay(filter.createdTo) : undefined;
+  const userMap = new Map(state.users.map((user) => [user.id, user]));
+  const tourMap = new Map(state.tours.map((tour) => [tour.id, tour]));
+
+  return state.reviews
+    .filter((review) => {
+      const userName = userMap.get(review.userId)?.fullName ?? "";
+      const tourName = tourMap.get(review.tourId)?.title ?? "";
+      const searchMatched =
+        searchIncludes(review.comment, filter.search) ||
+        searchIncludes(userName, filter.search) ||
+        searchIncludes(tourName, filter.search);
+      const visibleMatched =
+        typeof filter.isVisible !== "boolean" || review.isVisible === filter.isVisible;
+      const createdAt = new Date(review.createdAt);
+      const fromMatched = !createdFrom || createdAt >= createdFrom;
+      const toMatched = !createdTo || createdAt <= createdTo;
+      return searchMatched && visibleMatched && fromMatched && toMatched;
+    })
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+    .map((review) => ({
+      ...review,
+      createdAt: toDate(review.createdAt),
+      user: {
+        id: review.userId,
+        fullName: userMap.get(review.userId)?.fullName ?? "Người dùng",
+        email: userMap.get(review.userId)?.email ?? "",
+      },
+      tour: {
+        id: review.tourId,
+        title: tourMap.get(review.tourId)?.title ?? "Tour",
+        slug: tourMap.get(review.tourId)?.slug ?? "",
+      },
+    }));
 }
 
 export async function demoGetTourDetail(tourId: string) {

@@ -66,6 +66,12 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
   const createdTo = normalizeParam(params.createdTo);
   const page = toValidPage(normalizeParam(params.page));
   const hasActiveFilters = Boolean(search || isVisible || createdFrom || createdTo);
+  const exportQuery = {
+    ...(search ? { search } : {}),
+    ...(isVisible ? { isVisible } : {}),
+    ...(createdFrom ? { createdFrom } : {}),
+    ...(createdTo ? { createdTo } : {}),
+  };
 
   const data = await getAdminReviews({
     search: search || undefined,
@@ -175,6 +181,17 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
           >
             Lọc dữ liệu
           </button>
+        </div>
+        <div className="mt-3 flex justify-end">
+          <Link
+            href={{
+              pathname: "/api/admin/reviews/export",
+              query: exportQuery,
+            }}
+            className="inline-flex h-9 items-center rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+          >
+            Xuất CSV
+          </Link>
         </div>
       </form>
 

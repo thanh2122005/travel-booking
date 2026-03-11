@@ -13,6 +13,8 @@ import {
   demoGetTourDetail,
   demoGetTours,
   demoGetUsers,
+  demoExportBookings,
+  demoExportReviews,
   demoDeleteItinerary,
   demoDeleteTourImage,
   demoReorderTourImages,
@@ -77,6 +79,64 @@ function getPagination(filter: AdminListFilter) {
   const page = Math.max(filter.page ?? 1, 1);
   const pageSize = Math.min(Math.max(filter.pageSize ?? 12, 1), 50);
   return { page, pageSize, skip: (page - 1) * pageSize };
+}
+
+function buildAdminBookingWhere(filter: AdminBookingListFilter) {
+  const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
+  const createdTo = filter.createdTo ? endOfDay(filter.createdTo) : undefined;
+
+  const where: Prisma.BookingWhereInput = filter.search
+    ? {
+        OR: [
+          { bookingCode: { contains: filter.search, mode: "insensitive" } },
+          { fullName: { contains: filter.search, mode: "insensitive" } },
+          { email: { contains: filter.search, mode: "insensitive" } },
+          { tour: { title: { contains: filter.search, mode: "insensitive" } } },
+        ],
+      }
+    : {};
+
+  if (filter.status) {
+    where.status = filter.status;
+  }
+  if (filter.paymentStatus) {
+    where.paymentStatus = filter.paymentStatus;
+  }
+  if (createdFrom || createdTo) {
+    where.createdAt = {
+      ...(createdFrom ? { gte: createdFrom } : {}),
+      ...(createdTo ? { lte: createdTo } : {}),
+    };
+  }
+
+  return where;
+}
+
+function buildAdminReviewWhere(filter: AdminReviewListFilter) {
+  const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
+  const createdTo = filter.createdTo ? endOfDay(filter.createdTo) : undefined;
+
+  const where: Prisma.ReviewWhereInput = filter.search
+    ? {
+        OR: [
+          { comment: { contains: filter.search, mode: "insensitive" } },
+          { user: { fullName: { contains: filter.search, mode: "insensitive" } } },
+          { tour: { title: { contains: filter.search, mode: "insensitive" } } },
+        ],
+      }
+    : {};
+
+  if (typeof filter.isVisible === "boolean") {
+    where.isVisible = filter.isVisible;
+  }
+  if (createdFrom || createdTo) {
+    where.createdAt = {
+      ...(createdFrom ? { gte: createdFrom } : {}),
+      ...(createdTo ? { lte: createdTo } : {}),
+    };
+  }
+
+  return where;
 }
 
 function getMonthKey(value: Date) {
@@ -779,31 +839,7 @@ export async function getAdminLocationDetail(locationId: string) {
 export async function getAdminBookings(filter: AdminBookingListFilter = {}) {
   try {
     const { page, pageSize, skip } = getPagination(filter);
-    const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
-    const createdTo = filter.createdTo ? endOfDay(filter.createdTo) : undefined;
-
-    const where: Prisma.BookingWhereInput = filter.search
-      ? {
-          OR: [
-            { bookingCode: { contains: filter.search, mode: "insensitive" } },
-            { fullName: { contains: filter.search, mode: "insensitive" } },
-            { email: { contains: filter.search, mode: "insensitive" } },
-            { tour: { title: { contains: filter.search, mode: "insensitive" } } },
-          ],
-        }
-      : {};
-    if (filter.status) {
-      where.status = filter.status;
-    }
-    if (filter.paymentStatus) {
-      where.paymentStatus = filter.paymentStatus;
-    }
-    if (createdFrom || createdTo) {
-      where.createdAt = {
-        ...(createdFrom ? { gte: createdFrom } : {}),
-        ...(createdTo ? { lte: createdTo } : {}),
-      };
-    }
+    const where = buildAdminBookingWhere(filter);
 
     const [total, items] = await Promise.all([
       db.booking.count({ where }),
@@ -844,30 +880,43 @@ export async function getAdminBookings(filter: AdminBookingListFilter = {}) {
   }
 }
 
+export async function exportAdminBookings(filter: AdminBookingListFilter = {}) {
+  try {
+    const where = buildAdminBookingWhere(filter);
+
+    return db.booking.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 5000,
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+        tour: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoExportBookings(filter);
+    }
+    throw error;
+  }
+}
+
 export async function getAdminReviews(filter: AdminReviewListFilter = {}) {
   try {
     const { page, pageSize, skip } = getPagination(filter);
-    const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
-    const createdTo = filter.createdTo ? endOfDay(filter.createdTo) : undefined;
-
-    const where: Prisma.ReviewWhereInput = filter.search
-      ? {
-          OR: [
-            { comment: { contains: filter.search, mode: "insensitive" } },
-            { user: { fullName: { contains: filter.search, mode: "insensitive" } } },
-            { tour: { title: { contains: filter.search, mode: "insensitive" } } },
-          ],
-        }
-      : {};
-    if (typeof filter.isVisible === "boolean") {
-      where.isVisible = filter.isVisible;
-    }
-    if (createdFrom || createdTo) {
-      where.createdAt = {
-        ...(createdFrom ? { gte: createdFrom } : {}),
-        ...(createdTo ? { lte: createdTo } : {}),
-      };
-    }
+    const where = buildAdminReviewWhere(filter);
 
     const [total, items] = await Promise.all([
       db.review.count({ where }),
@@ -899,6 +948,39 @@ export async function getAdminReviews(filter: AdminReviewListFilter = {}) {
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoGetReviews(filter);
+    }
+    throw error;
+  }
+}
+
+export async function exportAdminReviews(filter: AdminReviewListFilter = {}) {
+  try {
+    const where = buildAdminReviewWhere(filter);
+
+    return db.review.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 5000,
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+        tour: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoExportReviews(filter);
     }
     throw error;
   }
