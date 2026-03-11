@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 import { PageHeroBanner } from "@/components/common/page-hero-banner";
 import { SafeImage } from "@/components/common/safe-image";
@@ -13,22 +13,22 @@ export default async function InspirationPage() {
   return (
     <div className="space-y-10">
       <PageHeroBanner
-        eyebrow="Cảm hứng"
-        title="Cảm hứng du lịch Việt Nam"
-        description="Chuyển đổi trang blog tĩnh trong template thành trang truyền cảm hứng có route dynamic và khả năng map dữ liệu thật."
+        eyebrow="Cáº£m há»©ng"
+        title="Cáº£m há»©ng du lá»‹ch Viá»‡t Nam"
+        description="Chuyá»ƒn Ä‘á»•i trang blog tÄ©nh trong template thÃ nh trang truyá»n cáº£m há»©ng cÃ³ route dynamic vÃ  kháº£ nÄƒng map dá»¯ liá»‡u tháº­t."
         videoSrc="/immerse-vietnam/videos/vietnamBlog.mp4"
       />
 
       <section className="space-y-5">
         <HomeSectionHeading
-          eyebrow="Câu chuyện"
-          title="Những hành trình đang truyền cảm hứng"
-          description="Blog không còn là static html; mỗi bài viết hướng đến destination detail và luồng đặt tour."
+          eyebrow="CÃ¢u chuyá»‡n"
+          title="Nhá»¯ng hÃ nh trÃ¬nh Ä‘ang truyá»n cáº£m há»©ng"
+          description="Blog khÃ´ng cÃ²n lÃ  static html; má»—i bÃ i viáº¿t hÆ°á»›ng Ä‘áº¿n destination detail vÃ  luá»“ng Ä‘áº·t tour."
         />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {locations.slice(0, 6).map((location, index) => (
             <article key={location.id} className="iv-card overflow-hidden">
-              <Link href={`/destinations/${location.slug}`} className="group block">
+              <Link href={`/dia-diem/${location.slug}`} className="group block">
                 <div className="relative h-52">
                   <SafeImage
                     src={location.imageUrl}
@@ -56,3 +56,4 @@ export default async function InspirationPage() {
     </div>
   );
 }
+

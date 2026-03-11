@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { SafeImage } from "@/components/common/safe-image";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
@@ -20,15 +20,15 @@ export function HomeFeaturedDestinations({ locations }: HomeFeaturedDestinations
   return (
     <section className="space-y-5">
       <HomeSectionHeading
-        eyebrow="Điểm đến nổi bật"
-        title="Điểm đến nổi bật tại Việt Nam"
-        description="Giữ bố cục ảnh lớn, lớp overlay và tinh thần showcase của template cũ, nhưng đưa vào route data thật."
+        eyebrow="Äiá»ƒm Ä‘áº¿n ná»•i báº­t"
+        title="Äiá»ƒm Ä‘áº¿n ná»•i báº­t táº¡i Viá»‡t Nam"
+        description="Giá»¯ bá»‘ cá»¥c áº£nh lá»›n, lá»›p overlay vÃ  tinh tháº§n showcase cá»§a template cÅ©, nhÆ°ng Ä‘Æ°a vÃ o route data tháº­t."
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {locations.map((location) => (
           <article key={location.id} className="group relative overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
-            <Link href={`/destinations/${location.slug}`} className="absolute inset-0 z-20" aria-label={location.name} />
+            <Link href={`/dia-diem/${location.slug}`} className="absolute inset-0 z-20" aria-label={location.name} />
             <div className="relative h-[300px]">
               <SafeImage
                 src={location.imageUrl}
@@ -53,3 +53,4 @@ export function HomeFeaturedDestinations({ locations }: HomeFeaturedDestinations
     </section>
   );
 }
+

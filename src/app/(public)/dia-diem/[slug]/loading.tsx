@@ -1,4 +1,4 @@
-export default function LocationDetailLoading() {
+﻿export default function LocationDetailLoading() {
   return (
     <div className="space-y-6 py-6">
       <div className="h-8 w-64 animate-pulse rounded bg-muted" />

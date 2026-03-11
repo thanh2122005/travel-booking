@@ -1,4 +1,4 @@
-export default function LocationsLoading() {
+﻿export default function LocationsLoading() {
   return (
     <div className="space-y-6 py-6">
       <div className="h-10 w-80 animate-pulse rounded-lg bg-muted" />
