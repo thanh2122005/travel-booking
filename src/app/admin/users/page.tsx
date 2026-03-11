@@ -1,5 +1,6 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { AdminUserActions } from "@/components/admin/admin-user-actions";
+import { AdminUserDetailDialog } from "@/components/admin/admin-user-detail-dialog";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
 import { adminLabels, getAdminUsers } from "@/lib/db/admin-queries";
@@ -34,10 +35,10 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
   if (!data) {
     return (
       <EmptyState
-        title="Kh�ng th? t?i danh s�ch ngu?i d�ng"
-        description="Vui l�ng ki?m tra k?t n?i co s? d? li?u r?i th? l?i."
+        title="Không thể tải danh sách người dùng"
+        description="Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại."
         ctaHref="/admin/users"
-        ctaLabel="Th? l?i"
+        ctaLabel="Thử lại"
       />
     );
   }
@@ -45,20 +46,20 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
   return (
     <div className="space-y-5">
       <div className="iv-card p-5">
-        <h1 className="text-2xl font-bold text-slate-900">Qu?n l� ngu?i d�ng</h1>
-        <p className="mt-1 text-sm text-slate-600">Theo d�i t�i kho?n, vai tr�, tr?ng th�i v� m?c d? ho?t d?ng.</p>
+        <h1 className="text-2xl font-bold text-slate-900">Quản lý người dùng</h1>
+        <p className="mt-1 text-sm text-slate-600">Theo dõi tài khoản, vai trò, trạng thái và mức độ hoạt động.</p>
       </div>
 
       <form className="iv-card p-4">
         <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-          T�m ki?m ngu?i d�ng
+          Tìm kiếm người dùng
         </label>
         <div className="grid gap-2 lg:grid-cols-[1fr_180px_180px_auto]">
           <input
             id="search"
             name="search"
             defaultValue={search}
-            placeholder="T�n ho?c email..."
+            placeholder="Tên hoặc email..."
             className="h-10 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
           <select
@@ -66,21 +67,21 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             defaultValue={role}
             className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
-            <option value="">T?t c? vai tr�</option>
-            <option value="USER">Ngu?i d�ng</option>
-            <option value="ADMIN">Qu?n tr? vi�n</option>
+            <option value="">Tất cả vai trò</option>
+            <option value="USER">Người dùng</option>
+            <option value="ADMIN">Quản trị viên</option>
           </select>
           <select
             name="status"
             defaultValue={status}
             className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
-            <option value="">T?t c? tr?ng th�i</option>
-            <option value="ACTIVE">Ho?t d?ng</option>
-            <option value="BLOCKED">B? kh�a</option>
+            <option value="">Tất cả trạng thái</option>
+            <option value="ACTIVE">Hoạt động</option>
+            <option value="BLOCKED">Bị khóa</option>
           </select>
           <button type="submit" className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold">
-            T�m ki?m
+            Tìm kiếm
           </button>
         </div>
       </form>
@@ -88,18 +89,19 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
       {data.items.length ? (
         <>
           <div className="iv-card overflow-x-auto p-4">
-            <table className="w-full min-w-[860px] text-sm">
+            <table className="w-full min-w-[980px] text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-slate-500">
-                  <th className="px-2 py-3 font-medium">H? t�n</th>
+                  <th className="px-2 py-3 font-medium">Họ tên</th>
                   <th className="px-2 py-3 font-medium">Email</th>
-                  <th className="px-2 py-3 font-medium">Vai tr�</th>
-                  <th className="px-2 py-3 font-medium">Tr?ng th�i</th>
-                  <th className="px-2 py-3 font-medium">�on d?t</th>
-                  <th className="px-2 py-3 font-medium">��nh gi�</th>
-                  <th className="px-2 py-3 font-medium">Y�u th�ch</th>
-                  <th className="px-2 py-3 font-medium">Ng�y t?o</th>
-                  <th className="px-2 py-3 font-medium">Thao t�c</th>
+                  <th className="px-2 py-3 font-medium">Số điện thoại</th>
+                  <th className="px-2 py-3 font-medium">Vai trò</th>
+                  <th className="px-2 py-3 font-medium">Trạng thái</th>
+                  <th className="px-2 py-3 font-medium">Đơn đặt</th>
+                  <th className="px-2 py-3 font-medium">Đánh giá</th>
+                  <th className="px-2 py-3 font-medium">Yêu thích</th>
+                  <th className="px-2 py-3 font-medium">Ngày tạo</th>
+                  <th className="px-2 py-3 font-medium">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -107,6 +109,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                   <tr key={user.id} className="border-b border-slate-100 last:border-0">
                     <td className="px-2 py-3 font-medium text-slate-800">{user.fullName}</td>
                     <td className="px-2 py-3">{user.email}</td>
+                    <td className="px-2 py-3 text-slate-600">{user.phone || "-"}</td>
                     <td className="px-2 py-3">
                       <Badge variant="outline">{adminLabels.userRole[user.role]}</Badge>
                     </td>
@@ -120,7 +123,10 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                     <td className="px-2 py-3">{user._count.favorites}</td>
                     <td className="px-2 py-3 text-slate-500">{formatDate(user.createdAt)}</td>
                     <td className="px-2 py-3">
-                      <AdminUserActions userId={user.id} role={user.role} status={user.status} />
+                      <div className="space-y-2">
+                        <AdminUserActions userId={user.id} role={user.role} status={user.status} />
+                        <AdminUserDetailDialog user={user} />
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -130,7 +136,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
 
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-slate-600">
-              Trang {data.page}/{data.totalPages} � T?ng {data.total} ngu?i d�ng
+              Trang {data.page}/{data.totalPages} • Tổng {data.total} người dùng
             </p>
             <div className="flex gap-2">
               <Link
@@ -143,7 +149,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                 }}
                 className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
               >
-                Trang tru?c
+                Trang trước
               </Link>
               <Link
                 href={{
@@ -162,10 +168,10 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
         </>
       ) : (
         <EmptyState
-          title="Kh�ng c� ngu?i d�ng ph� h?p"
-          description="H�y th? t? kh�a kh�c d? t�m ki?m."
+          title="Không có người dùng phù hợp"
+          description="Hãy thử từ khóa khác để tìm kiếm."
           ctaHref="/admin/users"
-          ctaLabel="X�a b? l?c"
+          ctaLabel="Xóa bộ lọc"
         />
       )}
     </div>
