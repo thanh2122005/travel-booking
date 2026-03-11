@@ -66,7 +66,13 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
           <div className="grid gap-3 sm:grid-cols-3">
             {location.gallery.slice(0, 3).map((image, index) => (
               <div key={`${image}-${index}`} className="relative h-32 overflow-hidden rounded-xl border border-slate-200">
-                <SafeImage src={image} alt={`${location.name} gallery ${index + 1}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 20vw" />
+                <SafeImage
+                  src={image}
+                  alt={`Ảnh ${location.name} ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 20vw"
+                />
               </div>
             ))}
           </div>
@@ -81,7 +87,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
             Xem tất cả tour
           </Link>
           <Link href="/booking" className="iv-btn-soft inline-flex h-10 w-full items-center justify-center text-sm font-semibold">
-            Đi đến trang booking
+            Đi đến trang đặt tour
           </Link>
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
             <p className="inline-flex items-center gap-1.5 font-medium text-slate-700">
@@ -97,7 +103,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
         <HomeSectionHeading
           eyebrow="Tour theo điểm đến"
           title={`Tour đang mở tại ${location.name}`}
-          description="Danh sách này được map trực tiếp từ model Tour theo locationId."
+          description="Danh sách tour được cập nhật theo điểm đến để bạn chọn lịch trình phù hợp nhanh hơn."
         />
 
         {location.tours.length ? (

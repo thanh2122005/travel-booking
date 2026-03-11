@@ -22,7 +22,7 @@ export function HomeFeaturedDestinations({ locations }: HomeFeaturedDestinations
       <HomeSectionHeading
         eyebrow="Điểm đến nổi bật"
         title="Điểm đến nổi bật tại Việt Nam"
-        description="Giữ bố cục ảnh lớn, lớp overlay và tinh thần showcase của template cũ, nhưng đưa vào route data thật."
+        description="Giữ bố cục ảnh lớn và lớp phủ nổi bật, đồng thời kết nối trực tiếp với dữ liệu điểm đến thực tế."
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

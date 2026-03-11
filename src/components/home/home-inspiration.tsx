@@ -28,7 +28,7 @@ export function HomeInspiration({ locations }: HomeInspirationProps) {
       <HomeSectionHeading
         eyebrow="Cảm hứng du lịch"
         title="Cảm hứng khám phá Việt Nam"
-        description="Refactor từ trang blog tĩnh thành section storytelling có định hướng điều hướng đến destination detail."
+        description="Mỗi bài viết gợi ý trải nghiệm và liên kết trực tiếp tới trang chi tiết điểm đến."
       />
       {stories.length ? (
         <div className="grid gap-4 md:grid-cols-3">

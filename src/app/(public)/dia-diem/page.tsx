@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Điểm đến",
-  description: "Danh sách điểm đến du lịch Việt Nam với route dynamic và dữ liệu từ Prisma.",
+  description: "Danh sách điểm đến du lịch Việt Nam được cập nhật liên tục theo dữ liệu hệ thống.",
 };
 
 type DestinationsPageProps = {
@@ -61,7 +61,7 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
       <HomeSectionHeading
         eyebrow="Điểm đến"
         title="Khám phá điểm đến Việt Nam"
-        description="Route này thay thế cho mô hình trang thành phố tĩnh, gom vào hệ thống dynamic /dia-diem/[slug]."
+        description="Khám phá các thành phố và vùng du lịch nổi bật với thông tin chi tiết, dễ tra cứu."
       />
 
       <form className="iv-card p-4">

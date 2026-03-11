@@ -43,7 +43,7 @@ export function HomeVideoShowcase() {
           Cảm nhận không khí du lịch Việt Nam trước khi chọn tour.
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
-          Section video từ template cũ được viết lại bằng React hook, không thao tác DOM trực tiếp.
+          Video giới thiệu giúp bạn cảm nhận không khí điểm đến trước khi chọn lịch trình phù hợp.
         </p>
       </div>
       <button

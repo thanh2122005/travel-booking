@@ -36,7 +36,7 @@ export function HomeTestimonials({ reviews }: HomeTestimonialsProps) {
         <HomeSectionHeading
           eyebrow="Khách hàng nói gì"
           title="Khách hàng nói gì về chuyến đi"
-          description="Map trực tiếp từ model Review + User + Tour để giữ tính xác thực thay cho testimonial hardcode."
+          description="Đánh giá được hiển thị từ dữ liệu người dùng và tour thực tế để giữ độ tin cậy."
         />
         <Link href="/reviews" className="iv-btn-soft inline-flex h-10 items-center px-4 text-sm font-semibold">
           Xem tất cả đánh giá

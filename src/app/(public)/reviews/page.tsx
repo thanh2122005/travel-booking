@@ -89,11 +89,11 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
         </p>
         <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">Đánh giá từ khách hàng</h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100 md:text-base">
-          Tổng hợp đánh giá thực tế từ người đã có booking hợp lệ. Data lấy trực tiếp từ model Review.
+          Tổng hợp phản hồi thực tế từ khách đã trải nghiệm, giúp bạn tham khảo trước khi chọn tour.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-2">
-            <p className="text-xs uppercase tracking-[0.14em] text-teal-100">Tổng review</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-teal-100">Tổng đánh giá</p>
             <p className="text-xl font-bold">{data.summary.total}</p>
           </div>
           <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-2">
@@ -223,7 +223,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
           />
         ) : (
           <EmptyState
-            title="Chưa có review hiển thị"
+            title="Chưa có đánh giá hiển thị"
             description="Hiện tại chưa có đánh giá nào đủ điều kiện hiển thị."
             ctaHref="/tours"
             ctaLabel="Xem danh sách tour"

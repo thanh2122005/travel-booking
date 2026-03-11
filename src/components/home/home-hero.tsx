@@ -42,11 +42,11 @@ export function HomeHero({ featuredLocations, stats }: HomeHeroProps) {
             Hành trình của bạn bắt đầu từ đây
           </p>
           <h1 className="max-w-3xl text-4xl font-black leading-tight tracking-tight md:text-6xl">
-            Đặt tour Việt Nam theo phong cách premium, rõ ràng và dễ mở rộng.
+            Đặt tour Việt Nam theo phong cách cao cấp, minh bạch và thuận tiện.
           </h1>
           <p className="max-w-2xl text-base leading-8 text-slate-200 md:text-lg">
-            Giữ tinh thần thiết kế của Immerse Vietnam và nâng cấp thành một booking platform hoàn chỉnh cho tour, điểm đến, review,
-            yêu thích và hành trình chi tiết.
+            Giữ tinh thần thiết kế của Immersive Vietnam và nâng cấp thành nền tảng đặt tour hoàn chỉnh cho tour, điểm đến,
+            đánh giá, danh sách yêu thích và lịch trình chi tiết.
           </p>
 
           <div className="flex flex-wrap gap-3">

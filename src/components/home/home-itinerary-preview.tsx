@@ -25,7 +25,7 @@ export function HomeItineraryPreview({ tours }: HomeItineraryPreviewProps) {
       <HomeSectionHeading
         eyebrow="Xem trước lịch trình"
         title="Xem nhanh lộ trình trước khi đặt"
-        description="Section mới để tạo cảm giác sản phẩm booking thật: khách nhìn được các mốc hành trình ngay từ homepage."
+        description="Mục này giúp bạn xem trước các chặng chính trước khi quyết định đặt tour."
       />
 
       <div className="grid gap-4 lg:grid-cols-2">

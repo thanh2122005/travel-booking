@@ -35,7 +35,7 @@ export default async function GalleryPage() {
       <PageHeroBanner
         eyebrow="Thư viện"
         title="Việt Nam qua lăng kính cảm xúc"
-        description="Trang gallery được convert từ template cũ, giữ bố cục ảnh lớn và bổ sung highlight theo dữ liệu location."
+        description="Thư viện hình ảnh giúp bạn cảm nhận rõ hơn vẻ đẹp của từng điểm đến trước khi lên lịch trình."
         videoSrc="/immerse-vietnam/videos/blogcover.mp4"
       />
 
@@ -51,7 +51,7 @@ export default async function GalleryPage() {
               <div className="relative h-64">
                 <Image
                   src={src}
-                  alt={`Vietnam gallery ${index + 1}`}
+                  alt={`Ảnh du lịch Việt Nam ${index + 1}`}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                   sizes="(max-width: 768px) 100vw, 33vw"
@@ -66,7 +66,7 @@ export default async function GalleryPage() {
         <HomeSectionHeading
           eyebrow="Địa điểm nổi bật"
           title="Điểm đến đang được quan tâm"
-          description="Thay cho danh sách tích hợp tay trong template, dữ liệu này map theo model Location."
+          description="Danh sách địa điểm được cập nhật từ dữ liệu hệ thống để đảm bảo luôn nhất quán."
         />
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

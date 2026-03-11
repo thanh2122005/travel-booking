@@ -66,7 +66,7 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
         </p>
         <h1 className="mt-2 text-4xl font-black tracking-tight md:text-5xl">Danh sách tour yêu thích</h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-100 md:text-base">
-          Tour được lưu từ trang chi tiết sẽ xuất hiện tại đây. Dữ liệu map trực tiếp từ model Favorite trong Prisma.
+          Tour bạn lưu từ trang chi tiết sẽ xuất hiện tại đây để tiện so sánh và đặt nhanh khi cần.
         </p>
       </div>
 

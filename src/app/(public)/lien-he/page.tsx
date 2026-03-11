@@ -15,7 +15,7 @@ export default async function ContactPage() {
       <PageHeroBanner
         eyebrow="Liên hệ"
         title="Kết nối với đội ngũ tư vấn"
-        description="Trang contact được nâng cấp từ template cũ: giữ style hero video và bổ sung booking inquiry form theo hướng sản phẩm thật."
+        description="Kết nối nhanh với đội ngũ tư vấn để nhận gợi ý lịch trình phù hợp theo nhu cầu của bạn."
         videoSrc="/immerse-vietnam/videos/blogcover.mp4"
       />
 
@@ -23,7 +23,7 @@ export default async function ContactPage() {
         <HomeSectionHeading
           eyebrow="Yêu cầu tư vấn"
           title="Gửi yêu cầu đặt tour"
-          description="Form này là bước tiền đề để kết nối với API booking và CRM trong phase sau."
+          description="Điền thông tin cơ bản để đội ngũ tư vấn chuẩn bị phương án phù hợp cho chuyến đi của bạn."
         />
 
         <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
@@ -150,7 +150,7 @@ export default async function ContactPage() {
               <h3 className="text-lg font-semibold text-slate-900">Thời gian phản hồi</h3>
               <p className="mt-2 text-sm leading-7 text-slate-600">8:00 - 22:00 mỗi ngày, bao gồm cuối tuần.</p>
               <p className="mt-2 text-sm leading-7 text-slate-600">
-                Yêu cầu booking gấp sẽ được ưu tiên trong vòng 30 phút.
+                Yêu cầu đặt tour gấp sẽ được ưu tiên phản hồi trong vòng 30 phút.
               </p>
             </article>
           </aside>

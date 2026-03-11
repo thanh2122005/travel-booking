@@ -15,7 +15,7 @@ export default async function InspirationPage() {
       <PageHeroBanner
         eyebrow="Cảm hứng"
         title="Cảm hứng du lịch Việt Nam"
-        description="Chuyển đổi trang blog tĩnh trong template thành trang truyền cảm hứng có route dynamic và khả năng map dữ liệu thật."
+        description="Khơi gợi cảm hứng du lịch từ những câu chuyện điểm đến và trải nghiệm bản địa chân thực."
         videoSrc="/immerse-vietnam/videos/vietnamBlog.mp4"
       />
 
@@ -23,7 +23,7 @@ export default async function InspirationPage() {
         <HomeSectionHeading
           eyebrow="Câu chuyện"
           title="Những hành trình đang truyền cảm hứng"
-          description="Blog không còn là static html; mỗi bài viết hướng đến destination detail và luồng đặt tour."
+          description="Mỗi bài viết đều liên kết đến trang chi tiết điểm đến để bạn dễ khám phá và đặt tour."
         />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {locations.slice(0, 6).map((location, index) => (

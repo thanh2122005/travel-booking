@@ -5,7 +5,7 @@ import { HomeSectionHeading } from "@/components/home/home-section-heading";
 const services = [
   {
     icon: Gem,
-    title: "Lưu trú premium",
+    title: "Lưu trú cao cấp",
     description: "Gói tour ưu tiên khách sạn và resort chất lượng cao, minh bạch tiêu chuẩn dịch vụ.",
   },
   {
@@ -16,12 +16,12 @@ const services = [
   {
     icon: ShieldCheck,
     title: "Thanh toán an toàn",
-    description: "Xác nhận đơn nhanh, theo dõi trạng thái booking và chính sách rõ ràng trong suốt hành trình.",
+    description: "Xác nhận đơn nhanh, theo dõi trạng thái đặt tour và chính sách rõ ràng trong suốt hành trình.",
   },
   {
     icon: Sparkles,
     title: "Trải nghiệm thực tế",
-    description: "Map dữ liệu review/favorite/itinerary từ hệ thống thay vì landing tĩnh, dễ mở rộng thành sản phẩm.",
+    description: "Kết nối dữ liệu đánh giá, yêu thích và lịch trình trực tiếp từ hệ thống để trải nghiệm luôn đồng nhất.",
   },
 ];
 
@@ -33,7 +33,7 @@ export function HomeServices() {
           <HomeSectionHeading
             eyebrow="Dịch vụ"
             title="Đặt tour dễ, chuyên nghiệp và đáng tin cậy"
-            description="Refactor từ section services của template cũ, nâng cấp thành proposition rõ ràng cho website booking."
+            description="Mục dịch vụ được thiết kế lại để làm rõ giá trị cốt lõi của nền tảng đặt tour."
           />
           <Link href="/booking" className="iv-btn-primary mt-5 inline-flex h-10 items-center px-5 text-sm font-semibold">
             Bắt đầu đặt tour

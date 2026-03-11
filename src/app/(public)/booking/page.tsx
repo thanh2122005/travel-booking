@@ -38,12 +38,12 @@ const bookingSteps = [
   {
     icon: UserRoundCheck,
     title: "2. Xác nhận thông tin",
-    description: "Nhập thông tin liên hệ, số khách và gửi yêu cầu đặt tour qua form booking.",
+    description: "Nhập thông tin liên hệ, số khách và gửi yêu cầu đặt tour qua biểu mẫu đặt tour.",
   },
   {
     icon: FileCheck2,
     title: "3. Đợi xác nhận",
-    description: "Đơn booking sẽ được duyệt và cập nhật trạng thái theo real data trong tài khoản.",
+    description: "Đơn đặt tour sẽ được duyệt và cập nhật trạng thái trực tiếp trong tài khoản của bạn.",
   },
   {
     icon: CreditCard,
@@ -90,7 +90,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
       <PageHeroBanner
         eyebrow="Quy trình đặt tour"
         title="Đặt tour rõ ràng và dễ theo dõi"
-        description="Trang booking tổng hợp luồng đặt tour, giúp người dùng hiểu rõ các bước từ chọn tour đến xác nhận đơn."
+        description="Theo dõi toàn bộ quy trình đặt tour từ lúc chọn lịch trình đến khi xác nhận đơn và thanh toán."
         imageSrc="/immerse-vietnam/images/header-bg.jpg"
       />
 
@@ -98,7 +98,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
         <HomeSectionHeading
           eyebrow="Cách hoạt động"
           title="Quy trình đặt tour 4 bước"
-          description="Refactor từ template showcase thành flow booking có context dữ liệu và điều hướng rõ ràng."
+          description="Mỗi bước đều rõ ràng để bạn dễ thao tác và theo dõi trạng thái đặt tour."
         />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {bookingSteps.map((step) => (
@@ -125,7 +125,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
 
         <form className="iv-card p-4">
           <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-            Tìm kiếm booking
+            Tìm kiếm đơn đặt tour
           </label>
           <div className="grid gap-2 md:grid-cols-[1fr_200px_auto_auto]">
             <input
@@ -204,7 +204,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
         ) : bookings.length ? (
           <EmptyState
             title="Không tìm thấy đơn phù hợp"
-            description="Hãy thử từ khóa khác hoặc xóa bộ lọc để xem tất cả booking."
+            description="Hãy thử từ khóa khác hoặc xóa bộ lọc để xem toàn bộ đơn đặt tour."
             ctaHref="/booking"
             ctaLabel="Xóa bộ lọc"
           />
@@ -217,8 +217,8 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
           />
         ) : (
           <EmptyState
-            title="Đăng nhập để theo dõi booking"
-            description="Bạn cần đăng nhập để xem lịch sử đặt tour và quản lý các đơn booking."
+            title="Đăng nhập để theo dõi đơn đặt tour"
+            description="Bạn cần đăng nhập để xem lịch sử đặt tour và quản lý các đơn đã đặt."
             ctaHref="/dang-nhap?callbackUrl=/booking"
             ctaLabel="Đăng nhập ngay"
           />

@@ -44,7 +44,7 @@ export default async function AboutPage() {
       <PageHeroBanner
         eyebrow="Câu chuyện thương hiệu"
         title="Về Immersive Vietnam"
-        description="Từ tinh thần của template showcase, chúng tôi xây dựng thành hệ thống booking tour có dữ liệu động, tập trung vào trải nghiệm du lịch Việt Nam."
+        description="Chúng tôi xây dựng hệ thống đặt tour hiện đại, tập trung vào trải nghiệm du lịch Việt Nam rõ ràng và thuận tiện."
         videoSrc="/immerse-vietnam/videos/blogcover.mp4"
       />
 
@@ -52,7 +52,7 @@ export default async function AboutPage() {
         <HomeSectionHeading
           eyebrow="Hành trình phát triển"
           title="Nâng cấp từ giao diện thành sản phẩm"
-          description="Nội dung được migrate từ template about và refactor thành block nội dung để tái sử dụng."
+          description="Nội dung được tổ chức lại thành các khối rõ ràng để dễ mở rộng và đồng bộ trải nghiệm."
         />
 
         <div className="grid items-center gap-5 lg:grid-cols-2">
@@ -65,7 +65,7 @@ export default async function AboutPage() {
             <h3 className="text-2xl font-bold tracking-tight">Từ bài toán học tập đến tư duy sản phẩm</h3>
             <p className="text-sm leading-7 text-slate-600">
               Bắt đầu từ nhu cầu giới thiệu vẻ đẹp Việt Nam cho bạn bè quốc tế, dự án đã được nâng cấp thành website
-              booking có cấu trúc dữ liệu rõ ràng và mở rộng được trong thực tế.
+              đặt tour có cấu trúc dữ liệu rõ ràng và mở rộng được trong thực tế.
             </p>
             <p className="text-sm leading-7 text-slate-600">
               Chúng tôi ưu tiên hình ảnh lớn, kể chuyện bằng điểm đến và triển khai luồng đặt tour phù hợp với người
@@ -96,9 +96,9 @@ export default async function AboutPage() {
 
       <section className="iv-card overflow-hidden bg-[linear-gradient(130deg,#072236,#0a324f)] p-7 text-white md:p-9">
         <HomeSectionHeading
-          eyebrow="Fun Facts"
+          eyebrow="Điểm nhấn"
           title="Một vài con số về hành trình của chúng tôi"
-          description="Lấy cảm hứng từ section facts của template cũ, nhưng map theo dữ liệu hệ thống hiện tại."
+          description="Các số liệu được tổng hợp từ dữ liệu hệ thống để phản ánh hoạt động thực tế."
         />
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {factItems.map((item) => (

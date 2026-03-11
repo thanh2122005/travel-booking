@@ -15,7 +15,7 @@ export function HomeFeaturedTours({ tours }: HomeFeaturedToursProps) {
         <HomeSectionHeading
           eyebrow="Tour nổi bật"
           title="Hành trình được đặt nhiều"
-          description="Card tour map trực tiếp từ model Tour + rating từ Review để sẵn sàng phát triển booking thật."
+          description="Thẻ tour lấy trực tiếp từ dữ liệu tour và điểm đánh giá, giúp bạn chọn hành trình nhanh và rõ ràng."
         />
         <Link href="/tours" className="iv-btn-soft inline-flex h-10 items-center px-4 text-sm font-semibold">
           Xem tất cả tour
