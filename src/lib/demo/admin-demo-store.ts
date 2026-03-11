@@ -22,6 +22,8 @@ type DemoUser = {
   id: string;
   fullName: string;
   email: string;
+  avatarUrl?: string | null;
+  phone?: string | null;
   role: UserRole;
   status: UserStatus;
   createdAt: string;
@@ -177,6 +179,8 @@ function createInitialDemoState(): DemoState {
       id: "usr_admin",
       fullName: "Quáº£n trá»‹ viÃªn há»‡ thá»‘ng",
       email: "admin@example.com",
+      phone: "0909000000",
+      avatarUrl: localAvatarPool[0] ?? null,
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
       createdAt,
@@ -186,6 +190,8 @@ function createInitialDemoState(): DemoState {
       id: `usr_${String(index + 1).padStart(2, "0")}`,
       fullName: traveler.fullName,
       email: traveler.email,
+      phone: traveler.phone,
+      avatarUrl: localAvatarPool[(index + 1) % localAvatarPool.length] ?? null,
       role: UserRole.USER,
       status: UserStatus.ACTIVE,
       createdAt,
@@ -367,6 +373,11 @@ async function readDemo(): Promise<DemoState> {
     return createInitialDemoState();
   }
   const state = parsed as DemoState;
+  state.users = state.users.map((user) => ({
+    ...user,
+    phone: user.phone ?? null,
+    avatarUrl: user.avatarUrl ?? null,
+  }));
   state.locations = state.locations.map((location) => ({
     ...location,
     gallery: Array.isArray(location.gallery) ? location.gallery : [location.imageUrl],
@@ -1250,6 +1261,41 @@ export async function demoUpdateUser(id: string, payload: { role?: UserRole; sta
   return user;
 }
 
+export async function demoUpdateUserContent(
+  id: string,
+  payload: {
+    fullName?: string;
+    email?: string;
+    phone?: string | null;
+    avatarUrl?: string | null;
+    role?: UserRole;
+    status?: UserStatus;
+  },
+) {
+  const state = await readDemo();
+  const user = state.users.find((item) => item.id === id);
+  if (!user) return null;
+
+  if (payload.email && payload.email !== user.email) {
+    const existed = state.users.some((item) => item.id !== id && item.email === payload.email);
+    if (existed) {
+      return null;
+    }
+    user.email = payload.email;
+  }
+
+  if (payload.fullName) user.fullName = payload.fullName;
+  if (payload.phone === null || typeof payload.phone === "string") user.phone = payload.phone;
+  if (payload.avatarUrl === null || typeof payload.avatarUrl === "string") {
+    user.avatarUrl = payload.avatarUrl;
+  }
+  if (payload.role) user.role = payload.role;
+  if (payload.status) user.status = payload.status;
+  user.updatedAt = nowIso();
+  await writeDemo(state);
+  return user;
+}
+
 export async function demoCreateLocation(input: {
   name: string;
   slug: string;
@@ -1644,6 +1690,8 @@ async function ensureDemoUser(state: DemoState, userId: string, profile?: { full
       id: userId,
       fullName: profile?.fullName ?? "NgÆ°á»i dÃ¹ng",
       email: profile?.email ?? `${userId}@local.dev`,
+      phone: null,
+      avatarUrl: null,
       role: UserRole.USER,
       status: UserStatus.ACTIVE,
       createdAt,

@@ -27,6 +27,7 @@ import {
   demoUpdateReview,
   demoUpdateTourImage,
   demoUpdateTour,
+  demoUpdateUserContent,
   demoUpdateUser,
 } from "@/lib/demo/admin-demo-store";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
@@ -304,7 +305,16 @@ export async function getAdminUsers(
         orderBy: { createdAt: "desc" },
         skip,
         take: pageSize,
-        include: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          phone: true,
+          avatarUrl: true,
+          role: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
           _count: {
             select: {
               bookings: true,
@@ -966,6 +976,41 @@ export async function updateAdminUser(
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoUpdateUser(userId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function updateAdminUserContent(
+  userId: string,
+  payload: {
+    fullName?: string;
+    email?: string;
+    phone?: string | null;
+    avatarUrl?: string | null;
+    role?: UserRole;
+    status?: UserStatus;
+  },
+) {
+  try {
+    return db.user.update({
+      where: { id: userId },
+      data: {
+        ...(payload.fullName ? { fullName: payload.fullName } : {}),
+        ...(payload.email ? { email: payload.email } : {}),
+        ...(payload.phone === null || typeof payload.phone === "string"
+          ? { phone: payload.phone }
+          : {}),
+        ...(payload.avatarUrl === null || typeof payload.avatarUrl === "string"
+          ? { avatarUrl: payload.avatarUrl }
+          : {}),
+        ...(payload.role ? { role: payload.role } : {}),
+        ...(payload.status ? { status: payload.status } : {}),
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateUserContent(userId, payload);
     }
     throw error;
   }
