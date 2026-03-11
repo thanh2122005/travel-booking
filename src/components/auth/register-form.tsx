@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -14,6 +14,13 @@ import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 
 export function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawCallbackUrl = searchParams.get("callbackUrl");
+  const callbackUrl =
+    rawCallbackUrl && rawCallbackUrl.startsWith("/") ? rawCallbackUrl : undefined;
+  const loginHref = callbackUrl
+    ? `/dang-nhap?callbackUrl=${encodeURIComponent(callbackUrl)}`
+    : "/dang-nhap";
 
   const {
     register,
@@ -47,7 +54,7 @@ export function RegisterForm() {
     }
 
     toast.success(payload.message ?? "Đăng ký thành công.");
-    router.push("/dang-nhap");
+    router.push(loginHref);
   });
 
   return (
@@ -113,7 +120,7 @@ export function RegisterForm() {
 
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Đã có tài khoản?{" "}
-          <Link href="/dang-nhap" className="font-medium text-primary hover:underline">
+          <Link href={loginHref} className="font-medium text-primary hover:underline">
             Đăng nhập
           </Link>
         </p>

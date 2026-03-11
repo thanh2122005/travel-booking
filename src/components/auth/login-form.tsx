@@ -19,6 +19,9 @@ export function LoginForm() {
   const rawCallbackUrl = searchParams.get("callbackUrl");
   const callbackUrl =
     rawCallbackUrl && rawCallbackUrl.startsWith("/") ? rawCallbackUrl : undefined;
+  const registerHref = callbackUrl
+    ? `/dang-ky?callbackUrl=${encodeURIComponent(callbackUrl)}`
+    : "/dang-ky";
 
   const {
     register,
@@ -91,7 +94,7 @@ export function LoginForm() {
 
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Chưa có tài khoản?{" "}
-          <Link href="/dang-ky" className="font-medium text-primary hover:underline">
+          <Link href={registerHref} className="font-medium text-primary hover:underline">
             Đăng ký ngay
           </Link>
         </p>
