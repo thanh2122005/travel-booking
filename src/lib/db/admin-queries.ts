@@ -18,6 +18,7 @@ import {
   demoReorderTourImages,
   demoUpdateLocationContent,
   demoUpdateLocationGallery,
+  demoUpdateReviewContent,
   demoUpdateTourContent,
   demoUpdateItinerary,
   demoUpdateBooking,
@@ -732,6 +733,29 @@ export async function updateAdminReview(reviewId: string, payload: { isVisible?:
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoUpdateReview(reviewId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function updateAdminReviewContent(
+  reviewId: string,
+  payload: { rating?: number; comment?: string; isVisible?: boolean },
+) {
+  try {
+    return db.review.update({
+      where: { id: reviewId },
+      data: {
+        ...(typeof payload.rating === "number" && Number.isFinite(payload.rating)
+          ? { rating: Math.min(5, Math.max(1, Math.trunc(payload.rating))) }
+          : {}),
+        ...(payload.comment ? { comment: payload.comment } : {}),
+        ...(typeof payload.isVisible === "boolean" ? { isVisible: payload.isVisible } : {}),
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateReviewContent(reviewId, payload);
     }
     throw error;
   }

@@ -1017,6 +1017,28 @@ export async function demoUpdateReview(id: string, payload: { isVisible?: boolea
   return review;
 }
 
+export async function demoUpdateReviewContent(
+  id: string,
+  payload: { rating?: number; comment?: string; isVisible?: boolean },
+) {
+  const state = await readDemo();
+  const review = state.reviews.find((item) => item.id === id);
+  if (!review) return null;
+
+  if (typeof payload.rating === "number" && Number.isFinite(payload.rating)) {
+    review.rating = Math.min(5, Math.max(1, Math.trunc(payload.rating)));
+  }
+  if (payload.comment) {
+    review.comment = payload.comment;
+  }
+  if (typeof payload.isVisible === "boolean") {
+    review.isVisible = payload.isVisible;
+  }
+  review.updatedAt = nowIso();
+  await writeDemo(state);
+  return review;
+}
+
 export async function demoUpdateTour(id: string, payload: { status?: TourStatus; featured?: boolean }) {
   const state = await readDemo();
   const tour = state.tours.find((item) => item.id === id);
