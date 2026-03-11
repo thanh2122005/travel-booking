@@ -52,9 +52,15 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
     summary: {
       total: 0,
       avgRating: 0,
-      byRating: {},
+      byRating: {} as Record<number, number>,
     },
   }));
+  const byRating = data.summary.byRating as Record<number, number>;
+  const ratingDistribution = [5, 4, 3, 2, 1].map((rating) => {
+    const count = byRating[rating] ?? 0;
+    const percent = data.summary.total ? (count / data.summary.total) * 100 : 0;
+    return { rating, count, percent };
+  });
 
   const filteredReviews = data.reviews
     .filter((review) => {
@@ -103,6 +109,24 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
           title="Trải nghiệm được xác thực"
           description={`Hiển thị ${filteredReviews.length}/${data.reviews.length} đánh giá theo bộ lọc hiện tại.`}
         />
+
+        <article className="iv-card p-4">
+          <p className="text-sm font-semibold text-slate-900">Phân bố điểm đánh giá</p>
+          <div className="mt-3 space-y-2">
+            {ratingDistribution.map((row) => (
+              <div key={row.rating} className="flex items-center gap-2 text-xs">
+                <span className="w-10 font-medium text-slate-700">{row.rating} sao</span>
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-amber-400"
+                    style={{ width: `${Math.max(row.percent, row.count ? 5 : 0)}%` }}
+                  />
+                </div>
+                <span className="w-8 text-right text-slate-500">{row.count}</span>
+              </div>
+            ))}
+          </div>
+        </article>
 
         <form className="iv-card p-4">
           <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
