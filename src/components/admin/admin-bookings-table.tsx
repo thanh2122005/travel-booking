@@ -18,7 +18,11 @@ type BookingItem = {
   bookingCode: string;
   fullName: string;
   email: string;
+  phone: string;
   numberOfGuests: number;
+  note?: string | null;
+  paymentMethod?: string;
+  departureDate?: Date | string | null;
   totalPrice: number;
   status: BookingStatusValue;
   paymentStatus: PaymentStatusValue;
