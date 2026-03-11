@@ -89,9 +89,12 @@ type DemoBooking = {
   email: string;
   phone: string;
   numberOfGuests: number;
+  note?: string | null;
   totalPrice: number;
   status: BookingStatus;
+  paymentMethod: string;
   paymentStatus: PaymentStatus;
+  departureDate?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -269,9 +272,12 @@ function createInitialDemoState(): DemoState {
       email: user.email,
       phone: catalogTravelerProfiles[index % catalogTravelerProfiles.length]?.phone ?? "0909009999",
       numberOfGuests: guests,
+      note: "Ưu tiên vị trí ngồi gần nhau và hỗ trợ check-in nhanh.",
       totalPrice: (tour.discountPrice ?? tour.price) * guests,
       status,
+      paymentMethod: "Chuyển khoản ngân hàng",
       paymentStatus,
+      departureDate: new Date(2026, index % 12, 8 + (index % 18)).toISOString(),
       createdAt,
       updatedAt: createdAt,
     };
@@ -386,6 +392,12 @@ async function readDemo(): Promise<DemoState> {
           Number.isFinite(item.dayNumber),
       )
     : fallbackItineraries;
+  state.bookings = state.bookings.map((booking) => ({
+    ...booking,
+    paymentMethod: booking.paymentMethod ?? "Chuyển khoản ngân hàng",
+    note: booking.note ?? null,
+    departureDate: booking.departureDate ?? null,
+  }));
   return state;
 }
 
@@ -716,6 +728,10 @@ export async function demoGetBookings(
         id: booking.tourId,
         title: tourMap.get(booking.tourId)?.title ?? "Tour",
         slug: tourMap.get(booking.tourId)?.slug ?? "",
+        price: tourMap.get(booking.tourId)?.price ?? 0,
+        discountPrice: tourMap.get(booking.tourId)?.discountPrice ?? null,
+        maxGuests: tourMap.get(booking.tourId)?.maxGuests ?? 1,
+        departureLocation: tourMap.get(booking.tourId)?.departureLocation ?? "",
       },
     }));
   return paginate(rows, filter);
@@ -943,6 +959,49 @@ export async function demoUpdateBooking(id: string, payload: { status?: BookingS
   if (!booking) return null;
   if (payload.status) booking.status = payload.status;
   if (payload.paymentStatus) booking.paymentStatus = payload.paymentStatus;
+  booking.updatedAt = nowIso();
+  await writeDemo(state);
+  return booking;
+}
+
+export async function demoUpdateBookingDetail(
+  id: string,
+  payload: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    numberOfGuests?: number;
+    note?: string | null;
+    departureDate?: string | null;
+    paymentMethod?: string;
+    status?: BookingStatus;
+    paymentStatus?: PaymentStatus;
+  },
+) {
+  const state = await readDemo();
+  const booking = state.bookings.find((item) => item.id === id);
+  if (!booking) return null;
+  const tour = state.tours.find((item) => item.id === booking.tourId);
+  if (!tour) return null;
+
+  if (payload.fullName) booking.fullName = payload.fullName;
+  if (payload.email) booking.email = payload.email;
+  if (payload.phone) booking.phone = payload.phone;
+  if (typeof payload.numberOfGuests === "number" && Number.isFinite(payload.numberOfGuests)) {
+    booking.numberOfGuests = Math.max(1, Math.trunc(payload.numberOfGuests));
+  }
+  if (payload.note === null || typeof payload.note === "string") {
+    booking.note = payload.note;
+  }
+  if (payload.departureDate === null || typeof payload.departureDate === "string") {
+    booking.departureDate = payload.departureDate;
+  }
+  if (payload.paymentMethod) booking.paymentMethod = payload.paymentMethod;
+  if (payload.status) booking.status = payload.status;
+  if (payload.paymentStatus) booking.paymentStatus = payload.paymentStatus;
+
+  const unitPrice = tour.discountPrice ?? tour.price;
+  booking.totalPrice = unitPrice * booking.numberOfGuests;
   booking.updatedAt = nowIso();
   await writeDemo(state);
   return booking;
@@ -1582,6 +1641,7 @@ export async function demoCreatePublicBooking(input: {
   if (input.numberOfGuests > tour.maxGuests) return "MAX_GUEST_EXCEEDED";
 
   await ensureDemoUser(state, input.userId, { fullName: input.fullName, email: input.email });
+  const departureDateObj = input.departureDate ? new Date(input.departureDate) : null;
 
   const booking: DemoBooking = {
     id: `bk_${randomUUID().slice(0, 8)}`,
@@ -1592,9 +1652,15 @@ export async function demoCreatePublicBooking(input: {
     email: input.email,
     phone: input.phone,
     numberOfGuests: input.numberOfGuests,
+    note: input.note ?? null,
     totalPrice: (tour.discountPrice ?? tour.price) * input.numberOfGuests,
     status: BookingStatus.PENDING,
+    paymentMethod: "Thanh toán khi xác nhận",
     paymentStatus: PaymentStatus.UNPAID,
+    departureDate:
+      departureDateObj && !Number.isNaN(departureDateObj.getTime())
+        ? departureDateObj.toISOString()
+        : null,
     createdAt: nowIso(),
     updatedAt: nowIso(),
   };

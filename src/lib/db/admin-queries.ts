@@ -21,6 +21,7 @@ import {
   demoUpdateTourContent,
   demoUpdateItinerary,
   demoUpdateBooking,
+  demoUpdateBookingDetail,
   demoUpdateLocation,
   demoUpdateReview,
   demoUpdateTourImage,
@@ -175,6 +176,10 @@ export async function getAdminDashboardData(options?: { monthCount?: number }) {
               id: true,
               title: true,
               slug: true,
+              price: true,
+              discountPrice: true,
+              maxGuests: true,
+              departureLocation: true,
             },
           },
         },
@@ -197,6 +202,10 @@ export async function getAdminDashboardData(options?: { monthCount?: number }) {
               id: true,
               title: true,
               slug: true,
+              price: true,
+              discountPrice: true,
+              maxGuests: true,
+              departureLocation: true,
             },
           },
         },
@@ -535,6 +544,10 @@ export async function getAdminBookings(
               id: true,
               title: true,
               slug: true,
+              price: true,
+              discountPrice: true,
+              maxGuests: true,
+              departureLocation: true,
             },
           },
         },
@@ -632,6 +645,77 @@ export async function updateAdminBooking(
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoUpdateBooking(bookingId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function updateAdminBookingDetail(
+  bookingId: string,
+  payload: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    numberOfGuests?: number;
+    note?: string | null;
+    departureDate?: string | null;
+    paymentMethod?: string;
+    status?: BookingStatus;
+    paymentStatus?: PaymentStatus;
+  },
+) {
+  try {
+    const current = await db.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        numberOfGuests: true,
+        tour: {
+          select: {
+            price: true,
+            discountPrice: true,
+            maxGuests: true,
+          },
+        },
+      },
+    });
+    if (!current) return null;
+
+    const nextGuests =
+      typeof payload.numberOfGuests === "number" && Number.isFinite(payload.numberOfGuests)
+        ? Math.max(1, Math.trunc(payload.numberOfGuests))
+        : current.numberOfGuests;
+
+    if (nextGuests > current.tour.maxGuests) {
+      return null;
+    }
+
+    const unitPrice = current.tour.discountPrice ?? current.tour.price;
+    const nextDepartureDate =
+      payload.departureDate === null
+        ? null
+        : payload.departureDate
+          ? new Date(payload.departureDate)
+          : undefined;
+
+    return db.booking.update({
+      where: { id: bookingId },
+      data: {
+        ...(payload.fullName ? { fullName: payload.fullName } : {}),
+        ...(payload.email ? { email: payload.email } : {}),
+        ...(payload.phone ? { phone: payload.phone } : {}),
+        ...(typeof payload.numberOfGuests === "number" ? { numberOfGuests: nextGuests } : {}),
+        ...(payload.note === null || typeof payload.note === "string" ? { note: payload.note } : {}),
+        ...(payload.paymentMethod ? { paymentMethod: payload.paymentMethod } : {}),
+        ...(nextDepartureDate !== undefined ? { departureDate: nextDepartureDate } : {}),
+        ...(payload.status ? { status: payload.status } : {}),
+        ...(payload.paymentStatus ? { paymentStatus: payload.paymentStatus } : {}),
+        totalPrice: unitPrice * nextGuests,
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateBookingDetail(bookingId, payload);
     }
     throw error;
   }
