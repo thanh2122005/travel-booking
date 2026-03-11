@@ -32,8 +32,11 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 
 - Dashboard tổng quan vận hành
 - Biểu đồ doanh thu/đơn đặt theo mốc thời gian (ngày/tuần/tháng)
+- KPI theo kỳ lọc và bảng top tour theo doanh thu xác nhận
 - Quản lý booking: lọc nâng cao theo ngày + cập nhật hàng loạt
 - Quản lý review: lọc nâng cao theo ngày + ẩn/hiện hàng loạt
+- Xuất CSV booking/review theo bộ lọc đang áp dụng
+- Bảo vệ quyền admin: không cho hạ quyền/khóa/xóa quản trị viên cuối cùng
 - CRUD users, tours, locations, ảnh tour, itinerary
 
 ## 3. Yêu cầu môi trường
