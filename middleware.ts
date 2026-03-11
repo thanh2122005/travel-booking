@@ -15,8 +15,9 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isAuthenticated = Boolean(token);
+  const isBlocked = token?.status === "BLOCKED";
 
-  if (authRoutes.some((route) => pathname.startsWith(route)) && isAuthenticated) {
+  if (authRoutes.some((route) => pathname.startsWith(route)) && isAuthenticated && !isBlocked) {
     const destination = token?.role === "ADMIN" ? "/admin" : "/tai-khoan";
     return NextResponse.redirect(new URL(destination, request.url));
   }
@@ -31,12 +32,22 @@ export async function middleware(request: NextRequest) {
     if (token?.role !== "ADMIN") {
       return NextResponse.redirect(new URL("/khong-co-quyen", request.url));
     }
+
+    if (isBlocked) {
+      return NextResponse.redirect(new URL("/khong-co-quyen", request.url));
+    }
   }
 
-  if (userRoutes.some((route) => pathname.startsWith(route)) && !isAuthenticated) {
-    const loginUrl = new URL("/dang-nhap", request.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+  if (userRoutes.some((route) => pathname.startsWith(route))) {
+    if (!isAuthenticated) {
+      const loginUrl = new URL("/dang-nhap", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    if (isBlocked) {
+      return NextResponse.redirect(new URL("/khong-co-quyen", request.url));
+    }
   }
 
   return NextResponse.next();

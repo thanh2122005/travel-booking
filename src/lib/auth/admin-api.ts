@@ -1,4 +1,4 @@
-import { UserRole } from "@prisma/client";
+import { UserRole, UserStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth/auth-options";
@@ -8,6 +8,10 @@ export async function requireAdminApi() {
 
   if (!session?.user) {
     return NextResponse.json({ message: "Vui lòng đăng nhập." }, { status: 401 });
+  }
+
+  if (session.user.status === UserStatus.BLOCKED) {
+    return NextResponse.json({ message: "Tài khoản của bạn đã bị khóa." }, { status: 403 });
   }
 
   if (session.user.role !== UserRole.ADMIN) {

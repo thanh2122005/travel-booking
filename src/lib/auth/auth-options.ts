@@ -108,6 +108,31 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role ?? UserRole.USER;
         token.status = user.status ?? UserStatus.ACTIVE;
+        token.syncedAt = Date.now();
+      }
+
+      const shouldSync =
+        typeof token.syncedAt !== "number" || Date.now() - token.syncedAt > 60_000;
+
+      if (shouldSync && token.sub && token.sub !== "dev-admin") {
+        const currentUser = await db.user
+          .findUnique({
+            where: { id: token.sub },
+            select: {
+              role: true,
+              status: true,
+            },
+          })
+          .catch(() => null);
+
+        if (currentUser) {
+          token.role = currentUser.role;
+          token.status = currentUser.status;
+        } else {
+          token.role = UserRole.USER;
+          token.status = UserStatus.BLOCKED;
+        }
+        token.syncedAt = Date.now();
       }
 
       return token;

@@ -1,4 +1,4 @@
-﻿import { UserRole } from "@prisma/client";
+import { UserRole, UserStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth/auth-options";
@@ -14,6 +14,10 @@ export async function requireUser() {
     redirect("/dang-nhap");
   }
 
+  if (session.user.status === UserStatus.BLOCKED) {
+    redirect("/khong-co-quyen");
+  }
+
   return session;
 }
 
@@ -24,10 +28,13 @@ export async function requireAdmin() {
     redirect("/dang-nhap");
   }
 
+  if (session.user.status === UserStatus.BLOCKED) {
+    redirect("/khong-co-quyen");
+  }
+
   if (session.user.role !== UserRole.ADMIN) {
     redirect("/khong-co-quyen");
   }
 
   return session;
 }
-
