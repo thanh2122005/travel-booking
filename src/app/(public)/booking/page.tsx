@@ -84,6 +84,20 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
     const statusMatched = !status || booking.status === status;
     return searchMatched && statusMatched;
   });
+  const visibleBookings = filteredBookings.slice(0, 12);
+  const countByStatus: Record<BookingStatusValue, number> = {
+    PENDING: 0,
+    CONFIRMED: 0,
+    CANCELLED: 0,
+    COMPLETED: 0,
+  };
+
+  for (const booking of filteredBookings) {
+    const normalizedStatus = booking.status as BookingStatusValue;
+    if (normalizedStatus in countByStatus) {
+      countByStatus[normalizedStatus] += 1;
+    }
+  }
 
   return (
     <div className="space-y-10">
@@ -164,42 +178,115 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
         </form>
 
         {filteredBookings.length ? (
-          <div className="iv-card overflow-x-auto p-4">
-            <table className="w-full min-w-[920px] text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-slate-500">
-                  <th className="px-2 py-3 font-medium">Mã đơn</th>
-                  <th className="px-2 py-3 font-medium">Tour</th>
-                  <th className="px-2 py-3 font-medium">Khách</th>
-                  <th className="px-2 py-3 font-medium">Tổng tiền</th>
-                  <th className="px-2 py-3 font-medium">Trạng thái</th>
-                  <th className="px-2 py-3 font-medium">Thanh toán</th>
-                  <th className="px-2 py-3 font-medium">Ngày tạo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredBookings.slice(0, 12).map((booking) => (
-                  <tr key={booking.id} className="border-b border-slate-100 last:border-0">
-                    <td className="px-2 py-3 font-semibold text-slate-800">{booking.bookingCode}</td>
-                    <td className="px-2 py-3">
-                      <Link href={`/tours/${booking.tour.slug}`} className="font-medium text-slate-800 hover:text-teal-700">
-                        {booking.tour.title}
-                      </Link>
-                      <p className="text-xs text-slate-500">Khởi hành từ: {booking.tour.departureLocation}</p>
-                    </td>
-                    <td className="px-2 py-3">{booking.numberOfGuests}</td>
-                    <td className="px-2 py-3 font-medium">{formatPrice(booking.totalPrice)}</td>
-                    <td className="px-2 py-3">
-                      <Badge variant="outline">{bookingStatusLabels[booking.status as BookingStatusValue] ?? booking.status}</Badge>
-                    </td>
-                    <td className="px-2 py-3">
-                      <Badge variant="outline">{paymentStatusLabels[booking.paymentStatus as PaymentStatusValue] ?? booking.paymentStatus}</Badge>
-                    </td>
-                    <td className="px-2 py-3 text-slate-500">{formatDate(booking.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <article className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-700">Chờ xác nhận</p>
+              <p className="mt-1 text-xl font-bold text-amber-900">{countByStatus.PENDING}</p>
+            </article>
+            <article className="rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cyan-700">Đã xác nhận</p>
+              <p className="mt-1 text-xl font-bold text-cyan-900">{countByStatus.CONFIRMED}</p>
+            </article>
+            <article className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">Hoàn thành</p>
+              <p className="mt-1 text-xl font-bold text-emerald-900">{countByStatus.COMPLETED}</p>
+            </article>
+            <article className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-rose-700">Đã hủy</p>
+              <p className="mt-1 text-xl font-bold text-rose-900">{countByStatus.CANCELLED}</p>
+            </article>
+          </div>
+        ) : null}
+
+        {filteredBookings.length ? (
+          <div className="space-y-3">
+            <div className="grid gap-3 lg:hidden">
+              {visibleBookings.map((booking) => (
+                <article key={booking.id} className="iv-card space-y-3 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Mã đơn</p>
+                      <p className="text-base font-semibold text-slate-900">{booking.bookingCode}</p>
+                    </div>
+                    <Badge variant="outline">{bookingStatusLabels[booking.status as BookingStatusValue] ?? booking.status}</Badge>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Link href={`/tours/${booking.tour.slug}`} className="line-clamp-2 font-semibold text-slate-900 hover:text-teal-700">
+                      {booking.tour.title}
+                    </Link>
+                    <p className="text-sm text-slate-500">Khởi hành từ: {booking.tour.departureLocation}</p>
+                  </div>
+
+                  <dl className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <dt className="text-slate-500">Số khách</dt>
+                      <dd className="font-medium text-slate-800">{booking.numberOfGuests}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">Tổng tiền</dt>
+                      <dd className="font-semibold text-teal-700">{formatPrice(booking.totalPrice)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">Thanh toán</dt>
+                      <dd className="mt-0.5">
+                        <Badge variant="outline">{paymentStatusLabels[booking.paymentStatus as PaymentStatusValue] ?? booking.paymentStatus}</Badge>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">Ngày tạo</dt>
+                      <dd className="font-medium text-slate-800">{formatDate(booking.createdAt)}</dd>
+                    </div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+
+            <div className="hidden lg:block">
+              <div className="iv-card overflow-x-auto p-4">
+                <table className="w-full min-w-[920px] text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-left text-slate-500">
+                      <th className="px-2 py-3 font-medium">Mã đơn</th>
+                      <th className="px-2 py-3 font-medium">Tour</th>
+                      <th className="px-2 py-3 font-medium">Khách</th>
+                      <th className="px-2 py-3 font-medium">Tổng tiền</th>
+                      <th className="px-2 py-3 font-medium">Trạng thái</th>
+                      <th className="px-2 py-3 font-medium">Thanh toán</th>
+                      <th className="px-2 py-3 font-medium">Ngày tạo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleBookings.map((booking) => (
+                      <tr key={booking.id} className="border-b border-slate-100 last:border-0">
+                        <td className="px-2 py-3 font-semibold text-slate-800">{booking.bookingCode}</td>
+                        <td className="px-2 py-3">
+                          <Link href={`/tours/${booking.tour.slug}`} className="font-medium text-slate-800 hover:text-teal-700">
+                            {booking.tour.title}
+                          </Link>
+                          <p className="text-xs text-slate-500">Khởi hành từ: {booking.tour.departureLocation}</p>
+                        </td>
+                        <td className="px-2 py-3">{booking.numberOfGuests}</td>
+                        <td className="px-2 py-3 font-medium">{formatPrice(booking.totalPrice)}</td>
+                        <td className="px-2 py-3">
+                          <Badge variant="outline">{bookingStatusLabels[booking.status as BookingStatusValue] ?? booking.status}</Badge>
+                        </td>
+                        <td className="px-2 py-3">
+                          <Badge variant="outline">{paymentStatusLabels[booking.paymentStatus as PaymentStatusValue] ?? booking.paymentStatus}</Badge>
+                        </td>
+                        <td className="px-2 py-3 text-slate-500">{formatDate(booking.createdAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {filteredBookings.length > visibleBookings.length ? (
+              <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
+                Đang hiển thị {visibleBookings.length} / {filteredBookings.length} đơn gần nhất theo bộ lọc hiện tại.
+              </p>
+            ) : null}
           </div>
         ) : bookings.length ? (
           <EmptyState
