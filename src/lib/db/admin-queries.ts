@@ -27,6 +27,7 @@ import {
   demoUpdateReview,
   demoUpdateTourImage,
   demoUpdateTour,
+  demoDeleteTour,
   demoUpdateUserContent,
   demoUpdateUser,
 } from "@/lib/demo/admin-demo-store";
@@ -809,6 +810,31 @@ export async function updateAdminTour(
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoUpdateTour(tourId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function deleteAdminTour(tourId: string) {
+  try {
+    return db.$transaction(async (tx) => {
+      await tx.favorite.deleteMany({ where: { tourId } });
+      await tx.review.deleteMany({ where: { tourId } });
+      await tx.booking.deleteMany({ where: { tourId } });
+      await tx.itinerary.deleteMany({ where: { tourId } });
+      await tx.tourImage.deleteMany({ where: { tourId } });
+      return tx.tour.delete({
+        where: { id: tourId },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+        },
+      });
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoDeleteTour(tourId);
     }
     throw error;
   }

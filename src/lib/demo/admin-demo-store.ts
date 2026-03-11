@@ -1083,6 +1083,24 @@ export async function demoUpdateTour(id: string, payload: { status?: TourStatus;
   return tour;
 }
 
+export async function demoDeleteTour(id: string) {
+  const state = await readDemo();
+  const tourIndex = state.tours.findIndex((item) => item.id === id);
+  if (tourIndex < 0) return null;
+
+  const [removedTour] = state.tours.splice(tourIndex, 1);
+  if (!removedTour) return null;
+
+  state.tourImages = state.tourImages.filter((item) => item.tourId !== id);
+  state.itineraries = state.itineraries.filter((item) => item.tourId !== id);
+  state.bookings = state.bookings.filter((item) => item.tourId !== id);
+  state.reviews = state.reviews.filter((item) => item.tourId !== id);
+  state.favorites = state.favorites.filter((item) => item.tourId !== id);
+
+  await writeDemo(state);
+  return removedTour;
+}
+
 export async function demoUpdateTourContent(
   id: string,
   payload: {

@@ -1,8 +1,8 @@
-import { TourStatus } from "@prisma/client";
+﻿import { TourStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
-import { updateAdminTour } from "@/lib/db/admin-queries";
+import { deleteAdminTour, updateAdminTour } from "@/lib/db/admin-queries";
 
 const tourUpdateSchema = z.object({
   status: z.nativeEnum(TourStatus).optional(),
@@ -30,4 +30,20 @@ export async function PATCH(request: Request, context: TourRouteContext) {
   }
 
   return NextResponse.json({ message: "Đã cập nhật tour.", tour: updated });
+}
+
+export async function DELETE(_request: Request, context: TourRouteContext) {
+  const guard = await requireAdminApi();
+  if (guard) return guard;
+
+  const { id } = await context.params;
+  const removed = await deleteAdminTour(id).catch(() => null);
+  if (!removed) {
+    return NextResponse.json({ message: "Không thể xóa tour." }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    message: "Đã xóa tour thành công.",
+    tour: removed,
+  });
 }
