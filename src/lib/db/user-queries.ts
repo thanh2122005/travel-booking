@@ -1,5 +1,5 @@
 import { db } from "@/lib/db/prisma";
-import { demoGetUsers } from "@/lib/demo/admin-demo-store";
+import { demoGetUserDashboardData } from "@/lib/demo/admin-demo-store";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 
 export async function getUserDashboardData(userId: string) {
@@ -66,20 +66,7 @@ export async function getUserDashboardData(userId: string) {
     });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      const demoUsers = await demoGetUsers({ page: 1, pageSize: 50 });
-      const user = demoUsers.items.find((item) => item.id === userId) ?? demoUsers.items[0];
-      if (!user) return null;
-      return {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        phone: null,
-        createdAt: user.createdAt,
-        _count: user._count,
-        bookings: [],
-        favorites: [],
-        reviews: [],
-      };
+      return demoGetUserDashboardData(userId);
     }
     throw error;
   }

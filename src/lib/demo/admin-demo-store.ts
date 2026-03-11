@@ -869,6 +869,94 @@ export async function demoGetUsers(
   return paginate(rows, filter);
 }
 
+export async function demoGetUserDashboardData(userId?: string) {
+  const state = await readDemo();
+  const user =
+    state.users.find((item) => item.id === userId) ??
+    state.users.find((item) => item.role === UserRole.USER) ??
+    state.users[0];
+  if (!user) return null;
+
+  const tourMap = new Map(state.tours.map((tour) => [tour.id, tour]));
+  const locationMap = new Map(state.locations.map((location) => [location.id, location]));
+
+  const bookings = state.bookings
+    .filter((booking) => booking.userId === user.id)
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+    .map((booking) => {
+      const tour = tourMap.get(booking.tourId);
+      return {
+        ...booking,
+        createdAt: toDate(booking.createdAt),
+        updatedAt: toDate(booking.updatedAt),
+        departureDate: booking.departureDate ? toDate(booking.departureDate) : null,
+        tour: {
+          title: tour?.title ?? "Tour",
+          slug: tour?.slug ?? "",
+          departureLocation: tour?.departureLocation ?? "",
+        },
+      };
+    });
+
+  const favorites = state.favorites
+    .filter((favorite) => favorite.userId === user.id)
+    .map((favorite, index) => {
+      const tour = tourMap.get(favorite.tourId);
+      const location = tour ? locationMap.get(tour.locationId) : null;
+
+      return {
+        ...favorite,
+        createdAt: new Date(
+          new Date(user.createdAt).getTime() + (index + 1) * 24 * 60 * 60 * 1000,
+        ),
+        tour: {
+          title: tour?.title ?? "Tour",
+          slug: tour?.slug ?? "",
+          shortDescription: tour?.shortDescription ?? "",
+          featuredImage: tour?.featuredImage ?? "",
+          price: tour?.price ?? 0,
+          discountPrice: tour?.discountPrice ?? null,
+          location: {
+            name: location?.name ?? "Điểm đến",
+          },
+        },
+      };
+    })
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+
+  const reviews = state.reviews
+    .filter((review) => review.userId === user.id)
+    .sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt))
+    .map((review) => {
+      const tour = tourMap.get(review.tourId);
+      return {
+        ...review,
+        createdAt: toDate(review.createdAt),
+        updatedAt: toDate(review.updatedAt),
+        tour: {
+          title: tour?.title ?? "Tour",
+          slug: tour?.slug ?? "",
+        },
+      };
+    });
+
+  return {
+    id: user.id,
+    fullName: user.fullName,
+    email: user.email,
+    phone: user.phone ?? null,
+    createdAt: toDate(user.createdAt),
+    _count: {
+      bookings: bookings.length,
+      favorites: favorites.length,
+      reviews: reviews.length,
+    },
+    bookings,
+    favorites,
+    reviews,
+  };
+}
+
 export async function demoGetTours(filter: TourListFilter = {}) {
   const state = await readDemo();
   const locationMap = new Map(state.locations.map((location) => [location.id, location]));
