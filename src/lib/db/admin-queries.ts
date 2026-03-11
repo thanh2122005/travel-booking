@@ -1426,6 +1426,30 @@ export async function updateAdminUser(
   payload: { role?: UserRole; status?: UserStatus },
 ) {
   try {
+    const current = await db.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        role: true,
+        status: true,
+      },
+    });
+    if (!current) return null;
+
+    const nextRole = payload.role ?? current.role;
+    const nextStatus = payload.status ?? current.status;
+    if (
+      current.role === UserRole.ADMIN &&
+      (nextRole !== UserRole.ADMIN || nextStatus === UserStatus.BLOCKED)
+    ) {
+      const totalAdmins = await db.user.count({
+        where: { role: UserRole.ADMIN },
+      });
+      if (totalAdmins <= 1) {
+        return "LAST_ADMIN";
+      }
+    }
+
     return db.user.update({
       where: { id: userId },
       data: {
@@ -1492,6 +1516,30 @@ export async function updateAdminUserContent(
   },
 ) {
   try {
+    const current = await db.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        role: true,
+        status: true,
+      },
+    });
+    if (!current) return null;
+
+    const nextRole = payload.role ?? current.role;
+    const nextStatus = payload.status ?? current.status;
+    if (
+      current.role === UserRole.ADMIN &&
+      (nextRole !== UserRole.ADMIN || nextStatus === UserStatus.BLOCKED)
+    ) {
+      const totalAdmins = await db.user.count({
+        where: { role: UserRole.ADMIN },
+      });
+      if (totalAdmins <= 1) {
+        return "LAST_ADMIN";
+      }
+    }
+
     return db.user.update({
       where: { id: userId },
       data: {

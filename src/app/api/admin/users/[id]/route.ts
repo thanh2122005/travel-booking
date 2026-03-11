@@ -25,6 +25,12 @@ export async function PATCH(request: Request, context: UserRouteContext) {
   }
 
   const updated = await updateAdminUser(id, parsed.data).catch(() => null);
+  if (updated === "LAST_ADMIN") {
+    return NextResponse.json(
+      { message: "Không thể hạ quyền hoặc khóa quản trị viên cuối cùng của hệ thống." },
+      { status: 400 },
+    );
+  }
   if (!updated) {
     return NextResponse.json({ message: "Không thể cập nhật người dùng." }, { status: 500 });
   }

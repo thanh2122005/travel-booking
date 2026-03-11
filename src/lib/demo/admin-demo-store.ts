@@ -1676,6 +1676,19 @@ export async function demoUpdateUser(id: string, payload: { role?: UserRole; sta
   const state = await readDemo();
   const user = state.users.find((item) => item.id === id);
   if (!user) return null;
+
+  const nextRole = payload.role ?? user.role;
+  const nextStatus = payload.status ?? user.status;
+  if (
+    user.role === UserRole.ADMIN &&
+    (nextRole !== UserRole.ADMIN || nextStatus === UserStatus.BLOCKED)
+  ) {
+    const adminCount = state.users.filter((item) => item.role === UserRole.ADMIN).length;
+    if (adminCount <= 1) {
+      return "LAST_ADMIN";
+    }
+  }
+
   if (payload.role) user.role = payload.role;
   if (payload.status) user.status = payload.status;
   user.updatedAt = nowIso();
@@ -1719,6 +1732,18 @@ export async function demoUpdateUserContent(
   const state = await readDemo();
   const user = state.users.find((item) => item.id === id);
   if (!user) return null;
+
+  const nextRole = payload.role ?? user.role;
+  const nextStatus = payload.status ?? user.status;
+  if (
+    user.role === UserRole.ADMIN &&
+    (nextRole !== UserRole.ADMIN || nextStatus === UserStatus.BLOCKED)
+  ) {
+    const adminCount = state.users.filter((item) => item.role === UserRole.ADMIN).length;
+    if (adminCount <= 1) {
+      return "LAST_ADMIN";
+    }
+  }
 
   if (payload.email && payload.email !== user.email) {
     const existed = state.users.some((item) => item.id !== id && item.email === payload.email);
