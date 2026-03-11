@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminReviewActions } from "@/components/admin/admin-review-actions";
+import { AdminReviewDetailDialog } from "@/components/admin/admin-review-detail-dialog";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
 import { getAdminReviews } from "@/lib/db/admin-queries";
@@ -89,7 +90,10 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
                   </Link>
                 </p>
                 <div className="mt-3">
-                  <AdminReviewActions reviewId={review.id} isVisible={review.isVisible} />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <AdminReviewActions reviewId={review.id} isVisible={review.isVisible} />
+                    <AdminReviewDetailDialog review={review} />
+                  </div>
                 </div>
               </article>
             ))}
