@@ -33,17 +33,17 @@ export default async function GalleryPage() {
   return (
     <div className="space-y-10">
       <PageHeroBanner
-        eyebrow="ThÆ° viá»‡n"
-        title="Viá»‡t Nam qua lÄƒng kÃ­nh cáº£m xÃºc"
-        description="Trang gallery Ä‘Æ°á»£c convert tá»« template cÅ©, giá»¯ bá»‘ cá»¥c áº£nh lá»›n vÃ  bá»• sung highlight theo dá»¯ liá»‡u location."
+        eyebrow="Thư viện"
+        title="Việt Nam qua lăng kính cảm xúc"
+        description="Trang gallery được convert từ template cũ, giữ bố cục ảnh lớn và bổ sung highlight theo dữ liệu location."
         videoSrc="/immerse-vietnam/videos/blogcover.mp4"
       />
 
       <section className="space-y-5">
         <HomeSectionHeading
-          eyebrow="Khoáº£nh kháº¯c"
-          title="Bá»™ sÆ°u táº­p hÃ¬nh áº£nh du lá»‹ch"
-          description="áº¢nh Ä‘Æ°á»£c láº¥y trá»±c tiáº¿p tá»« dá»¯ liá»‡u Ä‘iá»ƒm Ä‘áº¿n vÃ  há»‡ asset public/immerse-vietnam Ä‘á»ƒ luÃ´n hiá»ƒn thá»‹ á»•n Ä‘á»‹nh."
+          eyebrow="Khoảnh khắc"
+          title="Bộ sưu tập hình ảnh du lịch"
+          description="Ảnh được lấy trực tiếp từ dữ liệu điểm đến và hệ asset public/immerse-vietnam để luôn hiển thị ổn định."
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {galleryImages.map((src, index) => (
@@ -64,9 +64,9 @@ export default async function GalleryPage() {
 
       <section className="space-y-5">
         <HomeSectionHeading
-          eyebrow="Äá»‹a Ä‘iá»ƒm ná»•i báº­t"
-          title="Äiá»ƒm Ä‘áº¿n Ä‘ang Ä‘Æ°á»£c quan tÃ¢m"
-          description="Thay cho danh sÃ¡ch tÃ­ch há»£p tay trong template, dá»¯ liá»‡u nÃ y map theo model Location."
+          eyebrow="Địa điểm nổi bật"
+          title="Điểm đến đang được quan tâm"
+          description="Thay cho danh sách tích hợp tay trong template, dữ liệu này map theo model Location."
         />
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

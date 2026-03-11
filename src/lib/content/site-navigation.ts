@@ -4,25 +4,25 @@
 };
 
 export const publicNavItems: PublicNavItem[] = [
-  { href: "/", label: "Trang chá»§" },
+  { href: "/", label: "Trang chủ" },
   { href: "/tours", label: "Tour" },
-  { href: "/dia-diem", label: "Äiá»ƒm Ä‘áº¿n" },
-  { href: "/gallery", label: "ThÆ° viá»‡n" },
-  { href: "/gioi-thieu", label: "Giá»›i thiá»‡u" },
-  { href: "/lien-he", label: "LiÃªn há»‡" },
+  { href: "/dia-diem", label: "Điểm đến" },
+  { href: "/gallery", label: "Thư viện" },
+  { href: "/gioi-thieu", label: "Giới thiệu" },
+  { href: "/lien-he", label: "Liên hệ" },
 ];
 
 export const footerQuickLinks: PublicNavItem[] = [
-  { href: "/tours", label: "Danh sÃ¡ch tour" },
-  { href: "/booking", label: "Äáº·t tour" },
-  { href: "/favorites", label: "YÃªu thÃ­ch" },
-  { href: "/reviews", label: "ÄÃ¡nh giÃ¡" },
+  { href: "/tours", label: "Danh sách tour" },
+  { href: "/booking", label: "Đặt tour" },
+  { href: "/favorites", label: "Yêu thích" },
+  { href: "/reviews", label: "Đánh giá" },
 ];
 
 export const footerPopularDestinations: PublicNavItem[] = [
-  { href: "/dia-diem/ha-noi", label: "HÃ  Ná»™i" },
-  { href: "/dia-diem/da-nang", label: "ÄÃ  Náºµng" },
-  { href: "/dia-diem/ha-long", label: "Háº¡ Long" },
-  { href: "/dia-diem/phu-quoc", label: "PhÃº Quá»‘c" },
+  { href: "/dia-diem/ha-noi", label: "Hà Nội" },
+  { href: "/dia-diem/da-nang", label: "Đà Nẵng" },
+  { href: "/dia-diem/ha-long", label: "Hạ Long" },
+  { href: "/dia-diem/phu-quoc", label: "Phú Quốc" },
 ];
 

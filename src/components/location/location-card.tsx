@@ -38,7 +38,7 @@ export function LocationCard({ location }: LocationCardProps) {
           href={`/dia-diem/${location.slug}`}
           className="inline-flex h-8 items-center rounded-lg border border-border px-3 text-xs font-medium transition-colors hover:bg-muted"
         >
-          KhÃ¡m phÃ¡ Ä‘á»‹a Ä‘iá»ƒm
+          Khám phá địa điểm
         </Link>
       </div>
     </article>
