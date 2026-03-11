@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { BookingStatus, PaymentStatus } from "@prisma/client";
 import {
   CalendarClock,
@@ -24,6 +24,30 @@ type AccountPageProps = {
 
 type FavoriteSortValue = "newest" | "price-asc" | "price-desc";
 type ReviewSortValue = "newest" | "rating-desc" | "rating-asc";
+
+type AccountQueryState = {
+  bookingSearch: string;
+  bookingStatus: BookingStatus | "";
+  paymentStatus: PaymentStatus | "";
+  bookingPage: number;
+  favoriteSearch: string;
+  favoriteSort: FavoriteSortValue;
+  favoritePage: number;
+  reviewSearch: string;
+  reviewSort: ReviewSortValue;
+  reviewMinRating: number;
+  reviewPage: number;
+};
+
+type SectionPagerProps = {
+  currentPage: number;
+  totalPages: number;
+  visibleCount: number;
+  totalCount: number;
+  prevHref: string;
+  nextHref: string;
+  unitLabel: string;
+};
 
 const bookingStatusMap: Record<BookingStatus, { label: string; variant: "secondary" | "default" | "destructive" }> =
   {
@@ -61,6 +85,13 @@ function normalizeParam(value?: string | string[]) {
   return Array.isArray(value) ? value[0] ?? "" : value;
 }
 
+function parsePage(value: string) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 1;
+  const normalized = Math.trunc(parsed);
+  return normalized >= 1 ? normalized : 1;
+}
+
 function parseBookingStatus(value: string): BookingStatus | "" {
   if (value === "PENDING" || value === "CONFIRMED" || value === "CANCELLED" || value === "COMPLETED") {
     return value;
@@ -96,16 +127,101 @@ function parseMinRating(value: string) {
   return normalized >= 1 && normalized <= 5 ? normalized : 0;
 }
 
+function buildAccountHref(state: AccountQueryState, overrides: Partial<AccountQueryState>) {
+  const next = { ...state, ...overrides };
+  const query = new URLSearchParams();
+
+  if (next.bookingSearch) query.set("bookingSearch", next.bookingSearch);
+  if (next.bookingStatus) query.set("bookingStatus", next.bookingStatus);
+  if (next.paymentStatus) query.set("paymentStatus", next.paymentStatus);
+  if (next.bookingPage > 1) query.set("bookingPage", String(next.bookingPage));
+
+  if (next.favoriteSearch) query.set("favoriteSearch", next.favoriteSearch);
+  if (next.favoriteSort !== "newest") query.set("favoriteSort", next.favoriteSort);
+  if (next.favoritePage > 1) query.set("favoritePage", String(next.favoritePage));
+
+  if (next.reviewSearch) query.set("reviewSearch", next.reviewSearch);
+  if (next.reviewSort !== "newest") query.set("reviewSort", next.reviewSort);
+  if (next.reviewMinRating) query.set("reviewMinRating", String(next.reviewMinRating));
+  if (next.reviewPage > 1) query.set("reviewPage", String(next.reviewPage));
+
+  const serialized = query.toString();
+  return serialized ? `/tai-khoan?${serialized}` : "/tai-khoan";
+}
+
+function SectionPager({
+  currentPage,
+  totalPages,
+  visibleCount,
+  totalCount,
+  prevHref,
+  nextHref,
+  unitLabel,
+}: SectionPagerProps) {
+  if (totalCount === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+      <p className="text-slate-600">
+        Hiển thị <span className="font-semibold text-slate-900">{visibleCount}</span>/
+        <span className="font-semibold text-slate-900">{totalCount}</span> {unitLabel}
+        {totalPages > 1 ? (
+          <>
+            {" "}- Trang <span className="font-semibold text-slate-900">{currentPage}</span>/{totalPages}
+          </>
+        ) : null}
+      </p>
+
+      {totalPages > 1 ? (
+        <div className="flex items-center gap-2">
+          {currentPage > 1 ? (
+            <Link
+              href={prevHref}
+              className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
+            >
+              Trang trước
+            </Link>
+          ) : (
+            <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
+              Trang trước
+            </span>
+          )}
+          {currentPage < totalPages ? (
+            <Link
+              href={nextHref}
+              className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
+            >
+              Trang sau
+            </Link>
+          ) : (
+            <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
+              Trang sau
+            </span>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export default async function AccountPage({ searchParams }: AccountPageProps) {
   const params = await searchParams;
-  const bookingSearch = normalizeParam(params.bookingSearch);
-  const bookingStatus = parseBookingStatus(normalizeParam(params.bookingStatus));
-  const paymentStatus = parsePaymentStatus(normalizeParam(params.paymentStatus));
-  const favoriteSearch = normalizeParam(params.favoriteSearch);
-  const favoriteSort = parseFavoriteSort(normalizeParam(params.favoriteSort));
-  const reviewSearch = normalizeParam(params.reviewSearch);
-  const reviewSort = parseReviewSort(normalizeParam(params.reviewSort));
-  const reviewMinRating = parseMinRating(normalizeParam(params.reviewMinRating));
+
+  const state: AccountQueryState = {
+    bookingSearch: normalizeParam(params.bookingSearch),
+    bookingStatus: parseBookingStatus(normalizeParam(params.bookingStatus)),
+    paymentStatus: parsePaymentStatus(normalizeParam(params.paymentStatus)),
+    bookingPage: parsePage(normalizeParam(params.bookingPage)),
+    favoriteSearch: normalizeParam(params.favoriteSearch),
+    favoriteSort: parseFavoriteSort(normalizeParam(params.favoriteSort)),
+    favoritePage: parsePage(normalizeParam(params.favoritePage)),
+    reviewSearch: normalizeParam(params.reviewSearch),
+    reviewSort: parseReviewSort(normalizeParam(params.reviewSort)),
+    reviewMinRating: parseMinRating(normalizeParam(params.reviewMinRating)),
+    reviewPage: parsePage(normalizeParam(params.reviewPage)),
+  };
 
   const session = await requireUser();
   const data = await getUserDashboardData(session.user.id);
@@ -122,10 +238,9 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       </section>
     );
   }
-
-  const normalizedBookingSearch = bookingSearch.trim().toLowerCase();
-  const normalizedFavoriteSearch = favoriteSearch.trim().toLowerCase();
-  const normalizedReviewSearch = reviewSearch.trim().toLowerCase();
+  const normalizedBookingSearch = state.bookingSearch.trim().toLowerCase();
+  const normalizedFavoriteSearch = state.favoriteSearch.trim().toLowerCase();
+  const normalizedReviewSearch = state.reviewSearch.trim().toLowerCase();
 
   const filteredBookings = data.bookings.filter((booking) => {
     const searchMatched =
@@ -133,8 +248,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       booking.bookingCode.toLowerCase().includes(normalizedBookingSearch) ||
       booking.tour.title.toLowerCase().includes(normalizedBookingSearch) ||
       booking.tour.departureLocation.toLowerCase().includes(normalizedBookingSearch);
-    const statusMatched = !bookingStatus || booking.status === bookingStatus;
-    const paymentMatched = !paymentStatus || booking.paymentStatus === paymentStatus;
+    const statusMatched = !state.bookingStatus || booking.status === state.bookingStatus;
+    const paymentMatched = !state.paymentStatus || booking.paymentStatus === state.paymentStatus;
     return searchMatched && statusMatched && paymentMatched;
   });
 
@@ -152,8 +267,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       const priceA = a.tour.discountPrice ?? a.tour.price;
       const priceB = b.tour.discountPrice ?? b.tour.price;
 
-      if (favoriteSort === "price-asc") return priceA - priceB;
-      if (favoriteSort === "price-desc") return priceB - priceA;
+      if (state.favoriteSort === "price-asc") return priceA - priceB;
+      if (state.favoriteSort === "price-desc") return priceB - priceA;
       return +new Date(b.createdAt) - +new Date(a.createdAt);
     });
 
@@ -163,21 +278,67 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         !normalizedReviewSearch ||
         review.comment.toLowerCase().includes(normalizedReviewSearch) ||
         review.tour.title.toLowerCase().includes(normalizedReviewSearch);
-      const ratingMatched = !reviewMinRating || review.rating >= reviewMinRating;
+      const ratingMatched = !state.reviewMinRating || review.rating >= state.reviewMinRating;
       return searchMatched && ratingMatched;
     })
     .slice()
     .sort((a, b) => {
-      if (reviewSort === "rating-desc") return b.rating - a.rating;
-      if (reviewSort === "rating-asc") return a.rating - b.rating;
+      if (state.reviewSort === "rating-desc") return b.rating - a.rating;
+      if (state.reviewSort === "rating-asc") return a.rating - b.rating;
       return +new Date(b.updatedAt) - +new Date(a.updatedAt);
     });
+
+  const bookingPageSize = 12;
+  const bookingTotalPages = Math.max(1, Math.ceil(filteredBookings.length / bookingPageSize));
+  const bookingCurrentPage = Math.min(state.bookingPage, bookingTotalPages);
+  const pagedBookings = filteredBookings.slice(
+    (bookingCurrentPage - 1) * bookingPageSize,
+    bookingCurrentPage * bookingPageSize,
+  );
+
+  const favoritePageSize = 9;
+  const favoriteTotalPages = Math.max(1, Math.ceil(filteredFavorites.length / favoritePageSize));
+  const favoriteCurrentPage = Math.min(state.favoritePage, favoriteTotalPages);
+  const pagedFavorites = filteredFavorites.slice(
+    (favoriteCurrentPage - 1) * favoritePageSize,
+    favoriteCurrentPage * favoritePageSize,
+  );
+
+  const reviewPageSize = 10;
+  const reviewTotalPages = Math.max(1, Math.ceil(filteredReviews.length / reviewPageSize));
+  const reviewCurrentPage = Math.min(state.reviewPage, reviewTotalPages);
+  const pagedReviews = filteredReviews.slice(
+    (reviewCurrentPage - 1) * reviewPageSize,
+    reviewCurrentPage * reviewPageSize,
+  );
 
   const confirmedRevenue = data.bookings
     .filter((booking) => booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED)
     .reduce((sum, booking) => sum + booking.totalPrice, 0);
   const pendingBookings = data.bookings.filter((booking) => booking.status === BookingStatus.PENDING).length;
   const paidBookings = data.bookings.filter((booking) => booking.paymentStatus === PaymentStatus.PAID).length;
+
+  const hasBookingFilters = Boolean(state.bookingSearch || state.bookingStatus || state.paymentStatus);
+  const hasFavoriteFilters = Boolean(state.favoriteSearch || state.favoriteSort !== "newest");
+  const hasReviewFilters = Boolean(state.reviewSearch || state.reviewSort !== "newest" || state.reviewMinRating);
+
+  const clearBookingHref = buildAccountHref(state, {
+    bookingSearch: "",
+    bookingStatus: "",
+    paymentStatus: "",
+    bookingPage: 1,
+  });
+  const clearFavoriteHref = buildAccountHref(state, {
+    favoriteSearch: "",
+    favoriteSort: "newest",
+    favoritePage: 1,
+  });
+  const clearReviewHref = buildAccountHref(state, {
+    reviewSearch: "",
+    reviewSort: "newest",
+    reviewMinRating: 0,
+    reviewPage: 1,
+  });
 
   return (
     <div className="space-y-8">
@@ -192,7 +353,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Link href="/booking" className="iv-btn-soft inline-flex h-9 items-center px-4 text-sm font-semibold">
-            Quản lý booking
+            Quản lý đặt tour
           </Link>
           <Link href="/favorites" className="iv-btn-soft inline-flex h-9 items-center px-4 text-sm font-semibold">
             Tour yêu thích
@@ -234,7 +395,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             Thông tin liên hệ
           </p>
           <p className="mt-2 text-sm font-semibold text-slate-900">{data.email}</p>
-          <p className="mt-1 text-xs text-slate-500 inline-flex items-center gap-1">
+          <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-500">
             <Phone className="h-3.5 w-3.5" />
             {data.phone || "Chưa cập nhật"}
           </p>
@@ -249,21 +410,24 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </Badge>
         </div>
 
-        <form className="mb-4 grid gap-2 md:grid-cols-[1fr_180px_180px_auto]">
-          <input type="hidden" name="favoriteSearch" value={favoriteSearch} />
-          <input type="hidden" name="favoriteSort" value={favoriteSort} />
-          <input type="hidden" name="reviewSearch" value={reviewSearch} />
-          <input type="hidden" name="reviewSort" value={reviewSort} />
-          <input type="hidden" name="reviewMinRating" value={reviewMinRating} />
+        <form className="mb-4 grid gap-2 md:grid-cols-[1fr_180px_180px_auto_auto]">
+          <input type="hidden" name="bookingPage" value="1" />
+          <input type="hidden" name="favoriteSearch" value={state.favoriteSearch} />
+          <input type="hidden" name="favoriteSort" value={state.favoriteSort} />
+          <input type="hidden" name="favoritePage" value={state.favoritePage} />
+          <input type="hidden" name="reviewSearch" value={state.reviewSearch} />
+          <input type="hidden" name="reviewSort" value={state.reviewSort} />
+          <input type="hidden" name="reviewMinRating" value={state.reviewMinRating} />
+          <input type="hidden" name="reviewPage" value={state.reviewPage} />
           <input
             name="bookingSearch"
-            defaultValue={bookingSearch}
+            defaultValue={state.bookingSearch}
             placeholder="Mã đơn, tên tour hoặc điểm khởi hành..."
             className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
           <select
             name="bookingStatus"
-            defaultValue={bookingStatus}
+            defaultValue={state.bookingStatus}
             className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="">Tất cả trạng thái đơn</option>
@@ -274,7 +438,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </select>
           <select
             name="paymentStatus"
-            defaultValue={paymentStatus}
+            defaultValue={state.paymentStatus}
             className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="">Tất cả thanh toán</option>
@@ -287,12 +451,19 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           >
             Lọc booking
           </button>
+          {hasBookingFilters ? (
+            <Link
+              href={clearBookingHref}
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+            >
+              Xóa lọc
+            </Link>
+          ) : null}
         </form>
-
         {filteredBookings.length ? (
           <div className="space-y-3">
             <div className="space-y-3 lg:hidden">
-              {filteredBookings.slice(0, 10).map((booking) => (
+              {pagedBookings.map((booking) => (
                 <article key={booking.id} className="rounded-2xl border border-slate-200 p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -330,7 +501,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredBookings.slice(0, 15).map((booking) => (
+                  {pagedBookings.map((booking) => (
                     <tr key={booking.id} className="border-b last:border-0">
                       <td className="px-2 py-3 font-medium">{booking.bookingCode}</td>
                       <td className="px-2 py-3">
@@ -357,12 +528,22 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 </tbody>
               </table>
             </div>
+
+            <SectionPager
+              currentPage={bookingCurrentPage}
+              totalPages={bookingTotalPages}
+              visibleCount={pagedBookings.length}
+              totalCount={filteredBookings.length}
+              prevHref={buildAccountHref(state, { bookingPage: bookingCurrentPage - 1 })}
+              nextHref={buildAccountHref(state, { bookingPage: bookingCurrentPage + 1 })}
+              unitLabel="đơn"
+            />
           </div>
         ) : data.bookings.length ? (
           <EmptyState
             title="Không có booking phù hợp"
             description="Hãy thử thay đổi bộ lọc để xem thêm đơn đặt tour."
-            ctaHref="/tai-khoan"
+            ctaHref={clearBookingHref}
             ctaLabel="Xóa lọc booking"
           />
         ) : (
@@ -386,22 +567,25 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </Badge>
         </div>
 
-        <form className="mb-4 grid gap-2 md:grid-cols-[1fr_200px_auto]">
-          <input type="hidden" name="bookingSearch" value={bookingSearch} />
-          <input type="hidden" name="bookingStatus" value={bookingStatus} />
-          <input type="hidden" name="paymentStatus" value={paymentStatus} />
-          <input type="hidden" name="reviewSearch" value={reviewSearch} />
-          <input type="hidden" name="reviewSort" value={reviewSort} />
-          <input type="hidden" name="reviewMinRating" value={reviewMinRating} />
+        <form className="mb-4 grid gap-2 md:grid-cols-[1fr_200px_auto_auto]">
+          <input type="hidden" name="favoritePage" value="1" />
+          <input type="hidden" name="bookingSearch" value={state.bookingSearch} />
+          <input type="hidden" name="bookingStatus" value={state.bookingStatus} />
+          <input type="hidden" name="paymentStatus" value={state.paymentStatus} />
+          <input type="hidden" name="bookingPage" value={state.bookingPage} />
+          <input type="hidden" name="reviewSearch" value={state.reviewSearch} />
+          <input type="hidden" name="reviewSort" value={state.reviewSort} />
+          <input type="hidden" name="reviewMinRating" value={state.reviewMinRating} />
+          <input type="hidden" name="reviewPage" value={state.reviewPage} />
           <input
             name="favoriteSearch"
-            defaultValue={favoriteSearch}
+            defaultValue={state.favoriteSearch}
             placeholder="Tên tour, điểm đến hoặc mô tả..."
             className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
           <select
             name="favoriteSort"
-            defaultValue={favoriteSort}
+            defaultValue={state.favoriteSort}
             className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="newest">Mới lưu gần đây</option>
@@ -414,41 +598,61 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           >
             Lọc yêu thích
           </button>
+          {hasFavoriteFilters ? (
+            <Link
+              href={clearFavoriteHref}
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+            >
+              Xóa lọc
+            </Link>
+          ) : null}
         </form>
 
         {filteredFavorites.length ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredFavorites.slice(0, 9).map((item) => {
-              const displayPrice = item.tour.discountPrice ?? item.tour.price;
+          <div>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {pagedFavorites.map((item) => {
+                const displayPrice = item.tour.discountPrice ?? item.tour.price;
 
-              return (
-                <article key={item.id} className="overflow-hidden rounded-2xl border bg-background">
-                  <Link href={`/tours/${item.tour.slug}`} className="relative block h-40">
-                    <SafeImage
-                      src={item.tour.featuredImage}
-                      alt={item.tour.title}
-                      fill
-                      className="object-cover transition-transform duration-500 hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                    />
-                  </Link>
-                  <div className="space-y-2 p-4">
-                    <Link href={`/tours/${item.tour.slug}`} className="line-clamp-2 text-base font-semibold hover:text-primary">
-                      {item.tour.title}
+                return (
+                  <article key={item.id} className="overflow-hidden rounded-2xl border bg-background">
+                    <Link href={`/tours/${item.tour.slug}`} className="relative block h-40">
+                      <SafeImage
+                        src={item.tour.featuredImage}
+                        alt={item.tour.title}
+                        fill
+                        className="object-cover transition-transform duration-500 hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                      />
                     </Link>
-                    <p className="line-clamp-2 text-sm text-muted-foreground">{item.tour.shortDescription}</p>
-                    <p className="text-xs text-muted-foreground">Địa điểm: {item.tour.location.name}</p>
-                    <p className="font-bold text-primary">{formatPrice(displayPrice)}</p>
-                  </div>
-                </article>
-              );
-            })}
+                    <div className="space-y-2 p-4">
+                      <Link href={`/tours/${item.tour.slug}`} className="line-clamp-2 text-base font-semibold hover:text-primary">
+                        {item.tour.title}
+                      </Link>
+                      <p className="line-clamp-2 text-sm text-muted-foreground">{item.tour.shortDescription}</p>
+                      <p className="text-xs text-muted-foreground">Địa điểm: {item.tour.location.name}</p>
+                      <p className="font-bold text-primary">{formatPrice(displayPrice)}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <SectionPager
+              currentPage={favoriteCurrentPage}
+              totalPages={favoriteTotalPages}
+              visibleCount={pagedFavorites.length}
+              totalCount={filteredFavorites.length}
+              prevHref={buildAccountHref(state, { favoritePage: favoriteCurrentPage - 1 })}
+              nextHref={buildAccountHref(state, { favoritePage: favoriteCurrentPage + 1 })}
+              unitLabel="tour"
+            />
           </div>
         ) : data.favorites.length ? (
           <EmptyState
             title="Không có tour phù hợp bộ lọc"
             description="Hãy thử từ khóa khác để xem thêm tour yêu thích."
-            ctaHref="/tai-khoan"
+            ctaHref={clearFavoriteHref}
             ctaLabel="Xóa lọc yêu thích"
           />
         ) : (
@@ -460,7 +664,6 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           />
         )}
       </section>
-
       <section className="iv-card p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="inline-flex items-center gap-2 text-xl font-bold text-slate-900">
@@ -472,21 +675,24 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </Badge>
         </div>
 
-        <form className="mb-4 grid gap-2 md:grid-cols-[1fr_160px_180px_auto]">
-          <input type="hidden" name="bookingSearch" value={bookingSearch} />
-          <input type="hidden" name="bookingStatus" value={bookingStatus} />
-          <input type="hidden" name="paymentStatus" value={paymentStatus} />
-          <input type="hidden" name="favoriteSearch" value={favoriteSearch} />
-          <input type="hidden" name="favoriteSort" value={favoriteSort} />
+        <form className="mb-4 grid gap-2 md:grid-cols-[1fr_160px_180px_auto_auto]">
+          <input type="hidden" name="reviewPage" value="1" />
+          <input type="hidden" name="bookingSearch" value={state.bookingSearch} />
+          <input type="hidden" name="bookingStatus" value={state.bookingStatus} />
+          <input type="hidden" name="paymentStatus" value={state.paymentStatus} />
+          <input type="hidden" name="bookingPage" value={state.bookingPage} />
+          <input type="hidden" name="favoriteSearch" value={state.favoriteSearch} />
+          <input type="hidden" name="favoriteSort" value={state.favoriteSort} />
+          <input type="hidden" name="favoritePage" value={state.favoritePage} />
           <input
             name="reviewSearch"
-            defaultValue={reviewSearch}
+            defaultValue={state.reviewSearch}
             placeholder="Tên tour hoặc nội dung đánh giá..."
             className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
           <select
             name="reviewMinRating"
-            defaultValue={reviewMinRating || ""}
+            defaultValue={state.reviewMinRating || ""}
             className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="">Tất cả mức điểm</option>
@@ -498,7 +704,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </select>
           <select
             name="reviewSort"
-            defaultValue={reviewSort}
+            defaultValue={state.reviewSort}
             className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="newest">Mới cập nhật</option>
@@ -511,28 +717,48 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           >
             Lọc đánh giá
           </button>
+          {hasReviewFilters ? (
+            <Link
+              href={clearReviewHref}
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+            >
+              Xóa lọc
+            </Link>
+          ) : null}
         </form>
 
         {filteredReviews.length ? (
-          <div className="space-y-3">
-            {filteredReviews.slice(0, 12).map((review) => (
-              <article key={review.id} className="rounded-2xl border bg-background p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Link href={`/tours/${review.tour.slug}`} className="font-semibold hover:text-primary">
-                    {review.tour.title}
-                  </Link>
-                  <p className="text-xs text-muted-foreground">Cập nhật: {formatDate(review.updatedAt)}</p>
-                </div>
-                <p className="mt-2 text-sm font-medium">Đánh giá: {review.rating}/5</p>
-                <p className="mt-1 text-sm text-muted-foreground">{review.comment}</p>
-              </article>
-            ))}
+          <div>
+            <div className="space-y-3">
+              {pagedReviews.map((review) => (
+                <article key={review.id} className="rounded-2xl border bg-background p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <Link href={`/tours/${review.tour.slug}`} className="font-semibold hover:text-primary">
+                      {review.tour.title}
+                    </Link>
+                    <p className="text-xs text-muted-foreground">Cập nhật: {formatDate(review.updatedAt)}</p>
+                  </div>
+                  <p className="mt-2 text-sm font-medium">Đánh giá: {review.rating}/5</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{review.comment}</p>
+                </article>
+              ))}
+            </div>
+
+            <SectionPager
+              currentPage={reviewCurrentPage}
+              totalPages={reviewTotalPages}
+              visibleCount={pagedReviews.length}
+              totalCount={filteredReviews.length}
+              prevHref={buildAccountHref(state, { reviewPage: reviewCurrentPage - 1 })}
+              nextHref={buildAccountHref(state, { reviewPage: reviewCurrentPage + 1 })}
+              unitLabel="đánh giá"
+            />
           </div>
         ) : data.reviews.length ? (
           <EmptyState
             title="Không có đánh giá phù hợp"
             description="Hãy thử điều chỉnh bộ lọc để xem các đánh giá khác."
-            ctaHref="/tai-khoan"
+            ctaHref={clearReviewHref}
             ctaLabel="Xóa lọc đánh giá"
           />
         ) : (
