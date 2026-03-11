@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminBookingActions } from "@/components/admin/admin-booking-actions";
+import { AdminBookingDetailDialog } from "@/components/admin/admin-booking-detail-dialog";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
 import { adminLabels, getAdminBookings } from "@/lib/db/admin-queries";
@@ -129,11 +130,14 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
                     </td>
                     <td className="px-2 py-3 text-slate-500">{formatDate(booking.createdAt)}</td>
                     <td className="px-2 py-3">
-                      <AdminBookingActions
-                        bookingId={booking.id}
-                        status={booking.status}
-                        paymentStatus={booking.paymentStatus}
-                      />
+                      <div className="space-y-2">
+                        <AdminBookingActions
+                          bookingId={booking.id}
+                          status={booking.status}
+                          paymentStatus={booking.paymentStatus}
+                        />
+                        <AdminBookingDetailDialog booking={booking} />
+                      </div>
                     </td>
                   </tr>
                 ))}
