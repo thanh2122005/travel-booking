@@ -1,5 +1,6 @@
 ﻿import { Mail, MapPin, Phone } from "lucide-react";
 import { PageHeroBanner } from "@/components/common/page-hero-banner";
+import { ContactInquiryForm } from "@/components/contact/contact-inquiry-form";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { getHomePublicData } from "@/lib/db/public-queries";
 
@@ -27,102 +28,12 @@ export default async function ContactPage() {
         />
 
         <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-          <form className="iv-card space-y-4 p-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label htmlFor="inquiry-full-name" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Họ và tên
-                </label>
-                <input
-                  id="inquiry-full-name"
-                  placeholder="Nguyễn Văn A"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="inquiry-phone" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Số điện thoại
-                </label>
-                <input
-                  id="inquiry-phone"
-                  placeholder="0909123456"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label htmlFor="inquiry-email" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Email
-                </label>
-                <input
-                  id="inquiry-email"
-                  type="email"
-                  placeholder="ban@example.com"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="inquiry-tour" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Tour quan tâm
-                </label>
-                <select
-                  id="inquiry-tour"
-                  defaultValue=""
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-                >
-                  <option value="">Chọn tour</option>
-                  {data.featuredTours.slice(0, 8).map((tour) => (
-                    <option key={tour.id} value={tour.id}>
-                      {tour.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label htmlFor="inquiry-date" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Ngày khởi hành mong muốn
-                </label>
-                <input
-                  id="inquiry-date"
-                  type="date"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="inquiry-guests" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Số khách
-                </label>
-                <input
-                  id="inquiry-guests"
-                  type="number"
-                  min={1}
-                  defaultValue={2}
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="inquiry-message" className="mb-1.5 block text-sm font-medium text-slate-700">
-                Nội dung cần hỗ trợ
-              </label>
-              <textarea
-                id="inquiry-message"
-                rows={5}
-                placeholder="Bạn muốn ưu tiên lịch trình nào?"
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
-              />
-            </div>
-
-            <button type="submit" className="iv-btn-primary inline-flex h-11 items-center justify-center px-6 text-sm font-semibold">
-              Gửi yêu cầu tư vấn
-            </button>
-          </form>
+          <ContactInquiryForm
+            tours={data.featuredTours.slice(0, 8).map((tour) => ({
+              id: tour.id,
+              title: tour.title,
+            }))}
+          />
 
           <aside className="space-y-4">
             <article className="iv-card p-6">
