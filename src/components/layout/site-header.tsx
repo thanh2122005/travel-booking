@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Compass, Menu, X } from "lucide-react";
 import { AuthUserMenu } from "@/components/layout/auth-user-menu";
-import { publicNavItems } from "@/lib/content/site-navigation";
+import { footerQuickLinks, publicNavItems } from "@/lib/content/site-navigation";
 import { cn } from "@/lib/utils";
 
 function isActivePath(pathname: string, href: string) {
@@ -30,6 +30,15 @@ export function SiteHeader() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
 
   const navClassName = useMemo(
     () => cn("iv-nav", isScrolled && "iv-nav-scrolled"),
@@ -90,6 +99,26 @@ export function SiteHeader() {
               </Link>
             ))}
           </nav>
+          <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-2">
+            <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Tiện ích nhanh
+            </p>
+            <div className="grid gap-1">
+              {footerQuickLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className={cn(
+                    "rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-white hover:text-slate-900",
+                    isActivePath(pathname, item.href) && "bg-white text-slate-900",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
           <div className="mt-2 border-t pt-2 sm:hidden">
             <AuthUserMenu />
           </div>
