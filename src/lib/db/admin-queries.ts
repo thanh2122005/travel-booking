@@ -276,7 +276,9 @@ export async function getAdminDashboardData(options?: { monthCount?: number }) {
   }
 }
 
-export async function getAdminUsers(filter: AdminListFilter = {}) {
+export async function getAdminUsers(
+  filter: AdminListFilter & { role?: UserRole; status?: UserStatus } = {},
+) {
   try {
     const { page, pageSize, skip } = getPagination(filter);
 
@@ -288,6 +290,12 @@ export async function getAdminUsers(filter: AdminListFilter = {}) {
           ],
         }
       : {};
+    if (filter.role) {
+      where.role = filter.role;
+    }
+    if (filter.status) {
+      where.status = filter.status;
+    }
 
     const [total, items] = await Promise.all([
       db.user.count({ where }),

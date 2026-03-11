@@ -590,10 +590,17 @@ export async function demoGetDashboardData(monthCount = 6) {
   };
 }
 
-export async function demoGetUsers(filter: ListFilter = {}) {
+export async function demoGetUsers(
+  filter: ListFilter & { role?: UserRole; status?: UserStatus } = {},
+) {
   const state = await readDemo();
   const rows = state.users
-    .filter((user) => searchIncludes(user.fullName, filter.search) || searchIncludes(user.email, filter.search))
+    .filter(
+      (user) =>
+        (searchIncludes(user.fullName, filter.search) || searchIncludes(user.email, filter.search)) &&
+        (!filter.role || user.role === filter.role) &&
+        (!filter.status || user.status === filter.status),
+    )
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .map((user) => ({
       ...user,
