@@ -136,6 +136,12 @@ type ListFilter = {
   pageSize?: number;
 };
 
+type TourListFilter = ListFilter & {
+  status?: TourStatus;
+  featured?: boolean;
+  locationId?: string;
+};
+
 const DEMO_DIR = path.join(process.cwd(), ".data");
 const DEMO_FILE = path.join(DEMO_DIR, "admin-demo.json");
 const DEMO_DATA_VERSION = 3;
@@ -165,8 +171,8 @@ function buildDemoItineraries(tours: DemoTour[]) {
       dayNumber: index + 1,
       title:
         catalogTour?.itineraryTitles[index] ??
-        `NgÃ y ${index + 1}: Tráº£i nghiá»‡m táº¡i ${tour.departureLocation}`,
-      description: "Lá»‹ch trÃ¬nh chi tiáº¿t sáº½ Ä‘Æ°á»£c cáº­p nháº­t theo thá»i tiáº¿t vÃ  nhu cáº§u Ä‘oÃ n khÃ¡ch.",
+        `Ngày ${index + 1}: Trải nghiệm tại ${tour.departureLocation}`,
+      description: "Lịch trình chi tiết sẽ được cập nhật theo thời tiết và nhu cầu đoàn khách.",
     }));
   });
 }
@@ -177,7 +183,7 @@ function createInitialDemoState(): DemoState {
   const users: DemoUser[] = [
     {
       id: "usr_admin",
-      fullName: "Quáº£n trá»‹ viÃªn há»‡ thá»‘ng",
+      fullName: "Quản trị viên hệ thống",
       email: "admin@example.com",
       phone: "0909000000",
       avatarUrl: localAvatarPool[0] ?? null,
@@ -586,7 +592,7 @@ export async function demoGetDashboardData(monthCount = 6) {
       createdAt: toDate(review.createdAt),
       user: {
         id: review.userId,
-        fullName: userMap.get(review.userId)?.fullName ?? "NgÆ°á»i dÃ¹ng",
+        fullName: userMap.get(review.userId)?.fullName ?? "Người dùng",
       },
       tour: {
         id: review.tourId,
@@ -625,25 +631,34 @@ export async function demoGetUsers(
   return paginate(rows, filter);
 }
 
-export async function demoGetTours(filter: ListFilter = {}) {
+export async function demoGetTours(filter: TourListFilter = {}) {
   const state = await readDemo();
   const locationMap = new Map(state.locations.map((location) => [location.id, location]));
   const rows = state.tours
     .filter((tour) => {
       const locationName = locationMap.get(tour.locationId)?.name ?? "";
-      return (
+      const searchMatched = (
         searchIncludes(tour.title, filter.search) ||
         searchIncludes(tour.slug, filter.search) ||
         searchIncludes(locationName, filter.search)
       );
+      const statusMatched = !filter.status || tour.status === filter.status;
+      const featuredMatched = typeof filter.featured !== "boolean" || tour.featured === filter.featured;
+      const locationMatched = !filter.locationId || tour.locationId === filter.locationId;
+      return searchMatched && statusMatched && featuredMatched && locationMatched;
     })
-    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+    .sort((a, b) => {
+      if (a.featured !== b.featured) {
+        return a.featured ? -1 : 1;
+      }
+      return +new Date(b.updatedAt) - +new Date(a.updatedAt);
+    })
     .map((tour) => ({
       ...tour,
       updatedAt: toDate(tour.updatedAt),
       location: {
         id: tour.locationId,
-        name: locationMap.get(tour.locationId)?.name ?? "Äiá»ƒm Ä‘áº¿n",
+        name: locationMap.get(tour.locationId)?.name ?? "Điểm đến",
         slug: locationMap.get(tour.locationId)?.slug ?? "",
       },
       _count: {
@@ -771,7 +786,7 @@ export async function demoGetReviews(filter: ListFilter = {}) {
       createdAt: toDate(review.createdAt),
       user: {
         id: review.userId,
-        fullName: userMap.get(review.userId)?.fullName ?? "NgÆ°á»i dÃ¹ng",
+        fullName: userMap.get(review.userId)?.fullName ?? "Người dùng",
         email: userMap.get(review.userId)?.email ?? "",
       },
       tour: {
@@ -1382,8 +1397,8 @@ export async function demoCreateTour(input: {
       id: `${tour.id}_it_${index + 1}`,
       tourId: tour.id,
       dayNumber: index + 1,
-      title: `NgÃ y ${index + 1}: Hoáº¡t Ä‘á»™ng táº¡i Ä‘iá»ƒm Ä‘áº¿n`,
-      description: "Lá»‹ch trÃ¬nh cÃ³ thá»ƒ Ä‘iá»u chá»‰nh theo Ä‘iá»u kiá»‡n thá»±c táº¿ vÃ  nhu cáº§u Ä‘oÃ n.",
+      title: `Ngày ${index + 1}: Hoạt động tại điểm đến`,
+      description: "Lịch trình có thể điều chỉnh theo điều kiện thực tế và nhu cầu đoàn.",
     })),
   );
   await writeDemo(state);
@@ -1425,7 +1440,7 @@ export async function demoGetHomePublicData() {
     itineraries: Array.from({ length: Math.min(3, tour.durationDays) }).map((_, index) => ({
       id: `${tour.id}_it_${index + 1}`,
       dayNumber: index + 1,
-      title: `NgÃ y ${index + 1}: Tráº£i nghiá»‡m táº¡i ${tour.location.name}`,
+      title: `Ngày ${index + 1}: Trải nghiệm tại ${tour.location.name}`,
     })),
   }));
 
@@ -1441,7 +1456,7 @@ export async function demoGetHomePublicData() {
         ...review,
         createdAt: toDate(review.createdAt),
         user: {
-          fullName: user?.fullName ?? "NgÆ°á»i dÃ¹ng",
+          fullName: user?.fullName ?? "Người dùng",
           avatarUrl: localAvatarPool[index % localAvatarPool.length],
         },
         tour: {
@@ -1653,7 +1668,7 @@ export async function demoGetPublicReviews(limit = 24) {
         ...review,
         createdAt: toDate(review.createdAt),
         user: {
-          fullName: userMap.get(review.userId)?.fullName ?? "NgÆ°á»i dÃ¹ng",
+          fullName: userMap.get(review.userId)?.fullName ?? "Người dùng",
           avatarUrl: localAvatarPool[index % localAvatarPool.length],
         },
         tour: {
@@ -1688,7 +1703,7 @@ async function ensureDemoUser(state: DemoState, userId: string, profile?: { full
     const createdAt = nowIso();
     user = {
       id: userId,
-      fullName: profile?.fullName ?? "NgÆ°á»i dÃ¹ng",
+      fullName: profile?.fullName ?? "Người dùng",
       email: profile?.email ?? `${userId}@local.dev`,
       phone: null,
       avatarUrl: null,

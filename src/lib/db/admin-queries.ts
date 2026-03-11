@@ -39,6 +39,12 @@ type AdminListFilter = {
   pageSize?: number;
 };
 
+type AdminTourListFilter = AdminListFilter & {
+  status?: TourStatus;
+  featured?: boolean;
+  locationId?: string;
+};
+
 function getPagination(filter: AdminListFilter) {
   const page = Math.max(filter.page ?? 1, 1);
   const pageSize = Math.min(Math.max(filter.pageSize ?? 12, 1), 50);
@@ -335,7 +341,7 @@ export async function getAdminUsers(
   }
 }
 
-export async function getAdminTours(filter: AdminListFilter = {}) {
+export async function getAdminTours(filter: AdminTourListFilter = {}) {
   try {
     const { page, pageSize, skip } = getPagination(filter);
 
@@ -348,12 +354,21 @@ export async function getAdminTours(filter: AdminListFilter = {}) {
           ],
         }
       : {};
+    if (filter.status) {
+      where.status = filter.status;
+    }
+    if (typeof filter.featured === "boolean") {
+      where.featured = filter.featured;
+    }
+    if (filter.locationId) {
+      where.locationId = filter.locationId;
+    }
 
     const [total, items] = await Promise.all([
       db.tour.count({ where }),
       db.tour.findMany({
         where,
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
         skip,
         take: pageSize,
         include: {
