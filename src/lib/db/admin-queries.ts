@@ -30,6 +30,7 @@ import {
   demoDeleteTour,
   demoUpdateUserContent,
   demoUpdateUser,
+  demoDeleteUser,
 } from "@/lib/demo/admin-demo-store";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { db } from "@/lib/db/prisma";
@@ -1017,6 +1018,45 @@ export async function updateAdminUser(
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoUpdateUser(userId, payload);
+    }
+    throw error;
+  }
+}
+
+export async function deleteAdminUser(userId: string) {
+  try {
+    const current = await db.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true },
+    });
+    if (!current) return null;
+
+    if (current.role === UserRole.ADMIN) {
+      const totalAdmins = await db.user.count({
+        where: { role: UserRole.ADMIN },
+      });
+      if (totalAdmins <= 1) {
+        return "LAST_ADMIN";
+      }
+    }
+
+    return db.$transaction(async (tx) => {
+      await tx.favorite.deleteMany({ where: { userId } });
+      await tx.review.deleteMany({ where: { userId } });
+      await tx.booking.deleteMany({ where: { userId } });
+      return tx.user.delete({
+        where: { id: userId },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          role: true,
+        },
+      });
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoDeleteUser(userId);
     }
     throw error;
   }

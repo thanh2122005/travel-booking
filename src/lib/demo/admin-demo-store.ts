@@ -1294,6 +1294,28 @@ export async function demoUpdateUser(id: string, payload: { role?: UserRole; sta
   return user;
 }
 
+export async function demoDeleteUser(id: string) {
+  const state = await readDemo();
+  const userIndex = state.users.findIndex((item) => item.id === id);
+  if (userIndex < 0) return null;
+
+  const targetUser = state.users[userIndex]!;
+  if (targetUser.role === UserRole.ADMIN) {
+    const adminCount = state.users.filter((item) => item.role === UserRole.ADMIN).length;
+    if (adminCount <= 1) {
+      return "LAST_ADMIN";
+    }
+  }
+
+  state.users.splice(userIndex, 1);
+  state.bookings = state.bookings.filter((item) => item.userId !== id);
+  state.reviews = state.reviews.filter((item) => item.userId !== id);
+  state.favorites = state.favorites.filter((item) => item.userId !== id);
+
+  await writeDemo(state);
+  return targetUser;
+}
+
 export async function demoUpdateUserContent(
   id: string,
   payload: {

@@ -1,8 +1,8 @@
-import { UserRole, UserStatus } from "@prisma/client";
+﻿import { UserRole, UserStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
-import { updateAdminUser } from "@/lib/db/admin-queries";
+import { deleteAdminUser, getAdminUsers, updateAdminUser } from "@/lib/db/admin-queries";
 
 const userUpdateSchema = z.object({
   role: z.nativeEnum(UserRole).optional(),
@@ -30,4 +30,31 @@ export async function PATCH(request: Request, context: UserRouteContext) {
   }
 
   return NextResponse.json({ message: "Đã cập nhật người dùng.", user: updated });
+}
+
+export async function DELETE(_request: Request, context: UserRouteContext) {
+  const guard = await requireAdminApi();
+  if (guard) return guard;
+
+  const { id } = await context.params;
+  const removed = await deleteAdminUser(id).catch(() => null);
+
+  if (removed === "LAST_ADMIN") {
+    return NextResponse.json(
+      { message: "Không thể xóa quản trị viên cuối cùng của hệ thống." },
+      { status: 400 },
+    );
+  }
+
+  if (!removed) {
+    return NextResponse.json({ message: "Không thể xóa người dùng." }, { status: 500 });
+  }
+
+  const currentUsers = await getAdminUsers({ page: 1, pageSize: 1 }).catch(() => null);
+
+  return NextResponse.json({
+    message: "Đã xóa người dùng thành công.",
+    user: removed,
+    totalUsers: currentUsers?.total,
+  });
 }
