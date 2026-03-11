@@ -138,10 +138,20 @@ export function AdminBookingsTable({
               Cập nhật hàng loạt
             </p>
             <p className="mt-1 text-sm text-slate-600">
-            Đã chọn <span className="font-semibold text-slate-900">{selectedIdsInPage.length}</span>{" "}
-            booking.
+              Đã chọn{" "}
+              <span className="font-semibold text-slate-900">{selectedIdsInPage.length}</span> booking
+              trong trang hiện tại.
             </p>
           </div>
+          <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+            <input
+              type="checkbox"
+              checked={isAllSelected}
+              onChange={(event) => toggleSelectAll(event.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 accent-teal-600"
+            />
+            Chọn tất cả trong trang
+          </label>
           <select
             value={bulkStatus}
             onChange={(event) => setBulkStatus(event.target.value)}
@@ -184,73 +194,131 @@ export function AdminBookingsTable({
         </div>
       </div>
 
-      <div className="iv-card overflow-x-auto p-4">
-        <table className="w-full min-w-[1040px] text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-left text-slate-500">
-              <th className="px-2 py-3 font-medium">
-                <input
-                  type="checkbox"
-                  checked={isAllSelected}
-                  onChange={(event) => toggleSelectAll(event.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 accent-teal-600"
-                />
-              </th>
-              <th className="px-2 py-3 font-medium">Mã đơn</th>
-              <th className="px-2 py-3 font-medium">Khách hàng</th>
-              <th className="px-2 py-3 font-medium">Tour</th>
-              <th className="px-2 py-3 font-medium">Số khách</th>
-              <th className="px-2 py-3 font-medium">Tổng tiền</th>
-              <th className="px-2 py-3 font-medium">Trạng thái</th>
-              <th className="px-2 py-3 font-medium">Thanh toán</th>
-              <th className="px-2 py-3 font-medium">Ngày tạo</th>
-              <th className="px-2 py-3 font-medium">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((booking) => (
-              <tr key={booking.id} className="border-b border-slate-100 last:border-0">
-                <td className="px-2 py-3 align-top">
-                  <input
-                    type="checkbox"
-                    checked={selectedIdsInPage.includes(booking.id)}
-                    onChange={(event) => toggleItem(booking.id, event.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
-                  />
-                </td>
-                <td className="px-2 py-3 font-semibold text-slate-800">{booking.bookingCode}</td>
-                <td className="px-2 py-3">
-                  <p className="font-medium text-slate-800">{booking.fullName}</p>
+      <div className="space-y-3 lg:hidden">
+        {items.map((booking) => (
+          <article key={booking.id} className="iv-card p-4">
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={selectedIdsInPage.includes(booking.id)}
+                onChange={(event) => toggleItem(booking.id, event.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
+              />
+              <div className="flex-1 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{booking.bookingCode}</p>
+                    <p className="text-xs text-slate-500">{formatDate(new Date(booking.createdAt))}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-slate-900">{formatPrice(booking.totalPrice)}</p>
+                    <p className="text-xs text-slate-500">{booking.numberOfGuests} khách</p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium text-slate-900">{booking.fullName}</p>
                   <p className="text-xs text-slate-500">{booking.email}</p>
-                </td>
-                <td className="px-2 py-3">
-                  <Link href={`/tours/${booking.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
+                </div>
+
+                <p className="text-sm text-slate-700">
+                  Tour:{" "}
+                  <Link href={`/tours/${booking.tour.slug}`} className="font-semibold text-teal-700 hover:text-teal-800">
                     {booking.tour.title}
                   </Link>
-                </td>
-                <td className="px-2 py-3">{booking.numberOfGuests}</td>
-                <td className="px-2 py-3 font-medium">{formatPrice(booking.totalPrice)}</td>
-                <td className="px-2 py-3">
+                </p>
+
+                <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline">{statusLabels[booking.status]}</Badge>
-                </td>
-                <td className="px-2 py-3">
                   <Badge variant="outline">{paymentLabels[booking.paymentStatus]}</Badge>
-                </td>
-                <td className="px-2 py-3 text-slate-500">{formatDate(new Date(booking.createdAt))}</td>
-                <td className="px-2 py-3">
-                  <div className="space-y-2">
-                    <AdminBookingActions
-                      bookingId={booking.id}
-                      status={booking.status}
-                      paymentStatus={booking.paymentStatus}
-                    />
-                    <AdminBookingDetailDialog booking={booking} />
-                  </div>
-                </td>
+                </div>
+
+                <div className="space-y-2">
+                  <AdminBookingActions
+                    bookingId={booking.id}
+                    status={booking.status}
+                    paymentStatus={booking.paymentStatus}
+                  />
+                  <AdminBookingDetailDialog booking={booking} />
+                </div>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="hidden lg:block">
+        <div className="iv-card overflow-x-auto p-4">
+          <table className="w-full min-w-[1040px] text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-left text-slate-500">
+                <th className="px-2 py-3 font-medium">
+                  <input
+                    type="checkbox"
+                    checked={isAllSelected}
+                    onChange={(event) => toggleSelectAll(event.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 accent-teal-600"
+                  />
+                </th>
+                <th className="px-2 py-3 font-medium">Mã đơn</th>
+                <th className="px-2 py-3 font-medium">Khách hàng</th>
+                <th className="px-2 py-3 font-medium">Tour</th>
+                <th className="px-2 py-3 font-medium">Số khách</th>
+                <th className="px-2 py-3 font-medium">Tổng tiền</th>
+                <th className="px-2 py-3 font-medium">Trạng thái</th>
+                <th className="px-2 py-3 font-medium">Thanh toán</th>
+                <th className="px-2 py-3 font-medium">Ngày tạo</th>
+                <th className="px-2 py-3 font-medium">Thao tác</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {items.map((booking) => (
+                <tr key={booking.id} className="border-b border-slate-100 last:border-0">
+                  <td className="px-2 py-3 align-top">
+                    <input
+                      type="checkbox"
+                      checked={selectedIdsInPage.includes(booking.id)}
+                      onChange={(event) => toggleItem(booking.id, event.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
+                    />
+                  </td>
+                  <td className="px-2 py-3 font-semibold text-slate-800">{booking.bookingCode}</td>
+                  <td className="px-2 py-3">
+                    <p className="font-medium text-slate-800">{booking.fullName}</p>
+                    <p className="text-xs text-slate-500">{booking.email}</p>
+                  </td>
+                  <td className="px-2 py-3">
+                    <Link
+                      href={`/tours/${booking.tour.slug}`}
+                      className="font-medium text-teal-700 hover:text-teal-800"
+                    >
+                      {booking.tour.title}
+                    </Link>
+                  </td>
+                  <td className="px-2 py-3">{booking.numberOfGuests}</td>
+                  <td className="px-2 py-3 font-medium">{formatPrice(booking.totalPrice)}</td>
+                  <td className="px-2 py-3">
+                    <Badge variant="outline">{statusLabels[booking.status]}</Badge>
+                  </td>
+                  <td className="px-2 py-3">
+                    <Badge variant="outline">{paymentLabels[booking.paymentStatus]}</Badge>
+                  </td>
+                  <td className="px-2 py-3 text-slate-500">{formatDate(new Date(booking.createdAt))}</td>
+                  <td className="px-2 py-3">
+                    <div className="space-y-2">
+                      <AdminBookingActions
+                        bookingId={booking.id}
+                        status={booking.status}
+                        paymentStatus={booking.paymentStatus}
+                      />
+                      <AdminBookingDetailDialog booking={booking} />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
