@@ -1,5 +1,6 @@
 ﻿import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
+import { NewsletterSubscribeForm } from "@/components/layout/newsletter-subscribe-form";
 import { footerPopularDestinations, footerQuickLinks } from "@/lib/content/site-navigation";
 import { getLocations } from "@/lib/db/public-queries";
 
@@ -70,19 +71,7 @@ export async function SiteFooter() {
           <p className="text-sm leading-7 text-slate-300">
             Nhận bản tin về hành trình mới, tour nổi bật và lộ trình du lịch Việt Nam mới nhất.
           </p>
-          <form className="space-y-2">
-            <input
-              type="email"
-              placeholder="Email của bạn"
-              className="h-10 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 text-sm text-white placeholder:text-slate-400 focus:border-teal-400 focus:outline-none"
-            />
-            <button
-              type="submit"
-              className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-4 text-sm font-semibold"
-            >
-              Đăng ký
-            </button>
-          </form>
+          <NewsletterSubscribeForm />
         </div>
       </div>
 
@@ -92,4 +81,3 @@ export async function SiteFooter() {
     </footer>
   );
 }
-
