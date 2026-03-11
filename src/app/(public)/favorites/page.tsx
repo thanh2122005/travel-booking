@@ -9,10 +9,53 @@ import { formatPrice } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
 
-export default async function FavoritesPage() {
+type FavoritesPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+type FavoriteSortValue = "newest" | "price-asc" | "price-desc";
+
+function normalizeParam(value?: string | string[]) {
+  if (!value) return "";
+  return Array.isArray(value) ? value[0] ?? "" : value;
+}
+
+function parseSort(value: string): FavoriteSortValue {
+  if (value === "price-asc" || value === "price-desc") {
+    return value;
+  }
+  return "newest";
+}
+
+export default async function FavoritesPage({ searchParams }: FavoritesPageProps) {
+  const params = await searchParams;
+  const search = normalizeParam(params.search);
+  const sort = parseSort(normalizeParam(params.sort));
+  const hasActiveFilters = Boolean(search || sort !== "newest");
+
   const session = await getAuthSession();
   const dashboard = session?.user?.id ? await getUserDashboardData(session.user.id).catch(() => null) : null;
   const favorites = dashboard?.favorites ?? [];
+  const normalizedSearch = search.trim().toLowerCase();
+
+  const filteredFavorites = favorites
+    .filter((favorite) => {
+      if (!normalizedSearch) return true;
+      return (
+        favorite.tour.title.toLowerCase().includes(normalizedSearch) ||
+        favorite.tour.shortDescription.toLowerCase().includes(normalizedSearch) ||
+        favorite.tour.location.name.toLowerCase().includes(normalizedSearch)
+      );
+    })
+    .slice()
+    .sort((a, b) => {
+      const priceA = a.tour.discountPrice ?? a.tour.price;
+      const priceB = b.tour.discountPrice ?? b.tour.price;
+
+      if (sort === "price-asc") return priceA - priceB;
+      if (sort === "price-desc") return priceB - priceA;
+      return +new Date(b.createdAt) - +new Date(a.createdAt);
+    });
 
   return (
     <div className="space-y-8">
@@ -31,12 +74,50 @@ export default async function FavoritesPage() {
         <HomeSectionHeading
           eyebrow="Đã lưu"
           title="Tour bạn đang theo dõi"
-          description="Danh sách này được đồng bộ theo tài khoản người dùng và cập nhật theo thao tác yêu thích."
+          description={`Hiển thị ${filteredFavorites.length}/${favorites.length} tour theo bộ lọc hiện tại.`}
         />
 
-        {favorites.length ? (
+        <form className="iv-card p-4">
+          <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Tìm kiếm tour yêu thích
+          </label>
+          <div className="grid gap-2 md:grid-cols-[1fr_180px_auto_auto]">
+            <input
+              id="search"
+              name="search"
+              defaultValue={search}
+              placeholder="Tên tour, điểm đến hoặc mô tả..."
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+            <select
+              name="sort"
+              defaultValue={sort}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            >
+              <option value="newest">Mới lưu gần đây</option>
+              <option value="price-asc">Giá tăng dần</option>
+              <option value="price-desc">Giá giảm dần</option>
+            </select>
+            <button
+              type="submit"
+              className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
+            >
+              Áp dụng
+            </button>
+            {hasActiveFilters ? (
+              <Link
+                href="/favorites"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+              >
+                Xóa lọc
+              </Link>
+            ) : null}
+          </div>
+        </form>
+
+        {filteredFavorites.length ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {favorites.map((favorite) => {
+            {filteredFavorites.map((favorite) => {
               const displayPrice = favorite.tour.discountPrice ?? favorite.tour.price;
 
               return (
@@ -62,6 +143,13 @@ export default async function FavoritesPage() {
               );
             })}
           </div>
+        ) : favorites.length ? (
+          <EmptyState
+            title="Không tìm thấy tour phù hợp"
+            description="Hãy thử từ khóa khác hoặc xóa bộ lọc để xem toàn bộ danh sách."
+            ctaHref="/favorites"
+            ctaLabel="Xóa bộ lọc"
+          />
         ) : session?.user ? (
           <EmptyState
             title="Chưa có tour yêu thích"

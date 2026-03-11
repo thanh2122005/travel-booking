@@ -10,6 +10,25 @@ import { formatDate, formatPrice } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
 
+type BookingPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+type BookingStatusValue = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
+type PaymentStatusValue = "UNPAID" | "PAID";
+
+const bookingStatusLabels: Record<BookingStatusValue, string> = {
+  PENDING: "Chờ xác nhận",
+  CONFIRMED: "Đã xác nhận",
+  CANCELLED: "Đã hủy",
+  COMPLETED: "Hoàn thành",
+};
+
+const paymentStatusLabels: Record<PaymentStatusValue, string> = {
+  UNPAID: "Chưa thanh toán",
+  PAID: "Đã thanh toán",
+};
+
 const bookingSteps = [
   {
     icon: CalendarCheck2,
@@ -33,9 +52,38 @@ const bookingSteps = [
   },
 ];
 
-export default async function BookingPage() {
+function normalizeParam(value?: string | string[]) {
+  if (!value) return "";
+  return Array.isArray(value) ? value[0] ?? "" : value;
+}
+
+function parseStatus(value: string): BookingStatusValue | "" {
+  if (value === "PENDING" || value === "CONFIRMED" || value === "CANCELLED" || value === "COMPLETED") {
+    return value;
+  }
+  return "";
+}
+
+export default async function BookingPage({ searchParams }: BookingPageProps) {
+  const params = await searchParams;
+  const search = normalizeParam(params.search);
+  const status = parseStatus(normalizeParam(params.status));
+  const hasActiveFilters = Boolean(search || status);
+  const normalizedSearch = search.trim().toLowerCase();
+
   const session = await getAuthSession();
   const dashboard = session?.user?.id ? await getUserDashboardData(session.user.id).catch(() => null) : null;
+  const bookings = dashboard?.bookings ?? [];
+
+  const filteredBookings = bookings.filter((booking) => {
+    const searchMatched =
+      !normalizedSearch ||
+      booking.bookingCode.toLowerCase().includes(normalizedSearch) ||
+      booking.tour.title.toLowerCase().includes(normalizedSearch) ||
+      booking.tour.departureLocation.toLowerCase().includes(normalizedSearch);
+    const statusMatched = !status || booking.status === status;
+    return searchMatched && statusMatched;
+  });
 
   return (
     <div className="space-y-10">
@@ -68,16 +116,56 @@ export default async function BookingPage() {
           <HomeSectionHeading
             eyebrow="Đơn gần đây"
             title="Đơn đặt tour gần đây của bạn"
-            description="Bảng này map dữ liệu trực tiếp từ model Booking trong Prisma."
+            description={`Hiển thị ${filteredBookings.length}/${bookings.length} đơn theo bộ lọc hiện tại.`}
           />
           <Link href="/tours" className="iv-btn-soft inline-flex h-10 items-center px-4 text-sm font-semibold">
             Tìm và đặt tour mới
           </Link>
         </div>
 
-        {dashboard?.bookings?.length ? (
+        <form className="iv-card p-4">
+          <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Tìm kiếm booking
+          </label>
+          <div className="grid gap-2 md:grid-cols-[1fr_200px_auto_auto]">
+            <input
+              id="search"
+              name="search"
+              defaultValue={search}
+              placeholder="Mã đơn, tên tour hoặc điểm khởi hành..."
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+            <select
+              name="status"
+              defaultValue={status}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="PENDING">Chờ xác nhận</option>
+              <option value="CONFIRMED">Đã xác nhận</option>
+              <option value="COMPLETED">Hoàn thành</option>
+              <option value="CANCELLED">Đã hủy</option>
+            </select>
+            <button
+              type="submit"
+              className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
+            >
+              Áp dụng
+            </button>
+            {hasActiveFilters ? (
+              <Link
+                href="/booking"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+              >
+                Xóa lọc
+              </Link>
+            ) : null}
+          </div>
+        </form>
+
+        {filteredBookings.length ? (
           <div className="iv-card overflow-x-auto p-4">
-            <table className="w-full min-w-[760px] text-sm">
+            <table className="w-full min-w-[920px] text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-slate-500">
                   <th className="px-2 py-3 font-medium">Mã đơn</th>
@@ -85,11 +173,12 @@ export default async function BookingPage() {
                   <th className="px-2 py-3 font-medium">Khách</th>
                   <th className="px-2 py-3 font-medium">Tổng tiền</th>
                   <th className="px-2 py-3 font-medium">Trạng thái</th>
+                  <th className="px-2 py-3 font-medium">Thanh toán</th>
                   <th className="px-2 py-3 font-medium">Ngày tạo</th>
                 </tr>
               </thead>
               <tbody>
-                {dashboard.bookings.slice(0, 8).map((booking) => (
+                {filteredBookings.slice(0, 12).map((booking) => (
                   <tr key={booking.id} className="border-b border-slate-100 last:border-0">
                     <td className="px-2 py-3 font-semibold text-slate-800">{booking.bookingCode}</td>
                     <td className="px-2 py-3">
@@ -101,7 +190,10 @@ export default async function BookingPage() {
                     <td className="px-2 py-3">{booking.numberOfGuests}</td>
                     <td className="px-2 py-3 font-medium">{formatPrice(booking.totalPrice)}</td>
                     <td className="px-2 py-3">
-                      <Badge variant="outline">{booking.status}</Badge>
+                      <Badge variant="outline">{bookingStatusLabels[booking.status as BookingStatusValue] ?? booking.status}</Badge>
+                    </td>
+                    <td className="px-2 py-3">
+                      <Badge variant="outline">{paymentStatusLabels[booking.paymentStatus as PaymentStatusValue] ?? booking.paymentStatus}</Badge>
                     </td>
                     <td className="px-2 py-3 text-slate-500">{formatDate(booking.createdAt)}</td>
                   </tr>
@@ -109,6 +201,13 @@ export default async function BookingPage() {
               </tbody>
             </table>
           </div>
+        ) : bookings.length ? (
+          <EmptyState
+            title="Không tìm thấy đơn phù hợp"
+            description="Hãy thử từ khóa khác hoặc xóa bộ lọc để xem tất cả booking."
+            ctaHref="/booking"
+            ctaLabel="Xóa bộ lọc"
+          />
         ) : session?.user ? (
           <EmptyState
             title="Bạn chưa có đơn đặt tour"
