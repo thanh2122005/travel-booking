@@ -250,6 +250,11 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         </div>
 
         <form className="mb-4 grid gap-2 md:grid-cols-[1fr_180px_180px_auto]">
+          <input type="hidden" name="favoriteSearch" value={favoriteSearch} />
+          <input type="hidden" name="favoriteSort" value={favoriteSort} />
+          <input type="hidden" name="reviewSearch" value={reviewSearch} />
+          <input type="hidden" name="reviewSort" value={reviewSort} />
+          <input type="hidden" name="reviewMinRating" value={reviewMinRating} />
           <input
             name="bookingSearch"
             defaultValue={bookingSearch}
@@ -382,6 +387,12 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         </div>
 
         <form className="mb-4 grid gap-2 md:grid-cols-[1fr_200px_auto]">
+          <input type="hidden" name="bookingSearch" value={bookingSearch} />
+          <input type="hidden" name="bookingStatus" value={bookingStatus} />
+          <input type="hidden" name="paymentStatus" value={paymentStatus} />
+          <input type="hidden" name="reviewSearch" value={reviewSearch} />
+          <input type="hidden" name="reviewSort" value={reviewSort} />
+          <input type="hidden" name="reviewMinRating" value={reviewMinRating} />
           <input
             name="favoriteSearch"
             defaultValue={favoriteSearch}
@@ -462,6 +473,11 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         </div>
 
         <form className="mb-4 grid gap-2 md:grid-cols-[1fr_160px_180px_auto]">
+          <input type="hidden" name="bookingSearch" value={bookingSearch} />
+          <input type="hidden" name="bookingStatus" value={bookingStatus} />
+          <input type="hidden" name="paymentStatus" value={paymentStatus} />
+          <input type="hidden" name="favoriteSearch" value={favoriteSearch} />
+          <input type="hidden" name="favoriteSort" value={favoriteSort} />
           <input
             name="reviewSearch"
             defaultValue={reviewSearch}
