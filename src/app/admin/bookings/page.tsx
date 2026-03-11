@@ -14,6 +14,7 @@ type AdminBookingsPageProps = {
 
 const bookingStatusValues: BookingStatusValue[] = ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"];
 const paymentStatusValues: PaymentStatusValue[] = ["UNPAID", "PAID"];
+const quickDateRanges = [7, 30, 90] as const;
 
 function normalizeParam(value?: string | string[]) {
   if (!value) return "";
@@ -39,6 +40,24 @@ function toValidPage(value: string) {
   return Math.trunc(page);
 }
 
+function toInputDateValue(date: Date) {
+  const localDate = new Date(date);
+  localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset());
+  return localDate.toISOString().slice(0, 10);
+}
+
+function createQuickDateRange(days: number) {
+  const end = new Date();
+  end.setHours(0, 0, 0, 0);
+  const start = new Date(end);
+  start.setDate(start.getDate() - (days - 1));
+
+  return {
+    createdFrom: toInputDateValue(start),
+    createdTo: toInputDateValue(end),
+  };
+}
+
 export default async function AdminBookingsPage({ searchParams }: AdminBookingsPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
@@ -54,6 +73,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
   const paymentStatus = paymentStatusValues.includes(paymentStatusRaw as PaymentStatusValue)
     ? (paymentStatusRaw as PaymentStatusValue)
     : undefined;
+  const hasActiveFilters = Boolean(search || status || paymentStatus || createdFrom || createdTo);
 
   const data = await getAdminBookings({
     search: search || undefined,
@@ -92,6 +112,43 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
         >
           Tìm kiếm booking
         </label>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-slate-500">Mốc nhanh:</span>
+          {quickDateRanges.map((days) => {
+            const quickRange = createQuickDateRange(days);
+            const isActive =
+              createdFrom === quickRange.createdFrom && createdTo === quickRange.createdTo;
+            return (
+              <Link
+                key={days}
+                href={{
+                  pathname: "/admin/bookings",
+                  query: {
+                    ...params,
+                    createdFrom: quickRange.createdFrom,
+                    createdTo: quickRange.createdTo,
+                    page: "1",
+                  },
+                }}
+                className={`inline-flex h-8 items-center rounded-md border px-3 text-xs font-semibold transition ${
+                  isActive
+                    ? "border-teal-600 bg-teal-600 text-white"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {days} ngày
+              </Link>
+            );
+          })}
+          {hasActiveFilters ? (
+            <Link
+              href="/admin/bookings"
+              className="inline-flex h-8 items-center rounded-md border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+            >
+              Xóa bộ lọc
+            </Link>
+          ) : null}
+        </div>
         <div className="grid gap-2 lg:grid-cols-[1fr_170px_170px_170px_170px_auto]">
           <input
             id="search"

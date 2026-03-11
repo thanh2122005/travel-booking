@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 type AdminReviewsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
+const quickDateRanges = [7, 30, 90] as const;
 
 function normalizeParam(value?: string | string[]) {
   if (!value) return "";
@@ -39,6 +40,24 @@ function toValidPage(value: string) {
   return Math.trunc(page);
 }
 
+function toInputDateValue(date: Date) {
+  const localDate = new Date(date);
+  localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset());
+  return localDate.toISOString().slice(0, 10);
+}
+
+function createQuickDateRange(days: number) {
+  const end = new Date();
+  end.setHours(0, 0, 0, 0);
+  const start = new Date(end);
+  start.setDate(start.getDate() - (days - 1));
+
+  return {
+    createdFrom: toInputDateValue(start),
+    createdTo: toInputDateValue(end),
+  };
+}
+
 export default async function AdminReviewsPage({ searchParams }: AdminReviewsPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
@@ -46,6 +65,7 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
   const createdFrom = normalizeParam(params.createdFrom);
   const createdTo = normalizeParam(params.createdTo);
   const page = toValidPage(normalizeParam(params.page));
+  const hasActiveFilters = Boolean(search || isVisible || createdFrom || createdTo);
 
   const data = await getAdminReviews({
     search: search || undefined,
@@ -83,6 +103,43 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
         >
           Tìm kiếm đánh giá
         </label>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-slate-500">Mốc nhanh:</span>
+          {quickDateRanges.map((days) => {
+            const quickRange = createQuickDateRange(days);
+            const isActive =
+              createdFrom === quickRange.createdFrom && createdTo === quickRange.createdTo;
+            return (
+              <Link
+                key={days}
+                href={{
+                  pathname: "/admin/reviews",
+                  query: {
+                    ...params,
+                    createdFrom: quickRange.createdFrom,
+                    createdTo: quickRange.createdTo,
+                    page: "1",
+                  },
+                }}
+                className={`inline-flex h-8 items-center rounded-md border px-3 text-xs font-semibold transition ${
+                  isActive
+                    ? "border-teal-600 bg-teal-600 text-white"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {days} ngày
+              </Link>
+            );
+          })}
+          {hasActiveFilters ? (
+            <Link
+              href="/admin/reviews"
+              className="inline-flex h-8 items-center rounded-md border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+            >
+              Xóa bộ lọc
+            </Link>
+          ) : null}
+        </div>
         <div className="grid gap-2 lg:grid-cols-[1fr_170px_170px_170px_auto]">
           <input
             id="search"
