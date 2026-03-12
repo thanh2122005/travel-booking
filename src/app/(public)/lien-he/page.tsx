@@ -27,10 +27,22 @@ function normalizeLocationLabel(value: string) {
 export default async function ContactPage({ searchParams }: ContactPageProps) {
   const params = await searchParams;
   const initialTourId = normalizeParam(params.tourId);
+  const tourNameParam = normalizeParam(params.tourName);
   const locationParam = normalizeParam(params.location);
   const locationNameParam = normalizeParam(params.locationName);
   const locationLabel = locationNameParam || normalizeLocationLabel(locationParam);
-  const initialMessage = locationLabel ? `Mình muốn được tư vấn tour tại ${locationLabel}.` : "";
+  const initialMessage = (() => {
+    if (tourNameParam && locationLabel) {
+      return `Mình muốn được tư vấn tour "${tourNameParam}" tại ${locationLabel}.`;
+    }
+    if (tourNameParam) {
+      return `Mình muốn được tư vấn chi tiết tour "${tourNameParam}".`;
+    }
+    if (locationLabel) {
+      return `Mình muốn được tư vấn tour tại ${locationLabel}.`;
+    }
+    return "";
+  })();
 
   const data = await getHomePublicData().catch(() => ({
     featuredTours: [],

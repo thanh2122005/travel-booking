@@ -65,6 +65,9 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
   const averageRating = reviewCount
     ? Number((tour.reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount).toFixed(1))
     : 0;
+  const quickConsultHref = `/lien-he?tourId=${encodeURIComponent(tour.id)}&tourName=${encodeURIComponent(
+    tour.title,
+  )}&locationName=${encodeURIComponent(tour.location.name)}`;
   const ratingRows = [5, 4, 3, 2, 1].map((rating) => {
     const count = tour.reviews.filter((review) => review.rating === rating).length;
     const percent = reviewCount ? (count / reviewCount) * 100 : 0;
@@ -240,7 +243,19 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
           </article>
         </div>
 
-        <aside className="h-fit lg:sticky lg:top-24">
+        <aside className="h-fit space-y-4 lg:sticky lg:top-24">
+          <article className="rounded-2xl border bg-card p-4">
+            <p className="text-sm font-semibold text-slate-900">Cần tư vấn nhanh?</p>
+            <p className="mt-1 text-xs leading-6 text-slate-600">
+              Đội ngũ tư vấn sẽ chuẩn bị phương án phù hợp theo tour bạn đang xem.
+            </p>
+            <Link
+              href={quickConsultHref}
+              className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-4 text-sm font-semibold text-teal-700 transition hover:bg-teal-100"
+            >
+              Điền form tư vấn tour này
+            </Link>
+          </article>
           <TourBookingCard
             tourId={tour.id}
             tourSlug={tour.slug}
