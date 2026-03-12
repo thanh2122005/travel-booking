@@ -1,4 +1,5 @@
 ﻿import Image from "next/image";
+import Link from "next/link";
 import { Camera, Mountain, Ship, Umbrella } from "lucide-react";
 import { PageHeroBanner } from "@/components/common/page-hero-banner";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
@@ -40,7 +41,7 @@ export default async function AboutPage() {
   ];
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 pb-24 lg:pb-0">
       <PageHeroBanner
         eyebrow="Câu chuyện thương hiệu"
         title="Về Immersive Vietnam"
@@ -49,6 +50,31 @@ export default async function AboutPage() {
       />
 
       <section className="space-y-6">
+        <div className="iv-card p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Đi đến nhanh</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <a
+              href="#hanh-trinh-phat-trien"
+              className="inline-flex h-9 items-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              Hành trình phát triển
+            </a>
+            <a
+              href="#diem-nhan-thuong-hieu"
+              className="inline-flex h-9 items-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              Điểm nhấn
+            </a>
+            <Link
+              href="/tours"
+              className="inline-flex h-9 items-center rounded-lg border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
+            >
+              Xem tour
+            </Link>
+          </div>
+        </div>
+
+        <div id="hanh-trinh-phat-trien" className="scroll-mt-24" />
         <HomeSectionHeading
           eyebrow="Hành trình phát triển"
           title="Nâng cấp từ giao diện thành sản phẩm"
@@ -94,7 +120,10 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="iv-card overflow-hidden bg-[linear-gradient(130deg,#072236,#0a324f)] p-7 text-white md:p-9">
+      <section
+        id="diem-nhan-thuong-hieu"
+        className="iv-card scroll-mt-24 overflow-hidden bg-[linear-gradient(130deg,#072236,#0a324f)] p-7 text-white md:p-9"
+      >
         <HomeSectionHeading
           eyebrow="Điểm nhấn"
           title="Một vài con số về hành trình của chúng tôi"
@@ -110,6 +139,27 @@ export default async function AboutPage() {
           ))}
         </div>
       </section>
+
+      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
+        <a
+          href="#hanh-trinh-phat-trien"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Hành trình
+        </a>
+        <a
+          href="#diem-nhan-thuong-hieu"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Điểm nhấn
+        </a>
+        <Link
+          href="/lien-he"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
+        >
+          Liên hệ
+        </Link>
+      </div>
     </div>
   );
 }
