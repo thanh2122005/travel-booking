@@ -31,6 +31,32 @@ function parseSort(value: string): DestinationSortValue {
   return "noi-bat";
 }
 
+function buildDestinationsHref(
+  raw: Record<string, string | string[] | undefined>,
+  overrides: Record<string, string | undefined>,
+) {
+  const query = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(raw)) {
+    if (!value) continue;
+    const normalized = Array.isArray(value) ? value[0] ?? "" : value;
+    if (normalized) {
+      query.set(key, normalized);
+    }
+  }
+
+  for (const [key, value] of Object.entries(overrides)) {
+    if (!value) {
+      query.delete(key);
+      continue;
+    }
+    query.set(key, value);
+  }
+
+  const serialized = query.toString();
+  return serialized ? `/dia-diem?${serialized}` : "/dia-diem";
+}
+
 export default async function DestinationsPage({ searchParams }: DestinationsPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
@@ -105,6 +131,54 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
           ) : null}
         </div>
       </form>
+
+      <div className="iv-card p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Lọc nhanh</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link
+            href={buildDestinationsHref(params, {
+              featured: featuredOnly ? "" : "1",
+            })}
+            className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-semibold transition ${
+              featuredOnly
+                ? "border-teal-300 bg-teal-50 text-teal-700"
+                : "border-slate-300 text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            {featuredOnly ? "Bỏ lọc nổi bật" : "Chỉ nổi bật"}
+          </Link>
+          <Link
+            href={buildDestinationsHref(params, { sort: "noi-bat" })}
+            className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-semibold transition ${
+              sort === "noi-bat"
+                ? "border-teal-300 bg-teal-50 text-teal-700"
+                : "border-slate-300 text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            Ưu tiên nổi bật
+          </Link>
+          <Link
+            href={buildDestinationsHref(params, { sort: "ten-a-z" })}
+            className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-semibold transition ${
+              sort === "ten-a-z"
+                ? "border-teal-300 bg-teal-50 text-teal-700"
+                : "border-slate-300 text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            Tên A-Z
+          </Link>
+          <Link
+            href={buildDestinationsHref(params, { sort: "ten-z-a" })}
+            className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-semibold transition ${
+              sort === "ten-z-a"
+                ? "border-teal-300 bg-teal-50 text-teal-700"
+                : "border-slate-300 text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            Tên Z-A
+          </Link>
+        </div>
+      </div>
 
       <article className="rounded-xl border bg-card px-4 py-3 text-sm text-muted-foreground">
         Hiển thị <span className="font-semibold text-foreground">{filteredLocations.length}</span> /{" "}
