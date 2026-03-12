@@ -48,6 +48,9 @@ export function ContactInquiryForm({
     tourId: hasInitialTour ? initialTourId ?? "" : "",
     message: initialMessage?.trim() || "",
   };
+  const selectedTourTitle = initialValues.tourId
+    ? tours.find((tour) => tour.id === initialValues.tourId)?.title ?? ""
+    : "";
 
   const {
     register,
@@ -85,6 +88,11 @@ export function ContactInquiryForm({
 
   return (
     <form onSubmit={onSubmit} className="iv-card space-y-4 p-6">
+      {selectedTourTitle ? (
+        <article className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800">
+          Bạn đang gửi yêu cầu tư vấn cho tour: <span className="font-semibold">{selectedTourTitle}</span>.
+        </article>
+      ) : null}
       {referenceCode ? (
         <article className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           Đã ghi nhận yêu cầu tư vấn của bạn. Mã tham chiếu: <span className="font-semibold">{referenceCode}</span>.
