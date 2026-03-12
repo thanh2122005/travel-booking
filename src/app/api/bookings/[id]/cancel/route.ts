@@ -1,10 +1,9 @@
 import { BookingStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth-options";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { db } from "@/lib/db/prisma";
 import { demoCancelPublicBooking } from "@/lib/demo/admin-demo-store";
+import { requireActiveUserApi } from "@/lib/auth/user-api";
 import { canCancelBooking } from "@/lib/utils/booking-actions";
 
 type BookingCancelRouteContext = {
@@ -12,14 +11,13 @@ type BookingCancelRouteContext = {
 };
 
 export async function PATCH(_request: Request, context: BookingCancelRouteContext) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      { message: "Vui lòng đăng nhập để hủy đơn." },
-      { status: 401 },
-    );
+  const guard = await requireActiveUserApi({
+    unauthorizedMessage: "Vui lòng đăng nhập để hủy đơn.",
+  });
+  if (guard.response) {
+    return guard.response;
   }
+  const session = guard.session;
 
   const { id } = await context.params;
 

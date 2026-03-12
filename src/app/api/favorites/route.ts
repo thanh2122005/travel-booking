@@ -1,18 +1,19 @@
 import { Prisma, TourStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth-options";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { demoTogglePublicFavorite } from "@/lib/demo/admin-demo-store";
+import { requireActiveUserApi } from "@/lib/auth/user-api";
 import { db } from "@/lib/db/prisma";
 import { favoriteSchema } from "@/lib/validations/tour-interactions";
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
-    return NextResponse.json({ message: "Vui lòng đăng nhập để sử dụng tính năng này." }, { status: 401 });
+  const guard = await requireActiveUserApi({
+    unauthorizedMessage: "Vui lòng đăng nhập để sử dụng tính năng này.",
+  });
+  if (guard.response) {
+    return guard.response;
   }
+  const session = guard.session;
 
   const body = await request.json();
   const parsed = favoriteSchema.safeParse(body);
