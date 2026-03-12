@@ -43,6 +43,37 @@ function formatRate(value: number) {
   return `${(value * 100).toFixed(1)}%`;
 }
 
+function getDateRangePresets() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const previousMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const previousMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+  const yearStart = new Date(today.getFullYear(), 0, 1);
+
+  return [
+    {
+      key: "thang-nay",
+      label: "Tháng này",
+      startDate: toInputDateValue(monthStart),
+      endDate: toInputDateValue(today),
+    },
+    {
+      key: "thang-truoc",
+      label: "Tháng trước",
+      startDate: toInputDateValue(previousMonthStart),
+      endDate: toInputDateValue(previousMonthEnd),
+    },
+    {
+      key: "nam-nay",
+      label: "Năm nay",
+      startDate: toInputDateValue(yearStart),
+      endDate: toInputDateValue(today),
+    },
+  ] as const;
+}
+
 export default async function AdminPage({ searchParams }: AdminPageProps) {
   const params = await searchParams;
 
@@ -52,6 +83,18 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const endDate = normalizeParam(params.endDate);
 
   const hasCustomDateRange = Boolean(startDate || endDate);
+  const rangePresets = getDateRangePresets();
+  const exportQuery = {
+    ...(hasCustomDateRange
+      ? {
+          ...(startDate ? { startDate } : {}),
+          ...(endDate ? { endDate } : {}),
+        }
+      : {
+          rangeDays: String(rangeDays),
+        }),
+    ...(granularity ? { granularity } : {}),
+  };
   const data = await getAdminDashboardData({
     ...(hasCustomDateRange
       ? {
@@ -154,12 +197,54 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                   {value} ngày
                 </Link>
               );
-            })}
-          </div>
+          })}
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-slate-500">Khoảng nhanh:</span>
+          {rangePresets.map((preset) => {
+            const active = startDate === preset.startDate && endDate === preset.endDate;
+            return (
+              <Link
+                key={preset.key}
+                href={{
+                  pathname: "/admin",
+                  query: {
+                    ...params,
+                    startDate: preset.startDate,
+                    endDate: preset.endDate,
+                  },
+                }}
+                className={`inline-flex h-8 items-center rounded-md border px-3 text-xs font-semibold transition ${
+                  active
+                    ? "border-teal-600 bg-teal-600 text-white"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {preset.label}
+              </Link>
+            );
+          })}
+          {hasCustomDateRange ? (
+            <Link
+              href={{
+                pathname: "/admin",
+                query: {
+                  ...params,
+                  rangeDays: String(rangeDays),
+                  startDate: "",
+                  endDate: "",
+                },
+              }}
+              className="inline-flex h-8 items-center rounded-md border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+            >
+              Bỏ khoảng tùy chọn
+            </Link>
+          ) : null}
+        </div>
 
-          <div className="mt-3 grid gap-2 lg:grid-cols-[170px_180px_180px_auto]">
-            <select
-              name="granularity"
+        <div className="mt-3 grid gap-2 lg:grid-cols-[170px_180px_180px_auto]">
+          <select
+            name="granularity"
               defaultValue={data.timelineGranularity}
               className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
             >
@@ -185,6 +270,17 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             >
               Áp dụng khoảng tùy chọn
             </button>
+          </div>
+          <div className="mt-3 flex justify-end">
+            <Link
+              href={{
+                pathname: "/api/admin/dashboard/export",
+                query: exportQuery,
+              }}
+              className="inline-flex h-9 items-center rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              Xuất CSV báo cáo
+            </Link>
           </div>
         </form>
 
