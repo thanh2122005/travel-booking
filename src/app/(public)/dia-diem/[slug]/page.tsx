@@ -7,6 +7,7 @@ import { SafeImage } from "@/components/common/safe-image";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { TourCard } from "@/components/tour/tour-card";
 import { getLocationBySlug } from "@/lib/db/public-queries";
+import { formatPrice } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,22 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
   if (!location) {
     notFound();
   }
+
+  const tourCount = location.tours.length;
+  const featuredTourCount = location.tours.filter((tour) => tour.featured).length;
+  const minPrice = tourCount
+    ? Math.min(...location.tours.map((tour) => tour.discountPrice ?? tour.price))
+    : 0;
+  const averageRating = tourCount
+    ? Number(
+        (
+          location.tours.reduce((sum, tour) => sum + (tour.avgRating || 0), 0) /
+          tourCount
+        ).toFixed(1),
+      )
+    : 0;
+  const toursByLocationHref = `/tours?location=${encodeURIComponent(location.slug)}`;
+  const featuredToursByLocationHref = `/tours?location=${encodeURIComponent(location.slug)}&featured=1`;
 
   return (
     <div className="space-y-10">
@@ -83,11 +100,53 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
           <p className="text-sm leading-7 text-slate-600">
             Xem danh sách tour đang mở bán tại {location.name} và đặt tour ngay khi tìm thấy lịch trình phù hợp.
           </p>
-          <Link href="/tours" className="iv-btn-primary inline-flex h-10 w-full items-center justify-center text-sm font-semibold">
-            Xem tất cả tour
+          <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                Tour đang mở
+              </p>
+              <p className="mt-1 text-lg font-bold text-slate-900">{tourCount}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                Giá từ
+              </p>
+              <p className="mt-1 text-lg font-bold text-slate-900">
+                {tourCount ? formatPrice(minPrice) : "Chưa có"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                Điểm trung bình
+              </p>
+              <p className="mt-1 text-lg font-bold text-slate-900">
+                {tourCount ? `${averageRating}/5` : "Chưa có"}
+              </p>
+            </div>
+          </div>
+          <Link
+            href={toursByLocationHref}
+            className="iv-btn-primary inline-flex h-10 w-full items-center justify-center text-sm font-semibold"
+          >
+            Xem tour tại {location.name}
           </Link>
-          <Link href="/booking" className="iv-btn-soft inline-flex h-10 w-full items-center justify-center text-sm font-semibold">
+          <Link
+            href={featuredToursByLocationHref}
+            className="iv-btn-soft inline-flex h-10 w-full items-center justify-center text-sm font-semibold"
+          >
+            Tour nổi bật ({featuredTourCount})
+          </Link>
+          <Link
+            href="/booking"
+            className="iv-btn-soft inline-flex h-10 w-full items-center justify-center text-sm font-semibold"
+          >
             Đi đến trang đặt tour
+          </Link>
+          <Link
+            href={`/lien-he?location=${encodeURIComponent(location.slug)}`}
+            className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+          >
+            Liên hệ tư vấn
           </Link>
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
             <p className="inline-flex items-center gap-1.5 font-medium text-slate-700">
