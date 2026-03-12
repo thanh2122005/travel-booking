@@ -173,6 +173,7 @@ src/
 - API user quan trọng (`booking`, `favorites`, `reviews`, `account/profile`) dùng guard chung để:
   - bắt buộc đăng nhập
   - chặn tài khoản `BLOCKED`
+- Guard quyền user/admin ưu tiên đồng bộ role + status theo DB (fallback session khi DB tạm lỗi ở dev/demo).
 - Khu vực `/admin` chặn truy cập theo role + status ngay từ middleware.
 
 ## 11. Checklist trước khi deploy
