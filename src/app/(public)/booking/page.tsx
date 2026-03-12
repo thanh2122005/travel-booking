@@ -66,10 +66,18 @@ function parseStatus(value: string): BookingStatusValue | "" {
   return "";
 }
 
+function parsePage(value: string) {
+  const page = Number(value);
+  if (!Number.isFinite(page)) return 1;
+  const normalized = Math.trunc(page);
+  return normalized >= 1 ? normalized : 1;
+}
+
 export default async function BookingPage({ searchParams }: BookingPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
   const status = parseStatus(normalizeParam(params.status));
+  const requestedPage = parsePage(normalizeParam(params.page));
   const hasActiveFilters = Boolean(search || status);
   const normalizedSearch = search.trim().toLowerCase();
 
@@ -86,7 +94,30 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
     const statusMatched = !status || booking.status === status;
     return searchMatched && statusMatched;
   });
-  const visibleBookings = filteredBookings.slice(0, 12);
+  const pageSize = 12;
+  const totalPages = Math.max(1, Math.ceil(filteredBookings.length / pageSize));
+  const currentPage = Math.min(requestedPage, totalPages);
+  const visibleBookings = filteredBookings.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+  const queryBase = new URLSearchParams();
+
+  if (search) {
+    queryBase.set("search", search);
+  }
+  if (status) {
+    queryBase.set("status", status);
+  }
+
+  const buildPageHref = (page: number) => {
+    const query = new URLSearchParams(queryBase);
+    if (page > 1) {
+      query.set("page", String(page));
+    }
+    const serialized = query.toString();
+    return serialized ? `/booking?${serialized}` : "/booking";
+  };
   const countByStatus: Record<BookingStatusValue, number> = {
     PENDING: 0,
     CONFIRMED: 0,
@@ -132,7 +163,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
           <HomeSectionHeading
             eyebrow="Đơn gần đây"
             title="Đơn đặt tour gần đây của bạn"
-            description={`Hiển thị ${filteredBookings.length}/${bookings.length} đơn theo bộ lọc hiện tại.`}
+            description={`Hiển thị ${visibleBookings.length}/${filteredBookings.length} đơn trên trang ${currentPage}/${totalPages}.`}
           />
           <Link href="/tours" className="iv-btn-soft inline-flex h-10 items-center px-4 text-sm font-semibold">
             Tìm và đặt tour mới
@@ -305,10 +336,38 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
               </div>
             </div>
 
-            {filteredBookings.length > visibleBookings.length ? (
-              <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
-                Đang hiển thị {visibleBookings.length} / {filteredBookings.length} đơn gần nhất theo bộ lọc hiện tại.
-              </p>
+            {totalPages > 1 ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+                <p className="text-slate-600">
+                  Trang <span className="font-semibold text-slate-900">{currentPage}</span> / {totalPages}
+                </p>
+                <div className="flex items-center gap-2">
+                  {currentPage > 1 ? (
+                    <Link
+                      href={buildPageHref(currentPage - 1)}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
+                    >
+                      Trang trước
+                    </Link>
+                  ) : (
+                    <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
+                      Trang trước
+                    </span>
+                  )}
+                  {currentPage < totalPages ? (
+                    <Link
+                      href={buildPageHref(currentPage + 1)}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
+                    >
+                      Trang sau
+                    </Link>
+                  ) : (
+                    <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
+                      Trang sau
+                    </span>
+                  )}
+                </div>
+              </div>
             ) : null}
           </div>
         ) : bookings.length ? (
