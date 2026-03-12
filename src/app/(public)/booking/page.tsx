@@ -21,6 +21,7 @@ type PaymentStatusValue = "UNPAID" | "PAID";
 type BookingQueryOverrides = {
   search?: string;
   status?: BookingStatusValue | "";
+  paymentStatus?: PaymentStatusValue | "";
   page?: number;
 };
 
@@ -71,6 +72,13 @@ function parseStatus(value: string): BookingStatusValue | "" {
   return "";
 }
 
+function parsePaymentStatus(value: string): PaymentStatusValue | "" {
+  if (value === "UNPAID" || value === "PAID") {
+    return value;
+  }
+  return "";
+}
+
 function parsePage(value: string) {
   const page = Number(value);
   if (!Number.isFinite(page)) return 1;
@@ -82,8 +90,9 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
   const status = parseStatus(normalizeParam(params.status));
+  const paymentStatus = parsePaymentStatus(normalizeParam(params.paymentStatus));
   const requestedPage = parsePage(normalizeParam(params.page));
-  const hasActiveFilters = Boolean(search || status);
+  const hasActiveFilters = Boolean(search || status || paymentStatus);
   const normalizedSearch = search.trim().toLowerCase();
 
   const session = await getAuthSession();
@@ -98,7 +107,11 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
       booking.tour.departureLocation.toLowerCase().includes(normalizedSearch)
     );
   });
-  const filteredBookings = searchMatchedBookings.filter((booking) => !status || booking.status === status);
+  const statusFilterBaseBookings = searchMatchedBookings.filter(
+    (booking) => !paymentStatus || booking.paymentStatus === paymentStatus,
+  );
+  const filteredBookings = statusFilterBaseBookings.filter((booking) => !status || booking.status === status);
+  const paymentFilterBaseBookings = searchMatchedBookings.filter((booking) => !status || booking.status === status);
   const pageSize = 12;
   const totalPages = Math.max(1, Math.ceil(filteredBookings.length / pageSize));
   const currentPage = Math.min(requestedPage, totalPages);
@@ -109,6 +122,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
   const buildBookingHref = (overrides: BookingQueryOverrides = {}) => {
     const nextSearch = overrides.search ?? search;
     const nextStatus = overrides.status ?? status;
+    const nextPaymentStatus = overrides.paymentStatus ?? paymentStatus;
     const nextPage = overrides.page ?? currentPage;
     const query = new URLSearchParams();
 
@@ -117,6 +131,9 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
     }
     if (nextStatus) {
       query.set("status", nextStatus);
+    }
+    if (nextPaymentStatus) {
+      query.set("paymentStatus", nextPaymentStatus);
     }
     if (nextPage > 1) {
       query.set("page", String(nextPage));
@@ -127,18 +144,28 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
   };
 
   const buildPageHref = (page: number) => buildBookingHref({ page });
-  const clearFiltersHref = buildBookingHref({ search: "", status: "", page: 1 });
+  const clearFiltersHref = buildBookingHref({ search: "", status: "", paymentStatus: "", page: 1 });
   const countByStatus: Record<BookingStatusValue, number> = {
     PENDING: 0,
     CONFIRMED: 0,
     CANCELLED: 0,
     COMPLETED: 0,
   };
+  const countByPayment: Record<PaymentStatusValue, number> = {
+    UNPAID: 0,
+    PAID: 0,
+  };
 
-  for (const booking of searchMatchedBookings) {
+  for (const booking of statusFilterBaseBookings) {
     const normalizedStatus = booking.status as BookingStatusValue;
     if (normalizedStatus in countByStatus) {
       countByStatus[normalizedStatus] += 1;
+    }
+  }
+  for (const booking of paymentFilterBaseBookings) {
+    const normalizedPaymentStatus = booking.paymentStatus as PaymentStatusValue;
+    if (normalizedPaymentStatus in countByPayment) {
+      countByPayment[normalizedPaymentStatus] += 1;
     }
   }
 
@@ -184,7 +211,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
           <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
             Tìm kiếm đơn đặt tour
           </label>
-          <div className="grid gap-2 md:grid-cols-[1fr_200px_auto_auto]">
+          <div className="grid gap-2 md:grid-cols-[1fr_180px_190px_auto_auto]">
             <input
               id="search"
               name="search"
@@ -202,6 +229,15 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
               <option value="CONFIRMED">Đã xác nhận</option>
               <option value="COMPLETED">Hoàn thành</option>
               <option value="CANCELLED">Đã hủy</option>
+            </select>
+            <select
+              name="paymentStatus"
+              defaultValue={paymentStatus}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            >
+              <option value="">Tất cả thanh toán</option>
+              <option value="UNPAID">Chưa thanh toán</option>
+              <option value="PAID">Đã thanh toán</option>
             </select>
             <button
               type="submit"
@@ -241,7 +277,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
           </div>
         ) : null}
 
-        {searchMatchedBookings.length ? (
+        {statusFilterBaseBookings.length ? (
           <div className="flex flex-wrap gap-2">
             <Link
               href={buildBookingHref({ status: "", page: 1 })}
@@ -251,7 +287,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                   : "border-slate-300 text-slate-700 hover:bg-slate-50"
               }`}
             >
-              Tất cả ({searchMatchedBookings.length})
+              Tất cả ({statusFilterBaseBookings.length})
             </Link>
             {(Object.keys(bookingStatusLabels) as BookingStatusValue[]).map((statusValue) => (
               <Link
@@ -264,6 +300,33 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                 }`}
               >
                 {bookingStatusLabels[statusValue]} ({countByStatus[statusValue]})
+              </Link>
+            ))}
+          </div>
+        ) : null}
+        {paymentFilterBaseBookings.length ? (
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={buildBookingHref({ paymentStatus: "", page: 1 })}
+              className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                !paymentStatus
+                  ? "border-teal-300 bg-teal-50 text-teal-700"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              Tất cả thanh toán ({paymentFilterBaseBookings.length})
+            </Link>
+            {(Object.keys(paymentStatusLabels) as PaymentStatusValue[]).map((paymentStatusValue) => (
+              <Link
+                key={paymentStatusValue}
+                href={buildBookingHref({ paymentStatus: paymentStatusValue, page: 1 })}
+                className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                  paymentStatus === paymentStatusValue
+                    ? "border-teal-300 bg-teal-50 text-teal-700"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                {paymentStatusLabels[paymentStatusValue]} ({countByPayment[paymentStatusValue]})
               </Link>
             ))}
           </div>
