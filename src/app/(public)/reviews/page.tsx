@@ -15,6 +15,7 @@ type ReviewsPageProps = {
 type ReviewSortValue = "newest" | "rating-desc" | "rating-asc";
 type ReviewQueryOverrides = {
   search?: string;
+  location?: string;
   minRating?: number;
   sort?: ReviewSortValue;
   page?: number;
@@ -55,10 +56,10 @@ function parsePage(value: string) {
 export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
+  const requestedLocation = normalizeParam(params.location).trim();
   const minRating = parseRating(normalizeParam(params.minRating));
   const sort = parseSort(normalizeParam(params.sort));
   const requestedPage = parsePage(normalizeParam(params.page));
-  const hasActiveFilters = Boolean(search || minRating || sort !== "newest");
   const normalizedSearch = search.trim().toLowerCase();
 
   const data = await getPublicReviews(60).catch(() => ({
@@ -75,6 +76,22 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
     const percent = data.summary.total ? (count / data.summary.total) * 100 : 0;
     return { rating, count, percent };
   });
+  const locationCountMap = data.reviews.reduce<Record<string, number>>((acc, review) => {
+    const locationName = review.tour.location.name;
+    acc[locationName] = (acc[locationName] ?? 0) + 1;
+    return acc;
+  }, {});
+  const locationOptions = Object.entries(locationCountMap)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => {
+      if (b.count === a.count) {
+        return a.name.localeCompare(b.name, "vi");
+      }
+      return b.count - a.count;
+    });
+  const location =
+    locationOptions.find((item) => item.name.toLowerCase() === requestedLocation.toLowerCase())?.name ?? "";
+  const hasActiveFilters = Boolean(search || location || minRating || sort !== "newest");
 
   const filteredReviews = data.reviews
     .filter((review) => {
@@ -84,8 +101,9 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
         review.user.fullName.toLowerCase().includes(normalizedSearch) ||
         review.tour.title.toLowerCase().includes(normalizedSearch) ||
         review.tour.location.name.toLowerCase().includes(normalizedSearch);
+      const locationMatched = !location || review.tour.location.name === location;
       const ratingMatched = !minRating || review.rating >= minRating;
-      return searchMatched && ratingMatched;
+      return searchMatched && locationMatched && ratingMatched;
     })
     .slice()
     .sort((a, b) => {
@@ -99,6 +117,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
   const pagedReviews = filteredReviews.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const buildReviewsHref = (overrides: ReviewQueryOverrides = {}) => {
     const nextSearch = overrides.search ?? search;
+    const nextLocation = overrides.location ?? location;
     const nextMinRating = overrides.minRating ?? minRating;
     const nextSort = overrides.sort ?? sort;
     const nextPage = overrides.page ?? currentPage;
@@ -106,6 +125,9 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
 
     if (nextSearch) {
       query.set("search", nextSearch);
+    }
+    if (nextLocation) {
+      query.set("location", nextLocation);
     }
     if (nextMinRating) {
       query.set("minRating", String(nextMinRating));
@@ -121,7 +143,13 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
     return serialized ? `/reviews?${serialized}` : "/reviews";
   };
   const buildPageHref = (page: number) => buildReviewsHref({ page });
-  const clearFiltersHref = buildReviewsHref({ search: "", minRating: 0, sort: "newest", page: 1 });
+  const clearFiltersHref = buildReviewsHref({
+    search: "",
+    location: "",
+    minRating: 0,
+    sort: "newest",
+    page: 1,
+  });
 
   return (
     <div className="space-y-8">
@@ -175,7 +203,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
           <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
             Tìm kiếm đánh giá
           </label>
-          <div className="grid gap-2 md:grid-cols-[1fr_180px_180px_auto_auto]">
+          <div className="grid gap-2 md:grid-cols-[1fr_170px_220px_180px_auto_auto]">
             <input
               id="search"
               name="search"
@@ -183,6 +211,18 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
               placeholder="Nội dung đánh giá, tên người dùng hoặc tour..."
               className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
             />
+            <select
+              name="location"
+              defaultValue={location}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            >
+              <option value="">Tất cả điểm đến</option>
+              {locationOptions.map((item) => (
+                <option key={item.name} value={item.name}>
+                  {item.name} ({item.count})
+                </option>
+              ))}
+            </select>
             <select
               name="minRating"
               defaultValue={minRating || ""}
@@ -208,7 +248,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
               type="submit"
               className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
             >
-              Áp dụng
+              Lọc đánh giá
             </button>
             {hasActiveFilters ? (
               <Link
@@ -223,6 +263,34 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
 
         {data.reviews.length ? (
           <div className="space-y-2">
+            {locationOptions.length > 1 ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Điểm đến:</p>
+                <Link
+                  href={buildReviewsHref({ location: "", page: 1 })}
+                  className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                    !location
+                      ? "border-teal-300 bg-teal-50 text-teal-700"
+                      : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  Tất cả
+                </Link>
+                {locationOptions.slice(0, 8).map((item) => (
+                  <Link
+                    key={item.name}
+                    href={buildReviewsHref({ location: item.name, page: 1 })}
+                    className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                      location === item.name
+                        ? "border-teal-300 bg-teal-50 text-teal-700"
+                        : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {item.name} ({item.count})
+                  </Link>
+                ))}
+              </div>
+            ) : null}
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Lọc nhanh điểm:</p>
               <Link
