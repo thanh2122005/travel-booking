@@ -17,6 +17,7 @@ type FavoritesPageProps = {
 type FavoriteSortValue = "newest" | "price-asc" | "price-desc";
 type FavoriteQueryOverrides = {
   search?: string;
+  location?: string;
   sort?: FavoriteSortValue;
   page?: number;
 };
@@ -43,23 +44,40 @@ function parsePage(value: string) {
 export default async function FavoritesPage({ searchParams }: FavoritesPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
+  const requestedLocation = normalizeParam(params.location).trim();
   const sort = parseSort(normalizeParam(params.sort));
   const requestedPage = parsePage(normalizeParam(params.page));
-  const hasActiveFilters = Boolean(search || sort !== "newest");
 
   const session = await getAuthSession();
   const dashboard = session?.user?.id ? await getUserDashboardData(session.user.id).catch(() => null) : null;
   const favorites = dashboard?.favorites ?? [];
   const normalizedSearch = search.trim().toLowerCase();
+  const locationCountMap = favorites.reduce<Record<string, number>>((acc, favorite) => {
+    const locationName = favorite.tour.location.name;
+    acc[locationName] = (acc[locationName] ?? 0) + 1;
+    return acc;
+  }, {});
+  const locationOptions = Object.entries(locationCountMap)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => {
+      if (b.count === a.count) {
+        return a.name.localeCompare(b.name, "vi");
+      }
+      return b.count - a.count;
+    });
+  const location =
+    locationOptions.find((item) => item.name.toLowerCase() === requestedLocation.toLowerCase())?.name ?? "";
+  const hasActiveFilters = Boolean(search || location || sort !== "newest");
 
   const filteredFavorites = favorites
     .filter((favorite) => {
-      if (!normalizedSearch) return true;
-      return (
+      const locationMatched = !location || favorite.tour.location.name === location;
+      const searchMatched =
+        !normalizedSearch ||
         favorite.tour.title.toLowerCase().includes(normalizedSearch) ||
         favorite.tour.shortDescription.toLowerCase().includes(normalizedSearch) ||
-        favorite.tour.location.name.toLowerCase().includes(normalizedSearch)
-      );
+        favorite.tour.location.name.toLowerCase().includes(normalizedSearch);
+      return searchMatched && locationMatched;
     })
     .slice()
     .sort((a, b) => {
@@ -77,12 +95,16 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
 
   const buildFavoritesHref = (overrides: FavoriteQueryOverrides = {}) => {
     const nextSearch = overrides.search ?? search;
+    const nextLocation = overrides.location ?? location;
     const nextSort = overrides.sort ?? sort;
     const nextPage = overrides.page ?? currentPage;
     const query = new URLSearchParams();
 
     if (nextSearch) {
       query.set("search", nextSearch);
+    }
+    if (nextLocation) {
+      query.set("location", nextLocation);
     }
     if (nextSort !== "newest") {
       query.set("sort", nextSort);
@@ -95,7 +117,7 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
     return serialized ? `/favorites?${serialized}` : "/favorites";
   };
   const buildPageHref = (page: number) => buildFavoritesHref({ page });
-  const clearFiltersHref = buildFavoritesHref({ search: "", sort: "newest", page: 1 });
+  const clearFiltersHref = buildFavoritesHref({ search: "", location: "", sort: "newest", page: 1 });
 
   return (
     <div className="space-y-8">
@@ -121,7 +143,7 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
           <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
             Tìm kiếm tour yêu thích
           </label>
-          <div className="grid gap-2 md:grid-cols-[1fr_180px_auto_auto]">
+          <div className="grid gap-2 md:grid-cols-[1fr_210px_180px_auto_auto]">
             <input
               id="search"
               name="search"
@@ -129,6 +151,18 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
               placeholder="Tên tour, điểm đến hoặc mô tả..."
               className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
             />
+            <select
+              name="location"
+              defaultValue={location}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            >
+              <option value="">Tất cả điểm đến</option>
+              {locationOptions.map((item) => (
+                <option key={item.name} value={item.name}>
+                  {item.name} ({item.count})
+                </option>
+              ))}
+            </select>
             <select
               name="sort"
               defaultValue={sort}
@@ -142,7 +176,7 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
               type="submit"
               className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
             >
-              Áp dụng
+              Lọc tour
             </button>
             {hasActiveFilters ? (
               <Link
@@ -156,37 +190,67 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
         </form>
 
         {favorites.length ? (
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={buildFavoritesHref({ sort: "newest", page: 1 })}
-              className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
-                sort === "newest"
-                  ? "border-teal-300 bg-teal-50 text-teal-700"
-                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              Mới lưu gần đây
-            </Link>
-            <Link
-              href={buildFavoritesHref({ sort: "price-asc", page: 1 })}
-              className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
-                sort === "price-asc"
-                  ? "border-teal-300 bg-teal-50 text-teal-700"
-                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              Giá tăng dần
-            </Link>
-            <Link
-              href={buildFavoritesHref({ sort: "price-desc", page: 1 })}
-              className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
-                sort === "price-desc"
-                  ? "border-teal-300 bg-teal-50 text-teal-700"
-                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              Giá giảm dần
-            </Link>
+          <div className="space-y-2">
+            {locationOptions.length > 1 ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Điểm đến:</p>
+                <Link
+                  href={buildFavoritesHref({ location: "", page: 1 })}
+                  className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                    !location
+                      ? "border-teal-300 bg-teal-50 text-teal-700"
+                      : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  Tất cả
+                </Link>
+                {locationOptions.slice(0, 8).map((item) => (
+                  <Link
+                    key={item.name}
+                    href={buildFavoritesHref({ location: item.name, page: 1 })}
+                    className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                      location === item.name
+                        ? "border-teal-300 bg-teal-50 text-teal-700"
+                        : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {item.name} ({item.count})
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={buildFavoritesHref({ sort: "newest", page: 1 })}
+                className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                  sort === "newest"
+                    ? "border-teal-300 bg-teal-50 text-teal-700"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                Mới lưu gần đây
+              </Link>
+              <Link
+                href={buildFavoritesHref({ sort: "price-asc", page: 1 })}
+                className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                  sort === "price-asc"
+                    ? "border-teal-300 bg-teal-50 text-teal-700"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                Giá tăng dần
+              </Link>
+              <Link
+                href={buildFavoritesHref({ sort: "price-desc", page: 1 })}
+                className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                  sort === "price-desc"
+                    ? "border-teal-300 bg-teal-50 text-teal-700"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                Giá giảm dần
+              </Link>
+            </div>
           </div>
         ) : null}
 
