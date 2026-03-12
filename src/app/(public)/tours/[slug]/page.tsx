@@ -77,7 +77,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
   const hasMoreReviews = tour.reviews.length > visibleReviews.length;
 
   return (
-    <div className="space-y-10 py-6">
+    <div className="space-y-10 py-6 pb-24 lg:pb-6">
       <section className="space-y-4">
         <p className="text-sm text-muted-foreground">
           <Link href="/" className="hover:text-primary">
@@ -136,6 +136,9 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
           </a>
           <a href="#danh-gia" className="inline-flex h-8 items-center rounded-md border px-3 font-medium hover:bg-muted">
             Đánh giá
+          </a>
+          <a href="#dat-tour" className="inline-flex h-8 items-center rounded-md border px-3 font-medium hover:bg-muted">
+            Đặt tour
           </a>
           <a href="#lien-quan" className="inline-flex h-8 items-center rounded-md border px-3 font-medium hover:bg-muted">
             Tour liên quan
@@ -256,19 +259,36 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
               Điền form tư vấn tour này
             </Link>
           </article>
-          <TourBookingCard
-            tourId={tour.id}
-            tourSlug={tour.slug}
-            shortDescription={tour.shortDescription}
-            unitPrice={finalPrice}
-            originalPrice={tour.price}
-            maxGuests={tour.maxGuests}
-            initialIsFavorite={viewer?.isFavorite ?? false}
-            initialReview={viewer?.review ?? null}
-            initialPhone={viewer?.phone ?? ""}
-          />
+          <div id="dat-tour" className="scroll-mt-24">
+            <TourBookingCard
+              tourId={tour.id}
+              tourSlug={tour.slug}
+              shortDescription={tour.shortDescription}
+              unitPrice={finalPrice}
+              originalPrice={tour.price}
+              maxGuests={tour.maxGuests}
+              initialIsFavorite={viewer?.isFavorite ?? false}
+              initialReview={viewer?.review ?? null}
+              initialPhone={viewer?.phone ?? ""}
+            />
+          </div>
         </aside>
       </section>
+
+      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
+        <a
+          href="#dat-tour"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Đặt tour
+        </a>
+        <Link
+          href={quickConsultHref}
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-sm font-semibold text-teal-700 transition hover:bg-teal-100"
+        >
+          Tư vấn nhanh
+        </Link>
+      </div>
 
       <section id="lien-quan" className="space-y-5">
         <SectionHeading title="Tour liên quan" description="Gợi ý thêm các tour khác cùng điểm đến." />
