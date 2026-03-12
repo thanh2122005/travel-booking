@@ -910,6 +910,7 @@ export async function demoGetUserDashboardData(userId?: string) {
           new Date(user.createdAt).getTime() + (index + 1) * 24 * 60 * 60 * 1000,
         ),
         tour: {
+          id: tour?.id ?? "",
           title: tour?.title ?? "Tour",
           slug: tour?.slug ?? "",
           shortDescription: tour?.shortDescription ?? "",

@@ -3,6 +3,7 @@ import { Heart } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { SafeImage } from "@/components/common/safe-image";
+import { FavoriteRemoveButton } from "@/components/favorite/favorite-remove-button";
 import { getAuthSession } from "@/lib/auth/session";
 import { getUserDashboardData } from "@/lib/db/user-queries";
 import { formatPrice } from "@/lib/utils/format";
@@ -162,13 +163,23 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
                           sizes="(max-width: 768px) 100vw, 33vw"
                         />
                       </div>
-                      <div className="space-y-2 p-5">
-                        <h3 className="line-clamp-2 text-lg font-semibold text-slate-900">{favorite.tour.title}</h3>
-                        <p className="line-clamp-2 text-sm leading-7 text-slate-600">{favorite.tour.shortDescription}</p>
-                        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">{favorite.tour.location.name}</p>
-                        <p className="text-lg font-bold text-teal-700">{formatPrice(displayPrice)}</p>
-                      </div>
                     </Link>
+                    <div className="space-y-2 p-5">
+                      <Link href={`/tours/${favorite.tour.slug}`} className="line-clamp-2 text-lg font-semibold text-slate-900 hover:text-teal-700">
+                        {favorite.tour.title}
+                      </Link>
+                      <p className="line-clamp-2 text-sm leading-7 text-slate-600">{favorite.tour.shortDescription}</p>
+                      <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">{favorite.tour.location.name}</p>
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        <p className="text-lg font-bold text-teal-700">{formatPrice(displayPrice)}</p>
+                        {session?.user ? (
+                          <FavoriteRemoveButton
+                            tourId={favorite.tour.id}
+                            className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
+                          />
+                        ) : null}
+                      </div>
+                    </div>
                   </article>
                 );
               })}

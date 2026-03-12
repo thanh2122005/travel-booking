@@ -36,6 +36,7 @@ export async function getUserDashboardData(userId: string) {
           include: {
             tour: {
               select: {
+                id: true,
                 title: true,
                 slug: true,
                 shortDescription: true,

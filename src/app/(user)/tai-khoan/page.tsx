@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { SafeImage } from "@/components/common/safe-image";
+import { FavoriteRemoveButton } from "@/components/favorite/favorite-remove-button";
 import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth/session";
 import { getUserDashboardData } from "@/lib/db/user-queries";
@@ -631,7 +632,13 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                       </Link>
                       <p className="line-clamp-2 text-sm text-muted-foreground">{item.tour.shortDescription}</p>
                       <p className="text-xs text-muted-foreground">Địa điểm: {item.tour.location.name}</p>
-                      <p className="font-bold text-primary">{formatPrice(displayPrice)}</p>
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        <p className="font-bold text-primary">{formatPrice(displayPrice)}</p>
+                        <FavoriteRemoveButton
+                          tourId={item.tour.id}
+                          className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
+                        />
+                      </div>
                     </div>
                   </article>
                 );
