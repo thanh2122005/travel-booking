@@ -120,7 +120,7 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
   const clearFiltersHref = buildFavoritesHref({ search: "", location: "", sort: "newest", page: 1 });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-24 lg:pb-0">
       <div className="iv-card overflow-hidden bg-[linear-gradient(130deg,#091f33,#0a314d,#085a66)] p-7 text-white md:p-9">
         <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-teal-100">
           <Heart className="h-4 w-4" />
@@ -132,13 +132,14 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
         </p>
       </div>
 
-      <section className="space-y-5">
+      <section id="danh-sach-yeu-thich" className="scroll-mt-24 space-y-5">
         <HomeSectionHeading
           eyebrow="Đã lưu"
           title="Tour bạn đang theo dõi"
           description={`Hiển thị ${pagedFavorites.length}/${filteredFavorites.length} tour trên trang ${currentPage}/${totalPages}.`}
         />
 
+        <div id="bo-loc-yeu-thich" className="scroll-mt-24" />
         <form className="iv-card p-4">
           <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
             Tìm kiếm tour yêu thích
@@ -256,6 +257,7 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
 
         {filteredFavorites.length ? (
           <div className="space-y-4">
+            <div id="ket-qua-yeu-thich" className="scroll-mt-24" />
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {pagedFavorites.map((favorite) => {
                 const displayPrice = favorite.tour.discountPrice ?? favorite.tour.price;
@@ -359,6 +361,27 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
           />
         )}
       </section>
+
+      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
+        <a
+          href="#bo-loc-yeu-thich"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Lọc tour
+        </a>
+        <a
+          href="#ket-qua-yeu-thich"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Danh sách
+        </a>
+        <Link
+          href="/tai-khoan"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
+        >
+          Tài khoản
+        </Link>
+      </div>
     </div>
   );
 }
