@@ -13,6 +13,12 @@ type ReviewsPageProps = {
 };
 
 type ReviewSortValue = "newest" | "rating-desc" | "rating-asc";
+type ReviewQueryOverrides = {
+  search?: string;
+  minRating?: number;
+  sort?: ReviewSortValue;
+  page?: number;
+};
 
 const fallbackAvatar = [
   "/immerse-vietnam/images/test-1.jpg",
@@ -91,26 +97,31 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
   const totalPages = Math.max(1, Math.ceil(filteredReviews.length / pageSize));
   const currentPage = Math.min(requestedPage, totalPages);
   const pagedReviews = filteredReviews.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const queryBase = new URLSearchParams();
+  const buildReviewsHref = (overrides: ReviewQueryOverrides = {}) => {
+    const nextSearch = overrides.search ?? search;
+    const nextMinRating = overrides.minRating ?? minRating;
+    const nextSort = overrides.sort ?? sort;
+    const nextPage = overrides.page ?? currentPage;
+    const query = new URLSearchParams();
 
-  if (search) {
-    queryBase.set("search", search);
-  }
-  if (minRating) {
-    queryBase.set("minRating", String(minRating));
-  }
-  if (sort !== "newest") {
-    queryBase.set("sort", sort);
-  }
-
-  const buildPageHref = (page: number) => {
-    const query = new URLSearchParams(queryBase);
-    if (page > 1) {
-      query.set("page", String(page));
+    if (nextSearch) {
+      query.set("search", nextSearch);
     }
+    if (nextMinRating) {
+      query.set("minRating", String(nextMinRating));
+    }
+    if (nextSort !== "newest") {
+      query.set("sort", nextSort);
+    }
+    if (nextPage > 1) {
+      query.set("page", String(nextPage));
+    }
+
     const serialized = query.toString();
     return serialized ? `/reviews?${serialized}` : "/reviews";
   };
+  const buildPageHref = (page: number) => buildReviewsHref({ page });
+  const clearFiltersHref = buildReviewsHref({ search: "", minRating: 0, sort: "newest", page: 1 });
 
   return (
     <div className="space-y-8">
@@ -201,7 +212,7 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
             </button>
             {hasActiveFilters ? (
               <Link
-                href="/reviews"
+                href={clearFiltersHref}
                 className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
               >
                 Xóa lọc
@@ -209,6 +220,70 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
             ) : null}
           </div>
         </form>
+
+        {data.reviews.length ? (
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Lọc nhanh điểm:</p>
+              <Link
+                href={buildReviewsHref({ minRating: 0, page: 1 })}
+                className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                  !minRating
+                    ? "border-teal-300 bg-teal-50 text-teal-700"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                Tất cả
+              </Link>
+              {[5, 4, 3].map((ratingValue) => (
+                <Link
+                  key={ratingValue}
+                  href={buildReviewsHref({ minRating: ratingValue, page: 1 })}
+                  className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                    minRating === ratingValue
+                      ? "border-teal-300 bg-teal-50 text-teal-700"
+                      : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  Từ {ratingValue} sao
+                </Link>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Sắp xếp:</p>
+              <Link
+                href={buildReviewsHref({ sort: "newest", page: 1 })}
+                className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                  sort === "newest"
+                    ? "border-teal-300 bg-teal-50 text-teal-700"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                Mới nhất
+              </Link>
+              <Link
+                href={buildReviewsHref({ sort: "rating-desc", page: 1 })}
+                className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                  sort === "rating-desc"
+                    ? "border-teal-300 bg-teal-50 text-teal-700"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                Điểm cao đến thấp
+              </Link>
+              <Link
+                href={buildReviewsHref({ sort: "rating-asc", page: 1 })}
+                className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                  sort === "rating-asc"
+                    ? "border-teal-300 bg-teal-50 text-teal-700"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                Điểm thấp đến cao
+              </Link>
+            </div>
+          </div>
+        ) : null}
 
         {filteredReviews.length ? (
           <div className="space-y-4">
@@ -237,13 +312,21 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
                     </p>
                   </div>
                   <p className="mt-3 text-sm leading-7 text-slate-600">{review.comment}</p>
-                  <p className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500">
-                    Tour:{" "}
-                    <Link href={`/tours/${review.tour.slug}`} className="font-semibold text-teal-700 hover:text-teal-800">
-                      {review.tour.title}
-                    </Link>{" "}
-                    · {review.tour.location.name}
-                  </p>
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                    <p className="text-xs text-slate-500">
+                      Tour:{" "}
+                      <Link href={`/tours/${review.tour.slug}`} className="font-semibold text-teal-700 hover:text-teal-800">
+                        {review.tour.title}
+                      </Link>{" "}
+                      - {review.tour.location.name}
+                    </p>
+                    <Link
+                      href={`/tours/${review.tour.slug}`}
+                      className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-300 px-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                      Xem tour
+                    </Link>
+                  </div>
                 </article>
               ))}
             </div>
