@@ -17,18 +17,33 @@ type ToursPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+type TourSortValue = NonNullable<TourFilterInput["sort"]>;
+
 const durationLabels: Record<NonNullable<TourFilterInput["duration"]>, string> = {
   "duoi-3-ngay": "Dưới 3 ngày",
   "tu-3-den-5-ngay": "Từ 3 đến 5 ngày",
   "tren-5-ngay": "Trên 5 ngày",
 };
 
-const sortLabels: Record<NonNullable<TourFilterInput["sort"]>, string> = {
+const sortLabels: Record<TourSortValue, string> = {
   "moi-nhat": "Mới nhất",
   "gia-tang": "Giá tăng dần",
   "gia-giam": "Giá giảm dần",
   "danh-gia-cao": "Đánh giá cao",
 };
+
+const durationQuickOptions: Array<{ value: NonNullable<TourFilterInput["duration"]>; label: string }> = [
+  { value: "duoi-3-ngay", label: "Dưới 3 ngày" },
+  { value: "tu-3-den-5-ngay", label: "3-5 ngày" },
+  { value: "tren-5-ngay", label: "Trên 5 ngày" },
+];
+
+const sortQuickOptions: Array<{ value: TourSortValue; label: string }> = [
+  { value: "moi-nhat", label: "Mới nhất" },
+  { value: "gia-tang", label: "Giá tăng dần" },
+  { value: "gia-giam", label: "Giá giảm dần" },
+  { value: "danh-gia-cao", label: "Đánh giá cao" },
+];
 
 function normalizeParam(value?: string | string[]) {
   if (!value) return "";
@@ -75,6 +90,32 @@ function parseFilters(raw: Record<string, string | string[] | undefined>): TourF
     page,
     pageSize: 9,
   };
+}
+
+function buildToursHref(
+  raw: Record<string, string | string[] | undefined>,
+  overrides: Record<string, string | number | undefined>,
+) {
+  const query = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(raw)) {
+    if (!value) continue;
+    const normalized = Array.isArray(value) ? value[0] ?? "" : value;
+    if (normalized) {
+      query.set(key, normalized);
+    }
+  }
+
+  for (const [key, value] of Object.entries(overrides)) {
+    if (value === undefined || value === "") {
+      query.delete(key);
+      continue;
+    }
+    query.set(key, String(value));
+  }
+
+  const serialized = query.toString();
+  return serialized ? `/tours?${serialized}` : "/tours";
 }
 
 function formatPriceFilter(minPrice?: number, maxPrice?: number) {
@@ -243,6 +284,59 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
         </div>
       </form>
 
+      <div className="rounded-2xl border bg-card p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Lọc nhanh</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link
+            href={buildToursHref(rawParams, {
+              featured: filters.featured ? "" : "1",
+              page: 1,
+            })}
+            className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-semibold transition ${
+              filters.featured
+                ? "border-teal-300 bg-teal-50 text-teal-700"
+                : "border-slate-300 text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            {filters.featured ? "Bỏ lọc nổi bật" : "Chỉ tour nổi bật"}
+          </Link>
+          {durationQuickOptions.map((option) => (
+            <Link
+              key={option.value}
+              href={buildToursHref(rawParams, {
+                duration: filters.duration === option.value ? "" : option.value,
+                page: 1,
+              })}
+              className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-semibold transition ${
+                filters.duration === option.value
+                  ? "border-teal-300 bg-teal-50 text-teal-700"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              {option.label}
+            </Link>
+          ))}
+        </div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {sortQuickOptions.map((option) => (
+            <Link
+              key={option.value}
+              href={buildToursHref(rawParams, {
+                sort: option.value,
+                page: 1,
+              })}
+              className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-semibold transition ${
+                filters.sort === option.value
+                  ? "border-teal-300 bg-teal-50 text-teal-700"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              {option.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
       <div className="rounded-xl border bg-card px-4 py-3">
         <p className="text-sm text-muted-foreground">
           Đang hiển thị <span className="font-semibold text-foreground">{data.tours.length}</span> tour trong trang này,
@@ -277,10 +371,9 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
             <div className="flex items-center gap-2">
               {data.page > 1 ? (
                 <Link
-                  href={{
-                    pathname: "/tours",
-                    query: { ...rawParams, page: String(Math.max(data.page - 1, 1)) },
-                  }}
+                  href={buildToursHref(rawParams, {
+                    page: data.page - 1,
+                  })}
                   className="inline-flex h-8 items-center rounded-md border px-3 transition-colors hover:bg-muted"
                 >
                   Trang trước
@@ -293,10 +386,9 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
 
               {data.page < data.totalPages ? (
                 <Link
-                  href={{
-                    pathname: "/tours",
-                    query: { ...rawParams, page: String(Math.min(data.page + 1, data.totalPages)) },
-                  }}
+                  href={buildToursHref(rawParams, {
+                    page: data.page + 1,
+                  })}
                   className="inline-flex h-8 items-center rounded-md border px-3 transition-colors hover:bg-muted"
                 >
                   Trang sau
