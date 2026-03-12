@@ -13,6 +13,8 @@ type ContactInquiryFormProps = {
     id: string;
     title: string;
   }>;
+  initialTourId?: string;
+  initialMessage?: string;
 };
 
 type ContactInquiryResponse = {
@@ -32,8 +34,20 @@ const defaultValues: ContactInquiryFormValues = {
   message: "",
 };
 
-export function ContactInquiryForm({ tours }: ContactInquiryFormProps) {
+export function ContactInquiryForm({
+  tours,
+  initialTourId,
+  initialMessage,
+}: ContactInquiryFormProps) {
   const [referenceCode, setReferenceCode] = useState<string | null>(null);
+  const hasInitialTour = Boolean(
+    initialTourId && tours.some((tour) => tour.id === initialTourId),
+  );
+  const initialValues: ContactInquiryFormValues = {
+    ...defaultValues,
+    tourId: hasInitialTour ? initialTourId ?? "" : "",
+    message: initialMessage?.trim() || "",
+  };
 
   const {
     register,
@@ -42,7 +56,7 @@ export function ContactInquiryForm({ tours }: ContactInquiryFormProps) {
     formState: { errors, isSubmitting },
   } = useForm<ContactInquiryFormValues>({
     resolver: zodResolver(contactInquirySchema),
-    defaultValues,
+    defaultValues: initialValues,
   });
 
   const onSubmit = handleSubmit(async (values) => {
@@ -66,7 +80,7 @@ export function ContactInquiryForm({ tours }: ContactInquiryFormProps) {
 
     toast.success(result.message ?? "Đã gửi yêu cầu tư vấn thành công.");
     setReferenceCode(result.referenceCode ?? null);
-    reset(defaultValues);
+    reset(initialValues);
   });
 
   return (

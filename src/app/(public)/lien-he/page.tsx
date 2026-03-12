@@ -6,10 +6,39 @@ import { getHomePublicData } from "@/lib/db/public-queries";
 
 export const dynamic = "force-dynamic";
 
-export default async function ContactPage() {
+type ContactPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function normalizeParam(value?: string | string[]) {
+  if (!value) return "";
+  return Array.isArray(value) ? value[0] ?? "" : value;
+}
+
+function normalizeLocationLabel(value: string) {
+  if (!value) return "";
+  return value
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+export default async function ContactPage({ searchParams }: ContactPageProps) {
+  const params = await searchParams;
+  const initialTourId = normalizeParam(params.tourId);
+  const locationParam = normalizeParam(params.location);
+  const locationLabel = normalizeLocationLabel(locationParam);
+  const initialMessage = locationLabel ? `Mình muốn được tư vấn tour tại ${locationLabel}.` : "";
+
   const data = await getHomePublicData().catch(() => ({
     featuredTours: [],
   }));
+  const tours = data.featuredTours.slice(0, 8).map((tour) => ({
+    id: tour.id,
+    title: tour.title,
+  }));
+  const validInitialTourId = tours.some((tour) => tour.id === initialTourId) ? initialTourId : "";
 
   return (
     <div className="space-y-10">
@@ -29,10 +58,9 @@ export default async function ContactPage() {
 
         <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
           <ContactInquiryForm
-            tours={data.featuredTours.slice(0, 8).map((tour) => ({
-              id: tour.id,
-              title: tour.title,
-            }))}
+            tours={tours}
+            initialTourId={validInitialTourId || undefined}
+            initialMessage={initialMessage || undefined}
           />
 
           <aside className="space-y-4">
@@ -63,6 +91,20 @@ export default async function ContactPage() {
               <p className="mt-2 text-sm leading-7 text-slate-600">
                 Yêu cầu đặt tour gấp sẽ được ưu tiên phản hồi trong vòng 30 phút.
               </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <a
+                  href="tel:+84866055283"
+                  className="inline-flex h-9 items-center justify-center rounded-lg border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
+                >
+                  Gọi ngay
+                </a>
+                <a
+                  href="mailto:hello@immersevietnam.vn"
+                  className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                >
+                  Gửi email
+                </a>
+              </div>
             </article>
           </aside>
         </div>
