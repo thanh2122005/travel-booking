@@ -282,7 +282,7 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
         ) : session?.user ? (
           <EmptyState
             title="Chưa có tour yêu thích"
-            description="Bạn có thể nhấn nút yêu thích trong trang tour detail để lưu nhanh."
+            description="Bạn có thể nhấn nút yêu thích trong trang chi tiết tour để lưu nhanh."
             ctaHref="/tours"
             ctaLabel="Khám phá tour"
           />

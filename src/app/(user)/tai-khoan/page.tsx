@@ -421,7 +421,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             href="#booking"
             className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white"
           >
-            Booking
+            Đặt tour
           </a>
           <a
             href="#yeu-thich"
@@ -489,7 +489,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             type="submit"
             className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
           >
-            Lọc booking
+            Lọc đơn
           </button>
           {hasBookingFilters ? (
             <Link
@@ -602,10 +602,10 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </div>
         ) : data.bookings.length ? (
           <EmptyState
-            title="Không có booking phù hợp"
+            title="Không có đơn đặt tour phù hợp"
             description="Hãy thử thay đổi bộ lọc để xem thêm đơn đặt tour."
             ctaHref={clearBookingHref}
-            ctaLabel="Xóa lọc booking"
+            ctaLabel="Xóa lọc đơn"
           />
         ) : (
           <EmptyState

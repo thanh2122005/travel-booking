@@ -153,7 +153,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
               <Compass className="h-4 w-4 text-teal-600" />
               Gợi ý:
             </p>
-            <p className="mt-2 leading-7">Đặt sớm vào mùa cao điểm và ưu tiên lịch trình có itinerary rõ ràng để tối ưu thời gian.</p>
+            <p className="mt-2 leading-7">Đặt sớm vào mùa cao điểm và ưu tiên lịch trình rõ ràng để tối ưu thời gian.</p>
           </div>
         </aside>
       </section>

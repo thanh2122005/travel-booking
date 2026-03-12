@@ -40,7 +40,7 @@ const bookingSteps = [
   {
     icon: CalendarCheck2,
     title: "1. Chọn tour và ngày khởi hành",
-    description: "Tìm tour phù hợp, xem itinerary, giá, số khách tối đa và bổ sung ghi chú.",
+    description: "Tìm tour phù hợp, xem lịch trình, giá, số khách tối đa và bổ sung ghi chú.",
   },
   {
     icon: UserRoundCheck,
@@ -55,7 +55,7 @@ const bookingSteps = [
   {
     icon: CreditCard,
     title: "4. Thanh toán",
-    description: "Theo dõi trạng thái thanh toán và thông tin đơn trong dashboard người dùng.",
+    description: "Theo dõi trạng thái thanh toán và thông tin đơn trong trang tài khoản.",
   },
 ];
 
@@ -207,7 +207,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
               type="submit"
               className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
             >
-              Áp dụng
+              Lọc đơn
             </button>
             {hasActiveFilters ? (
               <Link
