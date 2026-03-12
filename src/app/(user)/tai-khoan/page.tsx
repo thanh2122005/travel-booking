@@ -86,6 +86,15 @@ const paymentStatusMap: Record<PaymentStatus, { label: string; variant: "seconda
   },
 };
 
+const bookingStatusOrder: BookingStatus[] = [
+  BookingStatus.PENDING,
+  BookingStatus.CONFIRMED,
+  BookingStatus.COMPLETED,
+  BookingStatus.CANCELLED,
+];
+
+const paymentStatusOrder: PaymentStatus[] = [PaymentStatus.UNPAID, PaymentStatus.PAID];
+
 function normalizeParam(value?: string | string[]) {
   if (!value) return "";
   return Array.isArray(value) ? value[0] ?? "" : value;
@@ -248,16 +257,44 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const normalizedFavoriteSearch = state.favoriteSearch.trim().toLowerCase();
   const normalizedReviewSearch = state.reviewSearch.trim().toLowerCase();
 
-  const filteredBookings = data.bookings.filter((booking) => {
+  const bookingSearchMatched = data.bookings.filter((booking) => {
     const searchMatched =
       !normalizedBookingSearch ||
       booking.bookingCode.toLowerCase().includes(normalizedBookingSearch) ||
       booking.tour.title.toLowerCase().includes(normalizedBookingSearch) ||
       booking.tour.departureLocation.toLowerCase().includes(normalizedBookingSearch);
+    return searchMatched;
+  });
+
+  const filteredBookings = bookingSearchMatched.filter((booking) => {
     const statusMatched = !state.bookingStatus || booking.status === state.bookingStatus;
     const paymentMatched = !state.paymentStatus || booking.paymentStatus === state.paymentStatus;
-    return searchMatched && statusMatched && paymentMatched;
+    return statusMatched && paymentMatched;
   });
+
+  const bookingQuickStatusBase = bookingSearchMatched.filter(
+    (booking) => !state.paymentStatus || booking.paymentStatus === state.paymentStatus,
+  );
+  const bookingStatusCounts: Record<BookingStatus, number> = {
+    [BookingStatus.PENDING]: 0,
+    [BookingStatus.CONFIRMED]: 0,
+    [BookingStatus.CANCELLED]: 0,
+    [BookingStatus.COMPLETED]: 0,
+  };
+  for (const booking of bookingQuickStatusBase) {
+    bookingStatusCounts[booking.status] += 1;
+  }
+
+  const bookingQuickPaymentBase = bookingSearchMatched.filter(
+    (booking) => !state.bookingStatus || booking.status === state.bookingStatus,
+  );
+  const paymentStatusCounts: Record<PaymentStatus, number> = {
+    [PaymentStatus.UNPAID]: 0,
+    [PaymentStatus.PAID]: 0,
+  };
+  for (const booking of bookingQuickPaymentBase) {
+    paymentStatusCounts[booking.paymentStatus] += 1;
+  }
 
   const filteredFavorites = data.favorites
     .filter((favorite) => {
@@ -500,6 +537,68 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             </Link>
           ) : null}
         </form>
+        {bookingQuickStatusBase.length ? (
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Trạng thái nhanh:</p>
+            <Link
+              href={buildAccountHref(state, { bookingStatus: "", bookingPage: 1 })}
+              className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                !state.bookingStatus
+                  ? "border-teal-300 bg-teal-50 text-teal-700"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              Tất cả ({bookingQuickStatusBase.length})
+            </Link>
+            {bookingStatusOrder.map((statusValue) => (
+              <Link
+                key={statusValue}
+                href={buildAccountHref(state, {
+                  bookingStatus: statusValue,
+                  bookingPage: 1,
+                })}
+                className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                  state.bookingStatus === statusValue
+                    ? "border-teal-300 bg-teal-50 text-teal-700"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                {bookingStatusMap[statusValue].label} ({bookingStatusCounts[statusValue]})
+              </Link>
+            ))}
+          </div>
+        ) : null}
+        {bookingQuickPaymentBase.length ? (
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Thanh toán nhanh:</p>
+            <Link
+              href={buildAccountHref(state, { paymentStatus: "", bookingPage: 1 })}
+              className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                !state.paymentStatus
+                  ? "border-teal-300 bg-teal-50 text-teal-700"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              Tất cả ({bookingQuickPaymentBase.length})
+            </Link>
+            {paymentStatusOrder.map((paymentStatus) => (
+              <Link
+                key={paymentStatus}
+                href={buildAccountHref(state, {
+                  paymentStatus,
+                  bookingPage: 1,
+                })}
+                className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                  state.paymentStatus === paymentStatus
+                    ? "border-teal-300 bg-teal-50 text-teal-700"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                {paymentStatusMap[paymentStatus].label} ({paymentStatusCounts[paymentStatus]})
+              </Link>
+            ))}
+          </div>
+        ) : null}
         {filteredBookings.length ? (
           <div className="space-y-3">
             <div className="space-y-3 lg:hidden">
