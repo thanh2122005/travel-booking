@@ -15,6 +15,11 @@ type FavoritesPageProps = {
 };
 
 type FavoriteSortValue = "newest" | "price-asc" | "price-desc";
+type FavoriteQueryOverrides = {
+  search?: string;
+  sort?: FavoriteSortValue;
+  page?: number;
+};
 
 function normalizeParam(value?: string | string[]) {
   if (!value) return "";
@@ -69,23 +74,28 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
   const totalPages = Math.max(1, Math.ceil(filteredFavorites.length / pageSize));
   const currentPage = Math.min(requestedPage, totalPages);
   const pagedFavorites = filteredFavorites.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const queryBase = new URLSearchParams();
 
-  if (search) {
-    queryBase.set("search", search);
-  }
-  if (sort !== "newest") {
-    queryBase.set("sort", sort);
-  }
+  const buildFavoritesHref = (overrides: FavoriteQueryOverrides = {}) => {
+    const nextSearch = overrides.search ?? search;
+    const nextSort = overrides.sort ?? sort;
+    const nextPage = overrides.page ?? currentPage;
+    const query = new URLSearchParams();
 
-  const buildPageHref = (page: number) => {
-    const query = new URLSearchParams(queryBase);
-    if (page > 1) {
-      query.set("page", String(page));
+    if (nextSearch) {
+      query.set("search", nextSearch);
     }
+    if (nextSort !== "newest") {
+      query.set("sort", nextSort);
+    }
+    if (nextPage > 1) {
+      query.set("page", String(nextPage));
+    }
+
     const serialized = query.toString();
     return serialized ? `/favorites?${serialized}` : "/favorites";
   };
+  const buildPageHref = (page: number) => buildFavoritesHref({ page });
+  const clearFiltersHref = buildFavoritesHref({ search: "", sort: "newest", page: 1 });
 
   return (
     <div className="space-y-8">
@@ -136,7 +146,7 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
             </button>
             {hasActiveFilters ? (
               <Link
-                href="/favorites"
+                href={clearFiltersHref}
                 className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
               >
                 Xóa lọc
@@ -144,6 +154,41 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
             ) : null}
           </div>
         </form>
+
+        {favorites.length ? (
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={buildFavoritesHref({ sort: "newest", page: 1 })}
+              className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                sort === "newest"
+                  ? "border-teal-300 bg-teal-50 text-teal-700"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              Mới lưu gần đây
+            </Link>
+            <Link
+              href={buildFavoritesHref({ sort: "price-asc", page: 1 })}
+              className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                sort === "price-asc"
+                  ? "border-teal-300 bg-teal-50 text-teal-700"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              Giá tăng dần
+            </Link>
+            <Link
+              href={buildFavoritesHref({ sort: "price-desc", page: 1 })}
+              className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                sort === "price-desc"
+                  ? "border-teal-300 bg-teal-50 text-teal-700"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              Giá giảm dần
+            </Link>
+          </div>
+        ) : null}
 
         {filteredFavorites.length ? (
           <div className="space-y-4">
@@ -170,14 +215,22 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
                       </Link>
                       <p className="line-clamp-2 text-sm leading-7 text-slate-600">{favorite.tour.shortDescription}</p>
                       <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">{favorite.tour.location.name}</p>
-                      <div className="flex items-center justify-between gap-2 pt-1">
+                      <div className="pt-1">
                         <p className="text-lg font-bold text-teal-700">{formatPrice(displayPrice)}</p>
-                        {session?.user ? (
-                          <FavoriteRemoveButton
-                            tourId={favorite.tour.id}
-                            className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
-                          />
-                        ) : null}
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <Link
+                            href={`/tours/${favorite.tour.slug}`}
+                            className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                          >
+                            Xem chi tiết
+                          </Link>
+                          {session?.user ? (
+                            <FavoriteRemoveButton
+                              tourId={favorite.tour.id}
+                              className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
+                            />
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   </article>
