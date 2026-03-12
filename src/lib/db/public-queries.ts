@@ -423,6 +423,76 @@ export async function getLocations(search?: string) {
   }
 }
 
+export async function getContactTourOptions(initialTourId?: string) {
+  try {
+    const tours = await db.tour.findMany({
+      where: {
+        status: TourStatus.ACTIVE,
+      },
+      select: {
+        id: true,
+        title: true,
+        location: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+      take: 120,
+    });
+
+    const options = tours.map((tour) => ({
+      id: tour.id,
+      title: tour.title,
+      locationName: tour.location.name,
+    }));
+
+    if (initialTourId && !options.some((tour) => tour.id === initialTourId)) {
+      const selectedTour = await db.tour.findUnique({
+        where: {
+          id: initialTourId,
+        },
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          location: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      if (selectedTour && selectedTour.status === TourStatus.ACTIVE) {
+        options.unshift({
+          id: selectedTour.id,
+          title: selectedTour.title,
+          locationName: selectedTour.location.name,
+        });
+      }
+    }
+
+    return options;
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      const fallback = await demoGetPublicTours({
+        page: 1,
+        pageSize: 500,
+        sort: "moi-nhat",
+      });
+
+      return fallback.tours.map((tour) => ({
+        id: tour.id,
+        title: tour.title,
+        locationName: tour.location.name,
+      }));
+    }
+    throw error;
+  }
+}
+
 export async function getLocationBySlug(slug: string) {
   try {
     const location = await db.location.findUnique({

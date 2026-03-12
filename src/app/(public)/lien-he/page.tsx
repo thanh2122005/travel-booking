@@ -2,7 +2,7 @@
 import { PageHeroBanner } from "@/components/common/page-hero-banner";
 import { ContactInquiryForm } from "@/components/contact/contact-inquiry-form";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
-import { getHomePublicData } from "@/lib/db/public-queries";
+import { getContactTourOptions } from "@/lib/db/public-queries";
 
 export const dynamic = "force-dynamic";
 
@@ -44,13 +44,7 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
     return "";
   })();
 
-  const data = await getHomePublicData().catch(() => ({
-    featuredTours: [],
-  }));
-  const tours = data.featuredTours.slice(0, 8).map((tour) => ({
-    id: tour.id,
-    title: tour.title,
-  }));
+  const tours = await getContactTourOptions(initialTourId).catch(() => []);
   const validInitialTourId = tours.some((tour) => tour.id === initialTourId) ? initialTourId : "";
 
   return (

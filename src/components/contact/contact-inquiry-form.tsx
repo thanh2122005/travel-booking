@@ -12,6 +12,7 @@ type ContactInquiryFormProps = {
   tours: Array<{
     id: string;
     title: string;
+    locationName?: string;
   }>;
   initialTourId?: string;
   initialMessage?: string;
@@ -48,8 +49,11 @@ export function ContactInquiryForm({
     tourId: hasInitialTour ? initialTourId ?? "" : "",
     message: initialMessage?.trim() || "",
   };
-  const selectedTourTitle = initialValues.tourId
-    ? tours.find((tour) => tour.id === initialValues.tourId)?.title ?? ""
+  const selectedTour = initialValues.tourId
+    ? tours.find((tour) => tour.id === initialValues.tourId) ?? null
+    : null;
+  const selectedTourTitle = selectedTour
+    ? `${selectedTour.title}${selectedTour.locationName ? ` - ${selectedTour.locationName}` : ""}`
     : "";
 
   const {
@@ -152,7 +156,7 @@ export function ContactInquiryForm({
             <option value="">Chọn tour</option>
             {tours.map((tour) => (
               <option key={tour.id} value={tour.id}>
-                {tour.title}
+                {tour.locationName ? `${tour.title} - ${tour.locationName}` : tour.title}
               </option>
             ))}
           </select>
