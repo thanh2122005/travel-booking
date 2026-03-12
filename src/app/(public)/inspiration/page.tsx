@@ -138,6 +138,7 @@ export default async function InspirationPage({ searchParams }: InspirationPageP
         </div>
 
         <form className="iv-card p-4">
+          <input type="hidden" name="page" value="1" />
           <label
             htmlFor="inspiration-search"
             className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"
