@@ -156,6 +156,15 @@ export function AdminBookingsTable({
             />
             Chọn tất cả trong trang
           </label>
+          {selectedIdsInPage.length ? (
+            <button
+              type="button"
+              onClick={() => toggleSelectAll(false)}
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              Bỏ chọn trong trang
+            </button>
+          ) : null}
           <select
             value={bulkStatus}
             onChange={(event) => setBulkStatus(event.target.value)}
