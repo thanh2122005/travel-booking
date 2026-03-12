@@ -4,10 +4,11 @@ import { AppProvider } from "@/components/providers/app-provider";
 
 export const metadata: Metadata = {
   title: {
-    default: "Immersive Vietnam Booking",
-    template: "%s | Immersive Vietnam Booking",
+    default: "Immersive Vietnam - Đặt tour du lịch Việt Nam",
+    template: "%s | Immersive Vietnam",
   },
-  description: "Nền tảng đặt tour du lịch Việt Nam hiện đại, premium và dễ mở rộng theo dữ liệu thật.",
+  description:
+    "Nền tảng đặt tour du lịch Việt Nam hiện đại, tối ưu trải nghiệm người dùng và quản trị dữ liệu thực tế.",
 };
 
 export default function RootLayout({
