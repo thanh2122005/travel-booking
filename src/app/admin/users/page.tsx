@@ -23,6 +23,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
   const role = normalizeParam(params.role);
   const status = normalizeParam(params.status);
   const page = Number(normalizeParam(params.page) || "1");
+  const hasActiveFilters = Boolean(search || role || status);
 
   const data = await getAdminUsers({
     search: search || undefined,
@@ -51,10 +52,11 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
       </div>
 
       <form className="iv-card p-4">
+        <input type="hidden" name="page" value="1" />
         <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
           Tìm kiếm người dùng
         </label>
-        <div className="grid gap-2 lg:grid-cols-[1fr_180px_180px_auto]">
+        <div className="grid gap-2 lg:grid-cols-[1fr_180px_180px_auto_auto]">
           <input
             id="search"
             name="search"
@@ -83,12 +85,48 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
           <button type="submit" className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold">
             Tìm kiếm
           </button>
+          {hasActiveFilters ? (
+            <Link
+              href="/admin/users"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+            >
+              Xóa lọc
+            </Link>
+          ) : null}
         </div>
       </form>
 
       {data.items.length ? (
         <>
-          <div className="iv-card overflow-x-auto p-4">
+          <div className="space-y-3 lg:hidden">
+            {data.items.map((user) => (
+              <article key={user.id} className="iv-card p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{user.fullName}</p>
+                    <p className="text-xs text-slate-500">{user.email}</p>
+                  </div>
+                  <Badge variant={user.status === "ACTIVE" ? "default" : "destructive"}>
+                    {adminLabels.userStatus[user.status]}
+                  </Badge>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">SĐT: {user.phone || "-"}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Badge variant="outline">{adminLabels.userRole[user.role]}</Badge>
+                  <Badge variant="outline">Đơn: {user._count.bookings}</Badge>
+                  <Badge variant="outline">Đánh giá: {user._count.reviews}</Badge>
+                  <Badge variant="outline">Yêu thích: {user._count.favorites}</Badge>
+                </div>
+                <p className="mt-3 text-xs text-slate-500">Ngày tạo: {formatDate(user.createdAt)}</p>
+                <div className="mt-3 space-y-2">
+                  <AdminUserActions userId={user.id} role={user.role} status={user.status} />
+                  <AdminUserDetailDialog user={user} />
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="iv-card hidden overflow-x-auto p-4 lg:block">
             <table className="w-full min-w-[980px] text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-slate-500">
@@ -139,30 +177,42 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
               Trang {data.page}/{data.totalPages} • Tổng {data.total} người dùng
             </p>
             <div className="flex gap-2">
-              <Link
-                href={{
-                  pathname: "/admin/users",
-                  query: {
-                    ...params,
-                    page: String(Math.max(data.page - 1, 1)),
-                  },
-                }}
-                className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
-              >
-                Trang trước
-              </Link>
-              <Link
-                href={{
-                  pathname: "/admin/users",
-                  query: {
-                    ...params,
-                    page: String(Math.min(data.page + 1, data.totalPages)),
-                  },
-                }}
-                className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
-              >
-                Trang sau
-              </Link>
+              {data.page > 1 ? (
+                <Link
+                  href={{
+                    pathname: "/admin/users",
+                    query: {
+                      ...params,
+                      page: String(data.page - 1),
+                    },
+                  }}
+                  className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
+                >
+                  Trang trước
+                </Link>
+              ) : (
+                <span className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-400">
+                  Trang trước
+                </span>
+              )}
+              {data.page < data.totalPages ? (
+                <Link
+                  href={{
+                    pathname: "/admin/users",
+                    query: {
+                      ...params,
+                      page: String(data.page + 1),
+                    },
+                  }}
+                  className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
+                >
+                  Trang sau
+                </Link>
+              ) : (
+                <span className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-400">
+                  Trang sau
+                </span>
+              )}
             </div>
           </div>
         </>
