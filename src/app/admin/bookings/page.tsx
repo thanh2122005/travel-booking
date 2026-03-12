@@ -229,30 +229,42 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
               Trang {data.page}/{data.totalPages} • Tổng {data.total} booking
             </p>
             <div className="flex gap-2">
-              <Link
-                href={{
-                  pathname: "/admin/bookings",
-                  query: {
-                    ...params,
-                    page: String(Math.max(data.page - 1, 1)),
-                  },
-                }}
-                className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
-              >
-                Trang trước
-              </Link>
-              <Link
-                href={{
-                  pathname: "/admin/bookings",
-                  query: {
-                    ...params,
-                    page: String(Math.min(data.page + 1, data.totalPages)),
-                  },
-                }}
-                className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
-              >
-                Trang sau
-              </Link>
+              {data.page > 1 ? (
+                <Link
+                  href={{
+                    pathname: "/admin/bookings",
+                    query: {
+                      ...params,
+                      page: String(data.page - 1),
+                    },
+                  }}
+                  className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
+                >
+                  Trang trước
+                </Link>
+              ) : (
+                <span className="inline-flex h-9 items-center rounded-md border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-400">
+                  Trang trước
+                </span>
+              )}
+              {data.page < data.totalPages ? (
+                <Link
+                  href={{
+                    pathname: "/admin/bookings",
+                    query: {
+                      ...params,
+                      page: String(data.page + 1),
+                    },
+                  }}
+                  className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
+                >
+                  Trang sau
+                </Link>
+              ) : (
+                <span className="inline-flex h-9 items-center rounded-md border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-400">
+                  Trang sau
+                </span>
+              )}
             </div>
           </div>
         </>
