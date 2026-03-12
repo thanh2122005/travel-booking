@@ -1,6 +1,7 @@
 import { UserStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { resolveAccessState } from "@/lib/auth/access-state";
 import { authOptions } from "@/lib/auth/auth-options";
 
 type RequireActiveUserApiOptions = {
@@ -44,7 +45,8 @@ export async function requireActiveUserApi(
     };
   }
 
-  if (session.user.status === UserStatus.BLOCKED) {
+  const access = await resolveAccessState(session.user);
+  if (access.status === UserStatus.BLOCKED) {
     return {
       session: null,
       response: NextResponse.json(
