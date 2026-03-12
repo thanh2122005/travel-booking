@@ -9,6 +9,7 @@ import {
   TicketCheck,
   UserCircle2,
 } from "lucide-react";
+import { AccountProfileForm } from "@/components/account/account-profile-form";
 import { EmptyState } from "@/components/common/empty-state";
 import { SafeImage } from "@/components/common/safe-image";
 import { BookingCancelButton } from "@/components/booking/booking-cancel-button";
@@ -405,6 +406,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </p>
         </article>
       </section>
+
+      <AccountProfileForm fullName={data.fullName} email={data.email} phone={data.phone} />
 
       <section className="iv-card p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
