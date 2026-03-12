@@ -132,7 +132,7 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
             Chỉ nổi bật
           </label>
           <button type="submit" className="iv-btn-primary inline-flex h-11 items-center justify-center px-5 text-sm font-semibold">
-            Áp dụng
+            Lọc điểm đến
           </button>
           {hasActiveFilters ? (
             <Link

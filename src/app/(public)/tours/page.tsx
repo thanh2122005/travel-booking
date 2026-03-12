@@ -273,7 +273,7 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
             type="submit"
             className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Áp dụng bộ lọc
+            Lọc tour
           </button>
           <Link
             href="/tours"
