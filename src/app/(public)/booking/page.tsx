@@ -170,7 +170,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 pb-24 lg:pb-0">
       <PageHeroBanner
         eyebrow="Quy trình đặt tour"
         title="Đặt tour rõ ràng và dễ theo dõi"
@@ -178,7 +178,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
         imageSrc="/immerse-vietnam/images/header-bg.jpg"
       />
 
-      <section className="space-y-5">
+      <section id="quy-trinh-dat-tour" className="scroll-mt-24 space-y-5">
         <HomeSectionHeading
           eyebrow="Cách hoạt động"
           title="Quy trình đặt tour 4 bước"
@@ -195,7 +195,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
         </div>
       </section>
 
-      <section className="space-y-5">
+      <section id="don-dat-tour" className="scroll-mt-24 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <HomeSectionHeading
             eyebrow="Đơn gần đây"
@@ -207,6 +207,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
           </Link>
         </div>
 
+        <div id="bo-loc-don" className="scroll-mt-24" />
         <form className="iv-card p-4">
           <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
             Tìm kiếm đơn đặt tour
@@ -332,6 +333,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
           </div>
         ) : null}
 
+        <div id="danh-sach-don" className="scroll-mt-24" />
         {filteredBookings.length ? (
           <div className="space-y-3">
             <div className="grid gap-3 lg:hidden">
@@ -506,6 +508,27 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
           />
         )}
       </section>
+
+      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
+        <a
+          href="#bo-loc-don"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Lọc đơn
+        </a>
+        <a
+          href="#danh-sach-don"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Danh sách
+        </a>
+        <Link
+          href="/tai-khoan"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
+        >
+          Tài khoản
+        </Link>
+      </div>
     </div>
   );
 }
