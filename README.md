@@ -21,7 +21,7 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - Xem đánh giá và tour liên quan
 - Trang cảm hứng và thư viện ảnh có lọc/phân trang theo điểm đến
 - Form liên hệ hỗ trợ prefill theo tour/điểm đến từ luồng tư vấn nhanh
-- Trang booking/favorites/reviews có thao tác nhanh mobile để nhảy tới bộ lọc và danh sách kết quả
+- Cụm tours/điểm đến/booking/favorites/reviews có thao tác nhanh mobile để nhảy tới bộ lọc và danh sách kết quả
 
 ### Khu vực người dùng
 
