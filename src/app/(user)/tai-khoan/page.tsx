@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import { SafeImage } from "@/components/common/safe-image";
 import { BookingCancelButton } from "@/components/booking/booking-cancel-button";
 import { FavoriteRemoveButton } from "@/components/favorite/favorite-remove-button";
+import { ReviewEditInline } from "@/components/review/review-edit-inline";
 import { ReviewRemoveButton } from "@/components/review/review-remove-button";
 import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth/session";
@@ -407,9 +408,41 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         </article>
       </section>
 
-      <AccountProfileForm fullName={data.fullName} email={data.email} phone={data.phone} />
+      <section className="iv-card p-4 md:hidden">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Thao tác nhanh</p>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <a
+            href="#ho-so"
+            className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white"
+          >
+            Hồ sơ
+          </a>
+          <a
+            href="#booking"
+            className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white"
+          >
+            Booking
+          </a>
+          <a
+            href="#yeu-thich"
+            className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white"
+          >
+            Yêu thích
+          </a>
+          <a
+            href="#danh-gia"
+            className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white"
+          >
+            Đánh giá
+          </a>
+        </div>
+      </section>
 
-      <section className="iv-card p-5">
+      <div id="ho-so" className="scroll-mt-24">
+        <AccountProfileForm fullName={data.fullName} email={data.email} phone={data.phone} />
+      </div>
+
+      <section id="booking" className="iv-card scroll-mt-24 p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-xl font-bold text-slate-900">Lịch sử đặt tour</h2>
           <Badge variant="outline">
@@ -584,7 +617,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         )}
       </section>
 
-      <section className="iv-card p-5">
+      <section id="yeu-thich" className="iv-card scroll-mt-24 p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="inline-flex items-center gap-2 text-xl font-bold text-slate-900">
             <Heart className="h-5 w-5 text-primary" />
@@ -698,7 +731,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           />
         )}
       </section>
-      <section className="iv-card p-5">
+      <section id="danh-gia" className="iv-card scroll-mt-24 p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="inline-flex items-center gap-2 text-xl font-bold text-slate-900">
             <MessageSquareText className="h-5 w-5 text-primary" />
@@ -774,11 +807,18 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                   </div>
                   <p className="mt-2 text-sm font-medium">Đánh giá: {review.rating}/5</p>
                   <p className="mt-1 text-sm text-muted-foreground">{review.comment}</p>
-                  <div className="mt-3 flex justify-end">
-                    <ReviewRemoveButton
+                  <div className="mt-3 space-y-3">
+                    <ReviewEditInline
                       tourId={review.tour.id}
-                      className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
+                      initialRating={review.rating}
+                      initialComment={review.comment}
                     />
+                    <div className="flex justify-end">
+                      <ReviewRemoveButton
+                        tourId={review.tour.id}
+                        className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
+                      />
+                    </div>
                   </div>
                 </article>
               ))}
