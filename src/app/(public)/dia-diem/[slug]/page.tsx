@@ -143,7 +143,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
             Đi đến trang đặt tour
           </Link>
           <Link
-            href={`/lien-he?location=${encodeURIComponent(location.slug)}`}
+            href={`/lien-he?location=${encodeURIComponent(location.slug)}&locationName=${encodeURIComponent(location.name)}`}
             className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
           >
             Liên hệ tư vấn

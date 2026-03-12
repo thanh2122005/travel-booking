@@ -28,7 +28,8 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
   const params = await searchParams;
   const initialTourId = normalizeParam(params.tourId);
   const locationParam = normalizeParam(params.location);
-  const locationLabel = normalizeLocationLabel(locationParam);
+  const locationNameParam = normalizeParam(params.locationName);
+  const locationLabel = locationNameParam || normalizeLocationLabel(locationParam);
   const initialMessage = locationLabel ? `Mình muốn được tư vấn tour tại ${locationLabel}.` : "";
 
   const data = await getHomePublicData().catch(() => ({
