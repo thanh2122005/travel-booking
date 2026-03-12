@@ -935,6 +935,7 @@ export async function demoGetUserDashboardData(userId?: string) {
         createdAt: toDate(review.createdAt),
         updatedAt: toDate(review.updatedAt),
         tour: {
+          id: tour?.id ?? "",
           title: tour?.title ?? "Tour",
           slug: tour?.slug ?? "",
         },
@@ -2361,5 +2362,20 @@ export async function demoUpsertPublicReview(input: {
   state.reviews.push(review);
   await writeDemo(state);
   return review;
+}
+
+export async function demoDeletePublicReview(input: { userId: string; tourId: string }) {
+  const state = await readDemo();
+  const existing = state.reviews.find(
+    (review) => review.userId === input.userId && review.tourId === input.tourId,
+  );
+
+  if (!existing) {
+    return null;
+  }
+
+  state.reviews = state.reviews.filter((review) => review.id !== existing.id);
+  await writeDemo(state);
+  return existing;
 }
 

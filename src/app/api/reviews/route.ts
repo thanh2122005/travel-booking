@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-options";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
-import { demoUpsertPublicReview } from "@/lib/demo/admin-demo-store";
+import { demoDeletePublicReview, demoUpsertPublicReview } from "@/lib/demo/admin-demo-store";
 import { db } from "@/lib/db/prisma";
-import { reviewSchema } from "@/lib/validations/tour-interactions";
+import { favoriteSchema, reviewSchema } from "@/lib/validations/tour-interactions";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -118,6 +118,81 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         message: "Không thể gửi đánh giá lúc này, vui lòng thử lại sau.",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      {
+        message: "Vui lòng đăng nhập để xóa đánh giá.",
+      },
+      { status: 401 },
+    );
+  }
+
+  const body = await request.json();
+  const parsed = favoriteSchema.safeParse(body);
+
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    return NextResponse.json(
+      {
+        message: firstIssue?.message ?? "Dữ liệu đánh giá không hợp lệ.",
+      },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const deleted = await db.review.deleteMany({
+      where: {
+        userId: session.user.id,
+        tourId: parsed.data.tourId,
+      },
+    });
+
+    if (!deleted.count) {
+      return NextResponse.json(
+        {
+          message: "Không tìm thấy đánh giá để xóa.",
+        },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({
+      message: "Đã xóa đánh giá của bạn.",
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      const deleted = await demoDeletePublicReview({
+        userId: session.user.id,
+        tourId: parsed.data.tourId,
+      });
+
+      if (!deleted) {
+        return NextResponse.json(
+          {
+            message: "Không tìm thấy đánh giá để xóa.",
+          },
+          { status: 404 },
+        );
+      }
+
+      return NextResponse.json({
+        message: "Đã xóa đánh giá của bạn.",
+      });
+    }
+
+    return NextResponse.json(
+      {
+        message: "Không thể xóa đánh giá lúc này, vui lòng thử lại sau.",
       },
       { status: 500 },
     );

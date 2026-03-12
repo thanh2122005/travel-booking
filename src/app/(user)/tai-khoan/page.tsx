@@ -12,6 +12,7 @@ import {
 import { EmptyState } from "@/components/common/empty-state";
 import { SafeImage } from "@/components/common/safe-image";
 import { FavoriteRemoveButton } from "@/components/favorite/favorite-remove-button";
+import { ReviewRemoveButton } from "@/components/review/review-remove-button";
 import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth/session";
 import { getUserDashboardData } from "@/lib/db/user-queries";
@@ -747,6 +748,12 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                   </div>
                   <p className="mt-2 text-sm font-medium">Đánh giá: {review.rating}/5</p>
                   <p className="mt-1 text-sm text-muted-foreground">{review.comment}</p>
+                  <div className="mt-3 flex justify-end">
+                    <ReviewRemoveButton
+                      tourId={review.tour.id}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
+                    />
+                  </div>
                 </article>
               ))}
             </div>
