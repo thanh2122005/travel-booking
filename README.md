@@ -72,6 +72,11 @@ Giá trị cần cập nhật:
 - `NEXTAUTH_SECRET`
 - `NEXTAUTH_URL`
 
+Lưu ý bảo mật:
+
+- Ở môi trường production, bắt buộc phải cấu hình `AUTH_SECRET` hoặc `NEXTAUTH_SECRET`.
+- Ứng dụng sẽ dừng sớm nếu thiếu secret để tránh chạy với cấu hình không an toàn.
+
 ### Bước 3: migrate + seed dữ liệu
 
 ```bash
