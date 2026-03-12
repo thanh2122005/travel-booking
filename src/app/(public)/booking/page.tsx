@@ -18,6 +18,11 @@ type BookingPageProps = {
 
 type BookingStatusValue = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
 type PaymentStatusValue = "UNPAID" | "PAID";
+type BookingQueryOverrides = {
+  search?: string;
+  status?: BookingStatusValue | "";
+  page?: number;
+};
 
 const bookingStatusLabels: Record<BookingStatusValue, string> = {
   PENDING: "Chờ xác nhận",
@@ -85,15 +90,15 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
   const dashboard = session?.user?.id ? await getUserDashboardData(session.user.id).catch(() => null) : null;
   const bookings = dashboard?.bookings ?? [];
 
-  const filteredBookings = bookings.filter((booking) => {
-    const searchMatched =
+  const searchMatchedBookings = bookings.filter((booking) => {
+    return (
       !normalizedSearch ||
       booking.bookingCode.toLowerCase().includes(normalizedSearch) ||
       booking.tour.title.toLowerCase().includes(normalizedSearch) ||
-      booking.tour.departureLocation.toLowerCase().includes(normalizedSearch);
-    const statusMatched = !status || booking.status === status;
-    return searchMatched && statusMatched;
+      booking.tour.departureLocation.toLowerCase().includes(normalizedSearch)
+    );
   });
+  const filteredBookings = searchMatchedBookings.filter((booking) => !status || booking.status === status);
   const pageSize = 12;
   const totalPages = Math.max(1, Math.ceil(filteredBookings.length / pageSize));
   const currentPage = Math.min(requestedPage, totalPages);
@@ -101,23 +106,28 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
   );
-  const queryBase = new URLSearchParams();
+  const buildBookingHref = (overrides: BookingQueryOverrides = {}) => {
+    const nextSearch = overrides.search ?? search;
+    const nextStatus = overrides.status ?? status;
+    const nextPage = overrides.page ?? currentPage;
+    const query = new URLSearchParams();
 
-  if (search) {
-    queryBase.set("search", search);
-  }
-  if (status) {
-    queryBase.set("status", status);
-  }
-
-  const buildPageHref = (page: number) => {
-    const query = new URLSearchParams(queryBase);
-    if (page > 1) {
-      query.set("page", String(page));
+    if (nextSearch) {
+      query.set("search", nextSearch);
     }
+    if (nextStatus) {
+      query.set("status", nextStatus);
+    }
+    if (nextPage > 1) {
+      query.set("page", String(nextPage));
+    }
+
     const serialized = query.toString();
     return serialized ? `/booking?${serialized}` : "/booking";
   };
+
+  const buildPageHref = (page: number) => buildBookingHref({ page });
+  const clearFiltersHref = buildBookingHref({ search: "", status: "", page: 1 });
   const countByStatus: Record<BookingStatusValue, number> = {
     PENDING: 0,
     CONFIRMED: 0,
@@ -125,7 +135,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
     COMPLETED: 0,
   };
 
-  for (const booking of filteredBookings) {
+  for (const booking of searchMatchedBookings) {
     const normalizedStatus = booking.status as BookingStatusValue;
     if (normalizedStatus in countByStatus) {
       countByStatus[normalizedStatus] += 1;
@@ -201,7 +211,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
             </button>
             {hasActiveFilters ? (
               <Link
-                href="/booking"
+                href={clearFiltersHref}
                 className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
               >
                 Xóa lọc
@@ -228,6 +238,34 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-rose-700">Đã hủy</p>
               <p className="mt-1 text-xl font-bold text-rose-900">{countByStatus.CANCELLED}</p>
             </article>
+          </div>
+        ) : null}
+
+        {searchMatchedBookings.length ? (
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={buildBookingHref({ status: "", page: 1 })}
+              className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                !status
+                  ? "border-teal-300 bg-teal-50 text-teal-700"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              Tất cả ({searchMatchedBookings.length})
+            </Link>
+            {(Object.keys(bookingStatusLabels) as BookingStatusValue[]).map((statusValue) => (
+              <Link
+                key={statusValue}
+                href={buildBookingHref({ status: statusValue, page: 1 })}
+                className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                  status === statusValue
+                    ? "border-teal-300 bg-teal-50 text-teal-700"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                {bookingStatusLabels[statusValue]} ({countByStatus[statusValue]})
+              </Link>
+            ))}
           </div>
         ) : null}
 
@@ -271,22 +309,28 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                       <dd className="font-medium text-slate-800">{formatDate(booking.createdAt)}</dd>
                     </div>
                   </dl>
-                  {canCancelBooking(booking.status, booking.paymentStatus) ? (
-                    <div className="pt-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                    <Link
+                      href={`/tours/${booking.tour.slug}`}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                      Xem tour
+                    </Link>
+                    {canCancelBooking(booking.status, booking.paymentStatus) ? (
                       <BookingCancelButton
                         bookingId={booking.id}
                         bookingCode={booking.bookingCode}
                         className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
                       />
-                    </div>
-                  ) : null}
+                    ) : null}
+                  </div>
                 </article>
               ))}
             </div>
 
             <div className="hidden lg:block">
               <div className="iv-card overflow-x-auto p-4">
-                <table className="w-full min-w-[1020px] text-sm">
+                <table className="w-full min-w-[1080px] text-sm">
                   <thead>
                     <tr className="border-b border-slate-200 text-left text-slate-500">
                       <th className="px-2 py-3 font-medium">Mã đơn</th>
@@ -319,15 +363,21 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                         </td>
                         <td className="px-2 py-3 text-slate-500">{formatDate(booking.createdAt)}</td>
                         <td className="px-2 py-3">
-                          {canCancelBooking(booking.status, booking.paymentStatus) ? (
-                            <BookingCancelButton
-                              bookingId={booking.id}
-                              bookingCode={booking.bookingCode}
-                              className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
-                            />
-                          ) : (
-                            <span className="text-xs text-slate-400">-</span>
-                          )}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Link
+                              href={`/tours/${booking.tour.slug}`}
+                              className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-300 px-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                            >
+                              Xem tour
+                            </Link>
+                            {canCancelBooking(booking.status, booking.paymentStatus) ? (
+                              <BookingCancelButton
+                                bookingId={booking.id}
+                                bookingCode={booking.bookingCode}
+                                className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
+                              />
+                            ) : null}
+                          </div>
                         </td>
                       </tr>
                     ))}
