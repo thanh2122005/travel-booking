@@ -18,6 +18,7 @@ type DestinationsPageProps = {
 };
 
 type DestinationSortValue = "noi-bat" | "ten-a-z" | "ten-z-a";
+const pageSize = 9;
 
 function normalizeParam(value?: string | string[]) {
   if (!value) return "";
@@ -29,6 +30,13 @@ function parseSort(value: string): DestinationSortValue {
     return value;
   }
   return "noi-bat";
+}
+
+function parsePage(value: string) {
+  const page = Number(value || "1");
+  if (!Number.isFinite(page)) return 1;
+  const normalized = Math.trunc(page);
+  return normalized >= 1 ? normalized : 1;
 }
 
 function buildDestinationsHref(
@@ -62,6 +70,7 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
   const search = normalizeParam(params.search);
   const sort = parseSort(normalizeParam(params.sort));
   const featuredOnly = normalizeParam(params.featured) === "1";
+  const requestedPage = parsePage(normalizeParam(params.page));
 
   const locations = await getLocations(search || undefined).catch(() => []);
   const filteredLocations = locations
@@ -80,6 +89,9 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
       }
       return +new Date(b.updatedAt) - +new Date(a.updatedAt);
     });
+  const totalPages = Math.max(1, Math.ceil(filteredLocations.length / pageSize));
+  const currentPage = Math.min(requestedPage, totalPages);
+  const pagedLocations = filteredLocations.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const hasActiveFilters = Boolean(search || featuredOnly || sort !== "noi-bat");
 
   return (
@@ -91,6 +103,7 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
       />
 
       <form className="iv-card p-4">
+        <input type="hidden" name="page" value="1" />
         <label htmlFor="destination-search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
           Tìm điểm đến
         </label>
@@ -138,6 +151,7 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
           <Link
             href={buildDestinationsHref(params, {
               featured: featuredOnly ? "" : "1",
+              page: "1",
             })}
             className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-semibold transition ${
               featuredOnly
@@ -148,7 +162,7 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
             {featuredOnly ? "Bỏ lọc nổi bật" : "Chỉ nổi bật"}
           </Link>
           <Link
-            href={buildDestinationsHref(params, { sort: "noi-bat" })}
+            href={buildDestinationsHref(params, { sort: "noi-bat", page: "1" })}
             className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-semibold transition ${
               sort === "noi-bat"
                 ? "border-teal-300 bg-teal-50 text-teal-700"
@@ -158,7 +172,7 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
             Ưu tiên nổi bật
           </Link>
           <Link
-            href={buildDestinationsHref(params, { sort: "ten-a-z" })}
+            href={buildDestinationsHref(params, { sort: "ten-a-z", page: "1" })}
             className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-semibold transition ${
               sort === "ten-a-z"
                 ? "border-teal-300 bg-teal-50 text-teal-700"
@@ -168,7 +182,7 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
             Tên A-Z
           </Link>
           <Link
-            href={buildDestinationsHref(params, { sort: "ten-z-a" })}
+            href={buildDestinationsHref(params, { sort: "ten-z-a", page: "1" })}
             className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-semibold transition ${
               sort === "ten-z-a"
                 ? "border-teal-300 bg-teal-50 text-teal-700"
@@ -181,42 +195,85 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
       </div>
 
       <article className="rounded-xl border bg-card px-4 py-3 text-sm text-muted-foreground">
-        Hiển thị <span className="font-semibold text-foreground">{filteredLocations.length}</span> /{" "}
-        <span className="font-semibold text-foreground">{locations.length}</span> điểm đến.
+        Hiển thị <span className="font-semibold text-foreground">{pagedLocations.length}</span> /{" "}
+        <span className="font-semibold text-foreground">{filteredLocations.length}</span> điểm đến
+        {totalPages > 1 ? (
+          <>
+            {" "}
+            - Trang <span className="font-semibold text-foreground">{currentPage}</span>/{totalPages}
+          </>
+        ) : null}
+        .
       </article>
 
       {filteredLocations.length ? (
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {filteredLocations.map((location) => (
-            <article key={location.id} className="iv-card overflow-hidden">
-              <Link href={`/dia-diem/${location.slug}`} className="group block">
-                <div className="relative h-52">
-                  <SafeImage
-                    src={location.imageUrl}
-                    alt={location.name}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
-                </div>
-                <div className="space-y-2 p-5">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-xl font-bold tracking-tight text-slate-900">{location.name}</h3>
-                    {location.featured ? (
-                      <span className="inline-flex rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-teal-700">
-                        Nổi bật
-                      </span>
-                    ) : null}
+        <div className="space-y-4">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {pagedLocations.map((location) => (
+              <article key={location.id} className="iv-card overflow-hidden">
+                <Link href={`/dia-diem/${location.slug}`} className="group block">
+                  <div className="relative h-52">
+                    <SafeImage
+                      src={location.imageUrl}
+                      alt={location.name}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                    />
                   </div>
-                  <p className="inline-flex items-center gap-1.5 text-sm text-slate-500">
-                    <MapPin className="h-4 w-4 text-teal-600" />
-                    {location.provinceOrCity}, {location.country}
-                  </p>
-                  <p className="line-clamp-2 text-sm leading-7 text-slate-600">{location.shortDescription}</p>
-                </div>
-              </Link>
-            </article>
-          ))}
+                  <div className="space-y-2 p-5">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-xl font-bold tracking-tight text-slate-900">{location.name}</h3>
+                      {location.featured ? (
+                        <span className="inline-flex rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-teal-700">
+                          Nổi bật
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="inline-flex items-center gap-1.5 text-sm text-slate-500">
+                      <MapPin className="h-4 w-4 text-teal-600" />
+                      {location.provinceOrCity}, {location.country}
+                    </p>
+                    <p className="line-clamp-2 text-sm leading-7 text-slate-600">{location.shortDescription}</p>
+                  </div>
+                </Link>
+              </article>
+            ))}
+          </div>
+
+          {totalPages > 1 ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+              <p className="text-slate-600">
+                Trang <span className="font-semibold text-slate-900">{currentPage}</span> / {totalPages}
+              </p>
+              <div className="flex items-center gap-2">
+                {currentPage > 1 ? (
+                  <Link
+                    href={buildDestinationsHref(params, { page: String(currentPage - 1) })}
+                    className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
+                  >
+                    Trang trước
+                  </Link>
+                ) : (
+                  <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
+                    Trang trước
+                  </span>
+                )}
+                {currentPage < totalPages ? (
+                  <Link
+                    href={buildDestinationsHref(params, { page: String(currentPage + 1) })}
+                    className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
+                  >
+                    Trang sau
+                  </Link>
+                ) : (
+                  <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
+                    Trang sau
+                  </span>
+                )}
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : (
         <EmptyState
