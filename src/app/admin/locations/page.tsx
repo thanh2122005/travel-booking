@@ -22,6 +22,7 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
   const params = await searchParams;
   const search = normalizeParam(params.search);
   const page = Number(normalizeParam(params.page) || "1");
+  const hasActiveFilters = Boolean(search);
 
   const data = await getAdminLocations({
     search: search || undefined,
@@ -48,6 +49,7 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
       </div>
 
       <form className="iv-card p-4">
+        <input type="hidden" name="page" value="1" />
         <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
           Tìm kiếm điểm đến
         </label>
@@ -62,6 +64,14 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
           <button type="submit" className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold">
             Tìm kiếm
           </button>
+          {hasActiveFilters ? (
+            <Link
+              href="/admin/locations"
+              className="iv-btn-soft inline-flex h-10 items-center justify-center px-4 text-sm font-semibold"
+            >
+              Xóa bộ lọc
+            </Link>
+          ) : null}
         </div>
       </form>
 
@@ -103,30 +113,42 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
               Trang {data.page}/{data.totalPages} • Tổng {data.total} điểm đến
             </p>
             <div className="flex gap-2">
-              <Link
-                href={{
-                  pathname: "/admin/locations",
-                  query: {
-                    ...params,
-                    page: String(Math.max(data.page - 1, 1)),
-                  },
-                }}
-                className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
-              >
-                Trang trước
-              </Link>
-              <Link
-                href={{
-                  pathname: "/admin/locations",
-                  query: {
-                    ...params,
-                    page: String(Math.min(data.page + 1, data.totalPages)),
-                  },
-                }}
-                className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
-              >
-                Trang sau
-              </Link>
+              {data.page > 1 ? (
+                <Link
+                  href={{
+                    pathname: "/admin/locations",
+                    query: {
+                      ...params,
+                      page: String(data.page - 1),
+                    },
+                  }}
+                  className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
+                >
+                  Trang trước
+                </Link>
+              ) : (
+                <span className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-400">
+                  Trang trước
+                </span>
+              )}
+              {data.page < data.totalPages ? (
+                <Link
+                  href={{
+                    pathname: "/admin/locations",
+                    query: {
+                      ...params,
+                      page: String(data.page + 1),
+                    },
+                  }}
+                  className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
+                >
+                  Trang sau
+                </Link>
+              ) : (
+                <span className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-400">
+                  Trang sau
+                </span>
+              )}
             </div>
           </div>
         </>

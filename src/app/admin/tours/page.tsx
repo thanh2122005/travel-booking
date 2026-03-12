@@ -43,6 +43,7 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
 
   const status = parseTourStatus(statusParam);
   const featured = parseFeatured(featuredParam);
+  const hasActiveFilters = Boolean(search || statusParam || featuredParam || locationId);
 
   const [data, locationOptions] = await Promise.all([
     getAdminTours({
@@ -84,6 +85,7 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
       </div>
 
       <form className="iv-card space-y-3 p-4">
+        <input type="hidden" name="page" value="1" />
         <label
           htmlFor="search"
           className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"
@@ -136,14 +138,16 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
             type="submit"
             className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
           >
-            Áp dụng bộ lọc
+            Lọc tour
           </button>
-          <Link
-            href="/admin/tours"
-            className="iv-btn-soft inline-flex h-10 items-center justify-center px-4 text-sm font-semibold"
-          >
-            Xóa bộ lọc
-          </Link>
+          {hasActiveFilters ? (
+            <Link
+              href="/admin/tours"
+              className="iv-btn-soft inline-flex h-10 items-center justify-center px-4 text-sm font-semibold"
+            >
+              Xóa bộ lọc
+            </Link>
+          ) : null}
         </div>
       </form>
 
@@ -204,30 +208,42 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
               Trang {data.page}/{data.totalPages} • Tổng {data.total} tour
             </p>
             <div className="flex gap-2">
-              <Link
-                href={{
-                  pathname: "/admin/tours",
-                  query: {
-                    ...queryWithoutPage,
-                    page: String(Math.max(data.page - 1, 1)),
-                  },
-                }}
-                className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
-              >
-                Trang trước
-              </Link>
-              <Link
-                href={{
-                  pathname: "/admin/tours",
-                  query: {
-                    ...queryWithoutPage,
-                    page: String(Math.min(data.page + 1, data.totalPages)),
-                  },
-                }}
-                className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
-              >
-                Trang sau
-              </Link>
+              {data.page > 1 ? (
+                <Link
+                  href={{
+                    pathname: "/admin/tours",
+                    query: {
+                      ...queryWithoutPage,
+                      page: String(data.page - 1),
+                    },
+                  }}
+                  className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
+                >
+                  Trang trước
+                </Link>
+              ) : (
+                <span className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-400">
+                  Trang trước
+                </span>
+              )}
+              {data.page < data.totalPages ? (
+                <Link
+                  href={{
+                    pathname: "/admin/tours",
+                    query: {
+                      ...queryWithoutPage,
+                      page: String(data.page + 1),
+                    },
+                  }}
+                  className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
+                >
+                  Trang sau
+                </Link>
+              ) : (
+                <span className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-400">
+                  Trang sau
+                </span>
+              )}
             </div>
           </div>
         </>
