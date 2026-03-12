@@ -94,6 +94,12 @@ const bookingStatusOrder: BookingStatus[] = [
 ];
 
 const paymentStatusOrder: PaymentStatus[] = [PaymentStatus.UNPAID, PaymentStatus.PAID];
+const accountSectionLinks = [
+  { href: "#ho-so", label: "Hồ sơ" },
+  { href: "#booking", label: "Đặt tour" },
+  { href: "#yeu-thich", label: "Yêu thích" },
+  { href: "#danh-gia", label: "Đánh giá" },
+] as const;
 
 function normalizeParam(value?: string | string[]) {
   if (!value) return "";
@@ -384,7 +390,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-24 lg:pb-8">
       <section className="iv-card overflow-hidden bg-[linear-gradient(130deg,#091f33,#0a314d,#085a66)] p-6 text-white md:p-8">
         <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-teal-100">
           <UserCircle2 className="h-4 w-4" />
@@ -445,33 +451,23 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         </article>
       </section>
 
-      <section className="iv-card p-4 md:hidden">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Thao tác nhanh</p>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <a
-            href="#ho-so"
-            className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white"
-          >
-            Hồ sơ
-          </a>
-          <a
-            href="#booking"
-            className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white"
-          >
-            Đặt tour
-          </a>
-          <a
-            href="#yeu-thich"
-            className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white"
-          >
-            Yêu thích
-          </a>
-          <a
-            href="#danh-gia"
-            className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white"
-          >
-            Đánh giá
-          </a>
+      <section className="iv-card p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Đi đến nhanh</p>
+          <Link href="/tours" className="text-xs font-semibold text-teal-700 hover:text-teal-800">
+            Khám phá tour mới
+          </Link>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 md:flex md:flex-wrap">
+          {accountSectionLinks.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white"
+            >
+              {item.label}
+            </a>
+          ))}
         </div>
       </section>
 
@@ -949,6 +945,27 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           />
         )}
       </section>
+
+      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur md:hidden">
+        <a
+          href="#booking"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Đặt tour
+        </a>
+        <a
+          href="#yeu-thich"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Yêu thích
+        </a>
+        <a
+          href="#danh-gia"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
+        >
+          Đánh giá
+        </a>
+      </div>
     </div>
   );
 }
