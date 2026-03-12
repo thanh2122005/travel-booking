@@ -17,6 +17,7 @@ import {
   catalogTravelerProfiles,
   localAvatarPool,
 } from "@/lib/content/vietnam-catalog";
+import { canCancelBooking } from "@/lib/utils/booking-actions";
 
 type DemoUser = {
   id: string;
@@ -2325,6 +2326,26 @@ export async function demoTogglePublicFavorite(input: { userId: string; tourId: 
   });
   await writeDemo(state);
   return { isFavorite: true };
+}
+
+export async function demoCancelPublicBooking(input: { bookingId: string; userId: string }) {
+  const state = await readDemo();
+  const booking = state.bookings.find(
+    (item) => item.id === input.bookingId && item.userId === input.userId,
+  );
+
+  if (!booking) {
+    return "NOT_FOUND" as const;
+  }
+
+  if (!canCancelBooking(booking.status, booking.paymentStatus)) {
+    return "NOT_ALLOWED" as const;
+  }
+
+  booking.status = BookingStatus.CANCELLED;
+  booking.updatedAt = nowIso();
+  await writeDemo(state);
+  return booking;
 }
 
 export async function demoUpsertPublicReview(input: {

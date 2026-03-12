@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { CalendarCheck2, CreditCard, FileCheck2, UserRoundCheck } from "lucide-react";
 import { PageHeroBanner } from "@/components/common/page-hero-banner";
+import { BookingCancelButton } from "@/components/booking/booking-cancel-button";
 import { EmptyState } from "@/components/common/empty-state";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { Badge } from "@/components/ui/badge";
 import { getAuthSession } from "@/lib/auth/session";
 import { getUserDashboardData } from "@/lib/db/user-queries";
+import { canCancelBooking } from "@/lib/utils/booking-actions";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
@@ -238,13 +240,22 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                       <dd className="font-medium text-slate-800">{formatDate(booking.createdAt)}</dd>
                     </div>
                   </dl>
+                  {canCancelBooking(booking.status, booking.paymentStatus) ? (
+                    <div className="pt-1">
+                      <BookingCancelButton
+                        bookingId={booking.id}
+                        bookingCode={booking.bookingCode}
+                        className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
+                      />
+                    </div>
+                  ) : null}
                 </article>
               ))}
             </div>
 
             <div className="hidden lg:block">
               <div className="iv-card overflow-x-auto p-4">
-                <table className="w-full min-w-[920px] text-sm">
+                <table className="w-full min-w-[1020px] text-sm">
                   <thead>
                     <tr className="border-b border-slate-200 text-left text-slate-500">
                       <th className="px-2 py-3 font-medium">Mã đơn</th>
@@ -254,6 +265,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                       <th className="px-2 py-3 font-medium">Trạng thái</th>
                       <th className="px-2 py-3 font-medium">Thanh toán</th>
                       <th className="px-2 py-3 font-medium">Ngày tạo</th>
+                      <th className="px-2 py-3 font-medium">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -275,6 +287,17 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                           <Badge variant="outline">{paymentStatusLabels[booking.paymentStatus as PaymentStatusValue] ?? booking.paymentStatus}</Badge>
                         </td>
                         <td className="px-2 py-3 text-slate-500">{formatDate(booking.createdAt)}</td>
+                        <td className="px-2 py-3">
+                          {canCancelBooking(booking.status, booking.paymentStatus) ? (
+                            <BookingCancelButton
+                              bookingId={booking.id}
+                              bookingCode={booking.bookingCode}
+                              className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
+                            />
+                          ) : (
+                            <span className="text-xs text-slate-400">-</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

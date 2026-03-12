@@ -11,11 +11,13 @@ import {
 } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { SafeImage } from "@/components/common/safe-image";
+import { BookingCancelButton } from "@/components/booking/booking-cancel-button";
 import { FavoriteRemoveButton } from "@/components/favorite/favorite-remove-button";
 import { ReviewRemoveButton } from "@/components/review/review-remove-button";
 import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth/session";
 import { getUserDashboardData } from "@/lib/db/user-queries";
+import { canCancelBooking } from "@/lib/utils/booking-actions";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
@@ -485,12 +487,21 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                     </Badge>
                     <span className="text-xs text-slate-500">{booking.numberOfGuests} khách</span>
                   </div>
+                  {canCancelBooking(booking.status, booking.paymentStatus) ? (
+                    <div className="mt-3">
+                      <BookingCancelButton
+                        bookingId={booking.id}
+                        bookingCode={booking.bookingCode}
+                        className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
+                      />
+                    </div>
+                  ) : null}
                 </article>
               ))}
             </div>
 
             <div className="hidden overflow-x-auto lg:block">
-              <table className="w-full min-w-[900px] text-sm">
+              <table className="w-full min-w-[1010px] text-sm">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
                     <th className="px-2 py-3 font-medium">Mã đơn</th>
@@ -500,6 +511,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                     <th className="px-2 py-3 font-medium">Trạng thái</th>
                     <th className="px-2 py-3 font-medium">Thanh toán</th>
                     <th className="px-2 py-3 font-medium">Ngày tạo</th>
+                    <th className="px-2 py-3 font-medium">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -525,6 +537,17 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                         </Badge>
                       </td>
                       <td className="px-2 py-3 text-muted-foreground">{formatDate(booking.createdAt)}</td>
+                      <td className="px-2 py-3">
+                        {canCancelBooking(booking.status, booking.paymentStatus) ? (
+                          <BookingCancelButton
+                            bookingId={booking.id}
+                            bookingCode={booking.bookingCode}
+                            className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
+                          />
+                        ) : (
+                          <span className="text-xs text-slate-400">-</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
