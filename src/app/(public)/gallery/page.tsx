@@ -146,7 +146,7 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
     : locations.slice(0, 6);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 pb-24 lg:pb-0">
       <PageHeroBanner
         eyebrow="Thư viện"
         title="Việt Nam qua lăng kính cảm xúc"
@@ -170,6 +170,7 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
           </Link>
         </div>
 
+        <div id="bo-loc-thu-vien" className="scroll-mt-24" />
         <form className="iv-card p-4">
           <input type="hidden" name="page" value="1" />
           <label htmlFor="gallery-location" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -231,6 +232,7 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
           </div>
         ) : null}
 
+        <div id="ket-qua-thu-vien" className="scroll-mt-24" />
         {visibleEntries.length ? (
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -330,6 +332,27 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
           ))}
         </div>
       </section>
+
+      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
+        <a
+          href="#bo-loc-thu-vien"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Lọc ảnh
+        </a>
+        <a
+          href="#ket-qua-thu-vien"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Kết quả
+        </a>
+        <Link
+          href="/dia-diem"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
+        >
+          Điểm đến
+        </Link>
+      </div>
     </div>
   );
 }
