@@ -19,6 +19,8 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - Trang chủ, danh sách tour, chi tiết tour, địa điểm, giới thiệu, liên hệ
 - Bộ lọc/tìm kiếm tour theo điểm đến, giá, thời lượng, sắp xếp
 - Xem đánh giá và tour liên quan
+- Trang cảm hứng và thư viện ảnh có lọc/phân trang theo điểm đến
+- Form liên hệ hỗ trợ prefill theo tour/điểm đến từ luồng tư vấn nhanh
 
 ### Khu vực người dùng
 
@@ -27,6 +29,8 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - Yêu thích tour
 - Gửi/cập nhật đánh giá
 - Dashboard tài khoản: lịch sử booking, danh sách yêu thích, đánh giá cá nhân
+- Bộ lọc nhanh nâng cao cho đơn đặt tour/yêu thích/đánh giá trong trang tài khoản
+- Trang chi tiết tour có thanh thao tác nhanh trên mobile (đặt tour/tư vấn nhanh)
 
 ### Khu vực quản trị (`/admin`)
 
