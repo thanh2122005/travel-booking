@@ -133,3 +133,51 @@ npx prisma db seed
 - Không commit file `.env`
 - Nếu thay đổi schema Prisma: tạo migration và kiểm tra lại seed
 - Trước khi push: chạy tối thiểu `npm run lint`
+
+## 9. Cấu trúc thư mục chính
+
+```text
+src/
+  app/
+    (public)/        # Trang công khai
+    (user)/          # Dashboard người dùng
+    admin/           # Khu vực quản trị
+    api/             # API route (user/admin)
+  components/
+    admin/           # UI/logic cho admin
+    booking/
+    favorite/
+    review/
+    tour/
+  lib/
+    auth/            # NextAuth + guard quyền truy cập
+    db/              # Query server cho public/user/admin
+    demo/            # Fallback dữ liệu demo khi DB không sẵn sàng
+    validations/     # Schema Zod
+```
+
+## 10. Bảo mật API và phân quyền
+
+- Tất cả API quản trị đi qua guard admin và middleware `/api/admin/:path*`.
+- API user quan trọng (`booking`, `favorites`, `reviews`, `account/profile`) dùng guard chung để:
+  - bắt buộc đăng nhập
+  - chặn tài khoản `BLOCKED`
+- Khu vực `/admin` chặn truy cập theo role + status ngay từ middleware.
+
+## 11. Checklist trước khi deploy
+
+1. Đồng bộ biến môi trường production (`DATABASE_URL`, `NEXTAUTH_URL`, secret).
+2. Chạy kiểm tra chất lượng:
+   - `npm run lint`
+   - `npx tsc --noEmit`
+3. Chạy migration production:
+   - `npx prisma migrate deploy`
+4. Seed dữ liệu mẫu nếu cần:
+   - `npx prisma db seed`
+
+## 12. Xử lý lỗi thường gặp
+
+- `Error: spawn EPERM` khi `next build` trên môi trường bị hạn chế quyền:
+  - Thử chạy terminal với quyền phù hợp (hoặc môi trường CI khác).
+  - Xác nhận phần mềm bảo mật không chặn tiến trình con của Node.js.
+  - Dùng `npm run lint` + `npx tsc --noEmit` để xác minh logic mã nguồn trước khi chuyển môi trường build.
