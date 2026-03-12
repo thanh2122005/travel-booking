@@ -6,6 +6,7 @@ import { authSecret } from "@/lib/auth/auth-secret";
 const authRoutes = ["/dang-nhap", "/dang-ky"];
 const userRoutes = ["/tai-khoan"];
 const adminRoutes = ["/admin"];
+const adminApiPrefix = "/api/admin";
 
 export async function middleware(request: NextRequest) {
   const token = await getToken({
@@ -16,10 +17,25 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAuthenticated = Boolean(token);
   const isBlocked = token?.status === "BLOCKED";
+  const isAdminApiRequest = pathname.startsWith(adminApiPrefix);
 
   if (authRoutes.some((route) => pathname.startsWith(route)) && isAuthenticated && !isBlocked) {
     const destination = token?.role === "ADMIN" ? "/admin" : "/tai-khoan";
     return NextResponse.redirect(new URL(destination, request.url));
+  }
+
+  if (isAdminApiRequest) {
+    if (!isAuthenticated) {
+      return NextResponse.json({ message: "Vui lòng đăng nhập." }, { status: 401 });
+    }
+
+    if (token?.role !== "ADMIN") {
+      return NextResponse.json({ message: "Bạn không có quyền truy cập." }, { status: 403 });
+    }
+
+    if (isBlocked) {
+      return NextResponse.json({ message: "Tài khoản của bạn đã bị khóa." }, { status: 403 });
+    }
   }
 
   if (adminRoutes.some((route) => pathname.startsWith(route))) {
@@ -54,6 +70,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dang-nhap", "/dang-ky", "/tai-khoan/:path*", "/admin/:path*"],
+  matcher: ["/dang-nhap", "/dang-ky", "/tai-khoan/:path*", "/admin/:path*", "/api/admin/:path*"],
 };
 
