@@ -3,6 +3,7 @@ import { AdminUserActions } from "@/components/admin/admin-user-actions";
 import { AdminUserDetailDialog } from "@/components/admin/admin-user-detail-dialog";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { adminLabels, getAdminUsers } from "@/lib/db/admin-queries";
 import { formatDate } from "@/lib/utils/format";
 
@@ -45,13 +46,13 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
         <h1 className="text-2xl font-bold text-slate-900">Quản lý người dùng</h1>
         <p className="mt-1 text-sm text-slate-600">Theo dõi tài khoản, vai trò, trạng thái và mức độ hoạt động.</p>
       </div>
 
-      <form className="iv-card p-4">
+      <form id="bo-loc-nguoi-dung" className="iv-card scroll-mt-24 p-4">
         <input type="hidden" name="page" value="1" />
         <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
           Tìm kiếm người dùng
@@ -96,6 +97,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
         </div>
       </form>
 
+      <div id="danh-sach-nguoi-dung" className="scroll-mt-24" />
       {data.items.length ? (
         <>
           <div className="space-y-3 lg:hidden">
@@ -224,6 +226,14 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
           ctaLabel="Xóa bộ lọc"
         />
       )}
+
+      <MobileQuickActions
+        items={[
+          { href: "#bo-loc-nguoi-dung", label: "Bộ lọc" },
+          { href: "#danh-sach-nguoi-dung", label: "Danh sách", active: true },
+          { href: "/admin/tours", label: "Tour" },
+        ]}
+      />
     </div>
   );
 }

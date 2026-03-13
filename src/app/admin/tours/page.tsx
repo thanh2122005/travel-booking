@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AdminCreateTourForm } from "@/components/admin/admin-create-tour-form";
 import { AdminTourActions } from "@/components/admin/admin-tour-actions";
 import { EmptyState } from "@/components/common/empty-state";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { SafeImage } from "@/components/common/safe-image";
 import { Badge } from "@/components/ui/badge";
 import { adminLabels, getAdminLocationOptions, getAdminTours } from "@/lib/db/admin-queries";
@@ -76,7 +77,7 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
         <h1 className="text-2xl font-bold text-slate-900">Quản lý tour</h1>
         <p className="mt-1 text-sm text-slate-600">
@@ -84,7 +85,7 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
         </p>
       </div>
 
-      <form className="iv-card space-y-3 p-4">
+      <form id="bo-loc-tour-admin" className="iv-card scroll-mt-24 space-y-3 p-4">
         <input type="hidden" name="page" value="1" />
         <label
           htmlFor="search"
@@ -153,6 +154,7 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
 
       <AdminCreateTourForm locations={locationOptions} />
 
+      <div id="danh-sach-tour-admin" className="scroll-mt-24" />
       {data.items.length ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -255,6 +257,14 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
           ctaLabel="Xóa bộ lọc"
         />
       )}
+
+      <MobileQuickActions
+        items={[
+          { href: "#bo-loc-tour-admin", label: "Bộ lọc" },
+          { href: "#danh-sach-tour-admin", label: "Danh sách", active: true },
+          { href: "/admin/locations", label: "Điểm đến" },
+        ]}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 import { AdminCreateLocationForm } from "@/components/admin/admin-create-location-form";
 import { AdminLocationActions } from "@/components/admin/admin-location-actions";
 import { SafeImage } from "@/components/common/safe-image";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
 import { getAdminLocations } from "@/lib/db/admin-queries";
@@ -42,13 +43,13 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
         <h1 className="text-2xl font-bold text-slate-900">Quản lý điểm đến</h1>
         <p className="mt-1 text-sm text-slate-600">Theo dõi mức độ nổi bật và số tour đang gắn với từng địa điểm.</p>
       </div>
 
-      <form className="iv-card p-4">
+      <form id="bo-loc-dia-diem-admin" className="iv-card scroll-mt-24 p-4">
         <input type="hidden" name="page" value="1" />
         <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
           Tìm kiếm điểm đến
@@ -77,6 +78,7 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
 
       <AdminCreateLocationForm />
 
+      <div id="danh-sach-dia-diem-admin" className="scroll-mt-24" />
       {data.items.length ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -160,6 +162,14 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
           ctaLabel="Xóa bộ lọc"
         />
       )}
+
+      <MobileQuickActions
+        items={[
+          { href: "#bo-loc-dia-diem-admin", label: "Bộ lọc" },
+          { href: "#danh-sach-dia-diem-admin", label: "Danh sách", active: true },
+          { href: "/admin/tours", label: "Tour" },
+        ]}
+      />
     </div>
   );
 }
