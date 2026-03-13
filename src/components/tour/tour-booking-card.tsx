@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { buildCallbackUrl } from "@/lib/auth/callback-url";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/utils/format";
 import { bookingSchema, type BookingInput } from "@/lib/validations/booking";
@@ -59,7 +61,14 @@ export function TourBookingCard({
   initialPhone,
 }: TourBookingCardProps) {
   const { data: session, status } = useSession();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isLoggedIn = Boolean(session?.user);
+  const callbackUrl = buildCallbackUrl(
+    pathname || `/tours/${tourSlug}`,
+    searchParams.toString() ? `?${searchParams.toString()}` : "",
+  );
+  const loginHref = `/dang-nhap?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
   const [activeStep, setActiveStep] = useState<BookingStep>(1);
   const [lastBookingCode, setLastBookingCode] = useState<string | null>(null);
@@ -282,7 +291,7 @@ export function TourBookingCard({
 
       {!isLoggedIn && status !== "loading" ? (
         <Link
-          href={`/dang-nhap?callbackUrl=/tours/${tourSlug}`}
+          href={loginHref}
           className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
         >
           Đăng nhập để đặt tour
@@ -459,7 +468,12 @@ export function TourBookingCard({
           )}
         </Button>
         {!isLoggedIn ? (
-          <p className="text-xs text-muted-foreground">Đăng nhập để lưu tour vào danh sách yêu thích của bạn.</p>
+          <p className="text-xs text-muted-foreground">
+            <Link href={loginHref} className="font-semibold text-primary hover:underline">
+              Đăng nhập
+            </Link>{" "}
+            để lưu tour vào danh sách yêu thích của bạn.
+          </p>
         ) : null}
       </div>
 
@@ -523,7 +537,12 @@ export function TourBookingCard({
         </Button>
 
         {!isLoggedIn ? (
-          <p className="text-xs text-muted-foreground">Đăng nhập để gửi đánh giá cho tour này.</p>
+          <p className="text-xs text-muted-foreground">
+            <Link href={loginHref} className="font-semibold text-primary hover:underline">
+              Đăng nhập
+            </Link>{" "}
+            để gửi đánh giá cho tour này.
+          </p>
         ) : null}
       </div>
     </div>

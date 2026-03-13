@@ -8,6 +8,7 @@ import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { Badge } from "@/components/ui/badge";
 import { getAuthSession } from "@/lib/auth/session";
 import { getUserDashboardData } from "@/lib/db/user-queries";
+import { buildAliasRedirectPath } from "@/lib/utils/alias-redirect";
 import { canCancelBooking } from "@/lib/utils/booking-actions";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
@@ -99,6 +100,9 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
   const session = await getAuthSession();
   const dashboard = session?.user?.id ? await getUserDashboardData(session.user.id).catch(() => null) : null;
   const bookings = dashboard?.bookings ?? [];
+  const loginHref = `/dang-nhap?callbackUrl=${encodeURIComponent(
+    buildAliasRedirectPath("/booking", params),
+  )}`;
 
   const searchMatchedBookings = bookings.filter((booking) => {
     return (
@@ -504,7 +508,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
           <EmptyState
             title="Đăng nhập để theo dõi đơn đặt tour"
             description="Bạn cần đăng nhập để xem lịch sử đặt tour và quản lý các đơn đã đặt."
-            ctaHref="/dang-nhap?callbackUrl=/booking"
+            ctaHref={loginHref}
             ctaLabel="Đăng nhập ngay"
           />
         )}
