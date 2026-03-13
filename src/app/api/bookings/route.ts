@@ -4,6 +4,7 @@ import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { demoCreatePublicBooking } from "@/lib/demo/admin-demo-store";
 import { requireActiveUserApi } from "@/lib/auth/user-api";
 import { db } from "@/lib/db/prisma";
+import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { bookingSchema } from "@/lib/validations/booking";
 
 function buildBookingCode() {
@@ -59,6 +60,23 @@ export async function POST(request: Request) {
     return guard.response;
   }
   const session = guard.session;
+
+  const ip = getClientIp(request);
+  const rate = consumeRateLimit(`public:booking:create:${session.user.id}:${ip}`, {
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+  });
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { message: "Bạn thao tác quá nhanh. Vui lòng thử đặt tour lại sau ít phút." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rate.retryAfterSeconds),
+        },
+      },
+    );
+  }
 
   const body = await request.json();
   const parsed = bookingSchema.safeParse(body);

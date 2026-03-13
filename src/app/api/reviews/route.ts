@@ -4,6 +4,7 @@ import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { demoDeletePublicReview, demoUpsertPublicReview } from "@/lib/demo/admin-demo-store";
 import { requireActiveUserApi } from "@/lib/auth/user-api";
 import { db } from "@/lib/db/prisma";
+import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { favoriteSchema, reviewSchema } from "@/lib/validations/tour-interactions";
 
 export async function POST(request: Request) {
@@ -14,6 +15,23 @@ export async function POST(request: Request) {
     return guard.response;
   }
   const session = guard.session;
+
+  const ip = getClientIp(request);
+  const rate = consumeRateLimit(`public:review:upsert:${session.user.id}:${ip}`, {
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+  });
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { message: "Bạn gửi đánh giá quá nhanh. Vui lòng thử lại sau." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rate.retryAfterSeconds),
+        },
+      },
+    );
+  }
 
   const body = await request.json();
   const parsed = reviewSchema.safeParse(body);
@@ -128,6 +146,23 @@ export async function DELETE(request: Request) {
     return guard.response;
   }
   const session = guard.session;
+
+  const ip = getClientIp(request);
+  const rate = consumeRateLimit(`public:review:delete:${session.user.id}:${ip}`, {
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+  });
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { message: "Bạn thao tác quá nhanh. Vui lòng thử lại sau." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rate.retryAfterSeconds),
+        },
+      },
+    );
+  }
 
   const body = await request.json();
   const parsed = favoriteSchema.safeParse(body);

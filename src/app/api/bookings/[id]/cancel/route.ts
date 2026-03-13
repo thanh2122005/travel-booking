@@ -4,6 +4,7 @@ import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { db } from "@/lib/db/prisma";
 import { demoCancelPublicBooking } from "@/lib/demo/admin-demo-store";
 import { requireActiveUserApi } from "@/lib/auth/user-api";
+import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { canCancelBooking } from "@/lib/utils/booking-actions";
 
 type BookingCancelRouteContext = {
@@ -18,6 +19,23 @@ export async function PATCH(_request: Request, context: BookingCancelRouteContex
     return guard.response;
   }
   const session = guard.session;
+
+  const ip = getClientIp(_request);
+  const rate = consumeRateLimit(`public:booking:cancel:${session.user.id}:${ip}`, {
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+  });
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { message: "Bạn thao tác quá nhanh. Vui lòng thử lại sau." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rate.retryAfterSeconds),
+        },
+      },
+    );
+  }
 
   const { id } = await context.params;
 

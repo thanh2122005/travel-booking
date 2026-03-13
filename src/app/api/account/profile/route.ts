@@ -3,6 +3,7 @@ import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { db } from "@/lib/db/prisma";
 import { demoUpdateUserContent } from "@/lib/demo/admin-demo-store";
 import { requireActiveUserApi } from "@/lib/auth/user-api";
+import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { profileUpdateSchema } from "@/lib/validations/profile";
 
 export async function PATCH(request: Request) {
@@ -13,6 +14,23 @@ export async function PATCH(request: Request) {
     return guard.response;
   }
   const session = guard.session;
+
+  const ip = getClientIp(request);
+  const rate = consumeRateLimit(`account:profile:update:${session.user.id}:${ip}`, {
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+  });
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { message: "Bạn cập nhật quá nhanh. Vui lòng thử lại sau." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rate.retryAfterSeconds),
+        },
+      },
+    );
+  }
 
   const body = await request.json();
   const parsed = profileUpdateSchema.safeParse(body);

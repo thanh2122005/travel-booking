@@ -2,9 +2,30 @@ import { NextResponse } from "next/server";
 import { UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db/prisma";
+import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { registerSchema } from "@/lib/validations/auth";
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const rate = consumeRateLimit(`auth:register:${ip}`, {
+    windowMs: 15 * 60 * 1000,
+    max: 8,
+  });
+
+  if (!rate.allowed) {
+    return NextResponse.json(
+      {
+        message: "Bạn gửi yêu cầu quá nhanh. Vui lòng thử lại sau ít phút.",
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rate.retryAfterSeconds),
+        },
+      },
+    );
+  }
+
   try {
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);

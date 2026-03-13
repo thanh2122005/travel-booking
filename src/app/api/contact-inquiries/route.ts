@@ -1,8 +1,27 @@
 import { NextResponse } from "next/server";
 import { saveContactInquiry } from "@/lib/demo/contact-inquiry-store";
+import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { contactInquirySchema } from "@/lib/validations/contact";
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const rate = consumeRateLimit(`public:contact-inquiry:${ip}`, {
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+  });
+
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { message: "Bạn gửi yêu cầu quá nhanh. Vui lòng thử lại sau ít phút." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rate.retryAfterSeconds),
+        },
+      },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

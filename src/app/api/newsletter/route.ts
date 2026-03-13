@@ -1,8 +1,27 @@
 import { NextResponse } from "next/server";
 import { saveNewsletterSubscriber } from "@/lib/demo/newsletter-subscriber-store";
+import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { newsletterSchema } from "@/lib/validations/newsletter";
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const rate = consumeRateLimit(`public:newsletter:${ip}`, {
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+  });
+
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { message: "Bạn thao tác quá nhanh. Vui lòng thử lại sau." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rate.retryAfterSeconds),
+        },
+      },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

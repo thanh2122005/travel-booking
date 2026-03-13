@@ -4,6 +4,7 @@ import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { demoTogglePublicFavorite } from "@/lib/demo/admin-demo-store";
 import { requireActiveUserApi } from "@/lib/auth/user-api";
 import { db } from "@/lib/db/prisma";
+import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { favoriteSchema } from "@/lib/validations/tour-interactions";
 
 export async function POST(request: Request) {
@@ -14,6 +15,23 @@ export async function POST(request: Request) {
     return guard.response;
   }
   const session = guard.session;
+
+  const ip = getClientIp(request);
+  const rate = consumeRateLimit(`public:favorite:toggle:${session.user.id}:${ip}`, {
+    windowMs: 15 * 60 * 1000,
+    max: 60,
+  });
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { message: "Bạn thao tác quá nhanh. Vui lòng thử lại sau." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rate.retryAfterSeconds),
+        },
+      },
+    );
+  }
 
   const body = await request.json();
   const parsed = favoriteSchema.safeParse(body);
