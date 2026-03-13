@@ -122,6 +122,31 @@ function createQuickDateRange(days: number) {
   };
 }
 
+function formatInputDate(value: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function buildDateRangeLabel(createdFrom: string, createdTo: string) {
+  if (createdFrom && createdTo) {
+    return `Ngày tạo: ${formatInputDate(createdFrom)} - ${formatInputDate(createdTo)}`;
+  }
+  if (createdFrom) {
+    return `Từ ngày: ${formatInputDate(createdFrom)}`;
+  }
+  if (createdTo) {
+    return `Đến ngày: ${formatInputDate(createdTo)}`;
+  }
+  return "";
+}
+
 export default async function BookingPage({ searchParams }: BookingPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
@@ -217,6 +242,13 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
     createdTo: "",
     page: 1,
   });
+  const dateRangeLabel = buildDateRangeLabel(createdFrom, createdTo);
+  const activeFilterLabels = [
+    ...(search ? [`Từ khóa: ${search}`] : []),
+    ...(status ? [`Trạng thái: ${bookingStatusLabels[status]}`] : []),
+    ...(paymentStatus ? [`Thanh toán: ${paymentStatusLabels[paymentStatus]}`] : []),
+    ...(dateRangeLabel ? [dateRangeLabel] : []),
+  ];
   const countByStatus: Record<BookingStatusValue, number> = {
     PENDING: 0,
     CONFIRMED: 0,
@@ -364,6 +396,15 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
               </Link>
             ) : null}
           </div>
+          {activeFilterLabels.length ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {activeFilterLabels.map((label) => (
+                <Badge key={label} variant="outline" className="bg-slate-50 text-xs text-slate-700">
+                  {label}
+                </Badge>
+              ))}
+            </div>
+          ) : null}
         </form>
 
         {filteredBookings.length ? (
