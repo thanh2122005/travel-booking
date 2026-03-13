@@ -183,6 +183,7 @@ src/
 - Guard quyền user/admin ưu tiên đồng bộ role + status theo DB (fallback session khi DB tạm lỗi ở dev/demo).
 - Route export CSV admin có chặn CSV formula injection khi mở bằng Excel/Sheets.
 - Truy vấn admin theo ngày tự động giới hạn khoảng thời gian để tránh query quá tải.
+- Ứng dụng trả thêm security headers cơ bản (frame/content-type/referrer/permissions policy).
 - Khu vực `/admin` chặn truy cập theo role + status ngay từ middleware.
 
 ## 11. Checklist trước khi deploy
