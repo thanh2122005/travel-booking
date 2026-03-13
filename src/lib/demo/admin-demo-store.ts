@@ -156,6 +156,13 @@ type ReviewListFilter = ListFilter & {
   createdTo?: Date;
 };
 
+type UserListFilter = ListFilter & {
+  role?: UserRole;
+  status?: UserStatus;
+  createdFrom?: Date;
+  createdTo?: Date;
+};
+
 type TimelineGranularity = "day" | "week" | "month";
 
 type DemoDashboardOptions = {
@@ -847,15 +854,25 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
 }
 
 export async function demoGetUsers(
-  filter: ListFilter & { role?: UserRole; status?: UserStatus } = {},
+  filter: UserListFilter = {},
 ) {
   const state = await readDemo();
+  const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
+  const createdTo = filter.createdTo ? endOfDay(filter.createdTo) : undefined;
   const rows = state.users
     .filter(
-      (user) =>
+      (user) => {
+        const createdAt = new Date(user.createdAt);
+        const createdMatched =
+          Number.isNaN(createdAt.getTime()) ||
+          ((!createdFrom || createdAt >= createdFrom) && (!createdTo || createdAt <= createdTo));
+        return (
         (searchIncludes(user.fullName, filter.search) || searchIncludes(user.email, filter.search)) &&
         (!filter.role || user.role === filter.role) &&
-        (!filter.status || user.status === filter.status),
+        (!filter.status || user.status === filter.status) &&
+        createdMatched
+        );
+      },
     )
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .map((user) => ({

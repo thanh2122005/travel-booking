@@ -52,6 +52,13 @@ type AdminTourListFilter = AdminListFilter & {
   locationId?: string;
 };
 
+type AdminUserListFilter = AdminListFilter & {
+  role?: UserRole;
+  status?: UserStatus;
+  createdFrom?: Date;
+  createdTo?: Date;
+};
+
 type AdminBookingListFilter = AdminListFilter & {
   status?: BookingStatus;
   paymentStatus?: PaymentStatus;
@@ -634,10 +641,11 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
 }
 
 export async function getAdminUsers(
-  filter: AdminListFilter & { role?: UserRole; status?: UserStatus } = {},
+  filter: AdminUserListFilter = {},
 ) {
   try {
     const { page, pageSize, skip } = getPagination(filter);
+    const { start: createdFrom, end: createdTo } = normalizeDateRange(filter.createdFrom, filter.createdTo);
 
     const where: Prisma.UserWhereInput = filter.search
       ? {
@@ -652,6 +660,12 @@ export async function getAdminUsers(
     }
     if (filter.status) {
       where.status = filter.status;
+    }
+    if (createdFrom || createdTo) {
+      where.createdAt = {
+        ...(createdFrom ? { gte: createdFrom } : {}),
+        ...(createdTo ? { lte: createdTo } : {}),
+      };
     }
 
     const [total, items] = await Promise.all([
