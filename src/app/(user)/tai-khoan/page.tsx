@@ -47,6 +47,8 @@ type AccountQueryState = {
   reviewSearch: string;
   reviewSort: ReviewSortValue;
   reviewMinRating: number;
+  reviewCreatedFrom: string;
+  reviewCreatedTo: string;
   reviewPage: number;
 };
 
@@ -101,6 +103,7 @@ const bookingStatusOrder: BookingStatus[] = [
 const paymentStatusOrder: PaymentStatus[] = [PaymentStatus.UNPAID, PaymentStatus.PAID];
 const accountBookingQuickRanges = [7, 30, 90] as const;
 const accountFavoriteQuickRanges = [30, 90, 180] as const;
+const accountReviewQuickRanges = [30, 90, 180] as const;
 const accountSectionLinks = [
   { href: "#ho-so", label: "Hồ sơ" },
   { href: "#booking", label: "Đặt tour" },
@@ -206,6 +209,8 @@ function buildAccountHref(state: AccountQueryState, overrides: Partial<AccountQu
   if (next.reviewSearch) query.set("reviewSearch", next.reviewSearch);
   if (next.reviewSort !== "newest") query.set("reviewSort", next.reviewSort);
   if (next.reviewMinRating) query.set("reviewMinRating", String(next.reviewMinRating));
+  if (next.reviewCreatedFrom) query.set("reviewCreatedFrom", next.reviewCreatedFrom);
+  if (next.reviewCreatedTo) query.set("reviewCreatedTo", next.reviewCreatedTo);
   if (next.reviewPage > 1) query.set("reviewPage", String(next.reviewPage));
 
   const serialized = query.toString();
@@ -287,6 +292,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     reviewSearch: normalizeParam(params.reviewSearch),
     reviewSort: parseReviewSort(normalizeParam(params.reviewSort)),
     reviewMinRating: parseMinRating(normalizeParam(params.reviewMinRating)),
+    reviewCreatedFrom: normalizeParam(params.reviewCreatedFrom),
+    reviewCreatedTo: normalizeParam(params.reviewCreatedTo),
     reviewPage: parsePage(normalizeParam(params.reviewPage)),
   };
 
@@ -312,6 +319,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const bookingCreatedToDate = parseDateAtBoundary(state.bookingCreatedTo, "end");
   const favoriteCreatedFromDate = parseDateAtBoundary(state.favoriteCreatedFrom, "start");
   const favoriteCreatedToDate = parseDateAtBoundary(state.favoriteCreatedTo, "end");
+  const reviewCreatedFromDate = parseDateAtBoundary(state.reviewCreatedFrom, "start");
+  const reviewCreatedToDate = parseDateAtBoundary(state.reviewCreatedTo, "end");
 
   const bookingSearchMatched = data.bookings.filter((booking) => {
     const searchMatched =
@@ -398,7 +407,12 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         review.comment.toLowerCase().includes(normalizedReviewSearch) ||
         review.tour.title.toLowerCase().includes(normalizedReviewSearch);
       const ratingMatched = !state.reviewMinRating || review.rating >= state.reviewMinRating;
-      return searchMatched && ratingMatched;
+      const createdAt = new Date(review.createdAt);
+      const dateMatched =
+        Number.isNaN(createdAt.getTime()) ||
+        ((!reviewCreatedFromDate || createdAt >= reviewCreatedFromDate) &&
+          (!reviewCreatedToDate || createdAt <= reviewCreatedToDate));
+      return searchMatched && ratingMatched && dateMatched;
     })
     .slice()
     .sort((a, b) => {
@@ -450,7 +464,13 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       state.favoriteCreatedFrom ||
       state.favoriteCreatedTo,
   );
-  const hasReviewFilters = Boolean(state.reviewSearch || state.reviewSort !== "newest" || state.reviewMinRating);
+  const hasReviewFilters = Boolean(
+    state.reviewSearch ||
+      state.reviewSort !== "newest" ||
+      state.reviewMinRating ||
+      state.reviewCreatedFrom ||
+      state.reviewCreatedTo,
+  );
 
   const clearBookingHref = buildAccountHref(state, {
     bookingSearch: "",
@@ -471,6 +491,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     reviewSearch: "",
     reviewSort: "newest",
     reviewMinRating: 0,
+    reviewCreatedFrom: "",
+    reviewCreatedTo: "",
     reviewPage: 1,
   });
 
@@ -578,6 +600,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <input type="hidden" name="reviewSearch" value={state.reviewSearch} />
           <input type="hidden" name="reviewSort" value={state.reviewSort} />
           <input type="hidden" name="reviewMinRating" value={state.reviewMinRating} />
+          <input type="hidden" name="reviewCreatedFrom" value={state.reviewCreatedFrom} />
+          <input type="hidden" name="reviewCreatedTo" value={state.reviewCreatedTo} />
           <input type="hidden" name="reviewPage" value={state.reviewPage} />
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Mốc nhanh:</p>
@@ -861,6 +885,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <input type="hidden" name="reviewSearch" value={state.reviewSearch} />
           <input type="hidden" name="reviewSort" value={state.reviewSort} />
           <input type="hidden" name="reviewMinRating" value={state.reviewMinRating} />
+          <input type="hidden" name="reviewCreatedFrom" value={state.reviewCreatedFrom} />
+          <input type="hidden" name="reviewCreatedTo" value={state.reviewCreatedTo} />
           <input type="hidden" name="reviewPage" value={state.reviewPage} />
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Mốc nhanh:</p>
@@ -1006,7 +1032,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </Badge>
         </div>
 
-        <form className="mb-4 grid gap-2 md:grid-cols-[1fr_160px_180px_auto_auto]">
+        <form className="mb-4 space-y-3">
           <input type="hidden" name="reviewPage" value="1" />
           <input type="hidden" name="bookingSearch" value={state.bookingSearch} />
           <input type="hidden" name="bookingStatus" value={state.bookingStatus} />
@@ -1019,47 +1045,87 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <input type="hidden" name="favoriteCreatedFrom" value={state.favoriteCreatedFrom} />
           <input type="hidden" name="favoriteCreatedTo" value={state.favoriteCreatedTo} />
           <input type="hidden" name="favoritePage" value={state.favoritePage} />
-          <input
-            name="reviewSearch"
-            defaultValue={state.reviewSearch}
-            placeholder="Tên tour hoặc nội dung đánh giá..."
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          />
-          <select
-            name="reviewMinRating"
-            defaultValue={state.reviewMinRating || ""}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          >
-            <option value="">Tất cả mức điểm</option>
-            <option value="5">Từ 5 sao</option>
-            <option value="4">Từ 4 sao</option>
-            <option value="3">Từ 3 sao</option>
-            <option value="2">Từ 2 sao</option>
-            <option value="1">Từ 1 sao</option>
-          </select>
-          <select
-            name="reviewSort"
-            defaultValue={state.reviewSort}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          >
-            <option value="newest">Mới cập nhật</option>
-            <option value="rating-desc">Điểm cao đến thấp</option>
-            <option value="rating-asc">Điểm thấp đến cao</option>
-          </select>
-          <button
-            type="submit"
-            className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
-          >
-            Lọc đánh giá
-          </button>
-          {hasReviewFilters ? (
-            <Link
-              href={clearReviewHref}
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Mốc nhanh:</p>
+            {accountReviewQuickRanges.map((days) => {
+              const quickRange = createQuickDateRange(days);
+              const isActive =
+                state.reviewCreatedFrom === quickRange.createdFrom &&
+                state.reviewCreatedTo === quickRange.createdTo;
+              return (
+                <Link
+                  key={days}
+                  href={buildAccountHref(state, {
+                    reviewCreatedFrom: quickRange.createdFrom,
+                    reviewCreatedTo: quickRange.createdTo,
+                    reviewPage: 1,
+                  })}
+                  className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                    isActive
+                      ? "border-teal-300 bg-teal-50 text-teal-700"
+                      : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {days} ngày
+                </Link>
+              );
+            })}
+          </div>
+          <div className="grid gap-2 xl:grid-cols-[1fr_160px_180px_170px_170px_auto_auto]">
+            <input
+              name="reviewSearch"
+              defaultValue={state.reviewSearch}
+              placeholder="Tên tour hoặc nội dung đánh giá..."
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+            <select
+              name="reviewMinRating"
+              defaultValue={state.reviewMinRating || ""}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
             >
-              Xóa lọc
-            </Link>
-          ) : null}
+              <option value="">Tất cả mức điểm</option>
+              <option value="5">Từ 5 sao</option>
+              <option value="4">Từ 4 sao</option>
+              <option value="3">Từ 3 sao</option>
+              <option value="2">Từ 2 sao</option>
+              <option value="1">Từ 1 sao</option>
+            </select>
+            <select
+              name="reviewSort"
+              defaultValue={state.reviewSort}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            >
+              <option value="newest">Mới cập nhật</option>
+              <option value="rating-desc">Điểm cao đến thấp</option>
+              <option value="rating-asc">Điểm thấp đến cao</option>
+            </select>
+            <input
+              type="date"
+              name="reviewCreatedFrom"
+              defaultValue={state.reviewCreatedFrom}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+            <input
+              type="date"
+              name="reviewCreatedTo"
+              defaultValue={state.reviewCreatedTo}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
+            >
+              Lọc đánh giá
+            </button>
+            {hasReviewFilters ? (
+              <Link
+                href={clearReviewHref}
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+              >
+                Xóa lọc
+              </Link>
+            ) : null}
+          </div>
         </form>
 
         {filteredReviews.length ? (
