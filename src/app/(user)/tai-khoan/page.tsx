@@ -36,6 +36,8 @@ type AccountQueryState = {
   bookingSearch: string;
   bookingStatus: BookingStatus | "";
   paymentStatus: PaymentStatus | "";
+  bookingCreatedFrom: string;
+  bookingCreatedTo: string;
   bookingPage: number;
   favoriteSearch: string;
   favoriteSort: FavoriteSortValue;
@@ -95,6 +97,7 @@ const bookingStatusOrder: BookingStatus[] = [
 ];
 
 const paymentStatusOrder: PaymentStatus[] = [PaymentStatus.UNPAID, PaymentStatus.PAID];
+const accountBookingQuickRanges = [7, 30, 90] as const;
 const accountSectionLinks = [
   { href: "#ho-so", label: "Hồ sơ" },
   { href: "#booking", label: "Đặt tour" },
@@ -112,6 +115,37 @@ function parsePage(value: string) {
   if (!Number.isFinite(parsed)) return 1;
   const normalized = Math.trunc(parsed);
   return normalized >= 1 ? normalized : 1;
+}
+
+function parseDateAtBoundary(value: string, boundary: "start" | "end") {
+  if (!value) return undefined;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return undefined;
+
+  if (boundary === "start") {
+    date.setHours(0, 0, 0, 0);
+  } else {
+    date.setHours(23, 59, 59, 999);
+  }
+  return date;
+}
+
+function toInputDateValue(date: Date) {
+  const localDate = new Date(date);
+  localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset());
+  return localDate.toISOString().slice(0, 10);
+}
+
+function createQuickDateRange(days: number) {
+  const end = new Date();
+  end.setHours(0, 0, 0, 0);
+  const start = new Date(end);
+  start.setDate(start.getDate() - (days - 1));
+
+  return {
+    createdFrom: toInputDateValue(start),
+    createdTo: toInputDateValue(end),
+  };
 }
 
 function parseBookingStatus(value: string): BookingStatus | "" {
@@ -156,6 +190,8 @@ function buildAccountHref(state: AccountQueryState, overrides: Partial<AccountQu
   if (next.bookingSearch) query.set("bookingSearch", next.bookingSearch);
   if (next.bookingStatus) query.set("bookingStatus", next.bookingStatus);
   if (next.paymentStatus) query.set("paymentStatus", next.paymentStatus);
+  if (next.bookingCreatedFrom) query.set("bookingCreatedFrom", next.bookingCreatedFrom);
+  if (next.bookingCreatedTo) query.set("bookingCreatedTo", next.bookingCreatedTo);
   if (next.bookingPage > 1) query.set("bookingPage", String(next.bookingPage));
 
   if (next.favoriteSearch) query.set("favoriteSearch", next.favoriteSearch);
@@ -235,6 +271,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     bookingSearch: normalizeParam(params.bookingSearch),
     bookingStatus: parseBookingStatus(normalizeParam(params.bookingStatus)),
     paymentStatus: parsePaymentStatus(normalizeParam(params.paymentStatus)),
+    bookingCreatedFrom: normalizeParam(params.bookingCreatedFrom),
+    bookingCreatedTo: normalizeParam(params.bookingCreatedTo),
     bookingPage: parsePage(normalizeParam(params.bookingPage)),
     favoriteSearch: normalizeParam(params.favoriteSearch),
     favoriteSort: parseFavoriteSort(normalizeParam(params.favoriteSort)),
@@ -263,6 +301,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const normalizedBookingSearch = state.bookingSearch.trim().toLowerCase();
   const normalizedFavoriteSearch = state.favoriteSearch.trim().toLowerCase();
   const normalizedReviewSearch = state.reviewSearch.trim().toLowerCase();
+  const bookingCreatedFromDate = parseDateAtBoundary(state.bookingCreatedFrom, "start");
+  const bookingCreatedToDate = parseDateAtBoundary(state.bookingCreatedTo, "end");
 
   const bookingSearchMatched = data.bookings.filter((booking) => {
     const searchMatched =
@@ -273,13 +313,28 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     return searchMatched;
   });
 
-  const filteredBookings = bookingSearchMatched.filter((booking) => {
+  const bookingDateMatched = bookingSearchMatched.filter((booking) => {
+    const createdAt = new Date(booking.createdAt);
+    if (Number.isNaN(createdAt.getTime())) {
+      return true;
+    }
+
+    if (bookingCreatedFromDate && createdAt < bookingCreatedFromDate) {
+      return false;
+    }
+    if (bookingCreatedToDate && createdAt > bookingCreatedToDate) {
+      return false;
+    }
+    return true;
+  });
+
+  const filteredBookings = bookingDateMatched.filter((booking) => {
     const statusMatched = !state.bookingStatus || booking.status === state.bookingStatus;
     const paymentMatched = !state.paymentStatus || booking.paymentStatus === state.paymentStatus;
     return statusMatched && paymentMatched;
   });
 
-  const bookingQuickStatusBase = bookingSearchMatched.filter(
+  const bookingQuickStatusBase = bookingDateMatched.filter(
     (booking) => !state.paymentStatus || booking.paymentStatus === state.paymentStatus,
   );
   const bookingStatusCounts: Record<BookingStatus, number> = {
@@ -292,7 +347,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     bookingStatusCounts[booking.status] += 1;
   }
 
-  const bookingQuickPaymentBase = bookingSearchMatched.filter(
+  const bookingQuickPaymentBase = bookingDateMatched.filter(
     (booking) => !state.bookingStatus || booking.status === state.bookingStatus,
   );
   const paymentStatusCounts: Record<PaymentStatus, number> = {
@@ -368,7 +423,13 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const pendingBookings = data.bookings.filter((booking) => booking.status === BookingStatus.PENDING).length;
   const paidBookings = data.bookings.filter((booking) => booking.paymentStatus === PaymentStatus.PAID).length;
 
-  const hasBookingFilters = Boolean(state.bookingSearch || state.bookingStatus || state.paymentStatus);
+  const hasBookingFilters = Boolean(
+    state.bookingSearch ||
+      state.bookingStatus ||
+      state.paymentStatus ||
+      state.bookingCreatedFrom ||
+      state.bookingCreatedTo,
+  );
   const hasFavoriteFilters = Boolean(state.favoriteSearch || state.favoriteSort !== "newest");
   const hasReviewFilters = Boolean(state.reviewSearch || state.reviewSort !== "newest" || state.reviewMinRating);
 
@@ -376,6 +437,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     bookingSearch: "",
     bookingStatus: "",
     paymentStatus: "",
+    bookingCreatedFrom: "",
+    bookingCreatedTo: "",
     bookingPage: 1,
   });
   const clearFavoriteHref = buildAccountHref(state, {
@@ -484,7 +547,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </Badge>
         </div>
 
-        <form className="mb-4 grid gap-2 md:grid-cols-[1fr_180px_180px_auto_auto]">
+        <form className="mb-4 space-y-3">
           <input type="hidden" name="bookingPage" value="1" />
           <input type="hidden" name="favoriteSearch" value={state.favoriteSearch} />
           <input type="hidden" name="favoriteSort" value={state.favoriteSort} />
@@ -493,46 +556,86 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <input type="hidden" name="reviewSort" value={state.reviewSort} />
           <input type="hidden" name="reviewMinRating" value={state.reviewMinRating} />
           <input type="hidden" name="reviewPage" value={state.reviewPage} />
-          <input
-            name="bookingSearch"
-            defaultValue={state.bookingSearch}
-            placeholder="Mã đơn, tên tour hoặc điểm khởi hành..."
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          />
-          <select
-            name="bookingStatus"
-            defaultValue={state.bookingStatus}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          >
-            <option value="">Tất cả trạng thái đơn</option>
-            <option value="PENDING">Chờ xác nhận</option>
-            <option value="CONFIRMED">Đã xác nhận</option>
-            <option value="COMPLETED">Hoàn thành</option>
-            <option value="CANCELLED">Đã hủy</option>
-          </select>
-          <select
-            name="paymentStatus"
-            defaultValue={state.paymentStatus}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          >
-            <option value="">Tất cả thanh toán</option>
-            <option value="UNPAID">Chưa thanh toán</option>
-            <option value="PAID">Đã thanh toán</option>
-          </select>
-          <button
-            type="submit"
-            className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
-          >
-            Lọc đơn
-          </button>
-          {hasBookingFilters ? (
-            <Link
-              href={clearBookingHref}
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Mốc nhanh:</p>
+            {accountBookingQuickRanges.map((days) => {
+              const quickRange = createQuickDateRange(days);
+              const isActive =
+                state.bookingCreatedFrom === quickRange.createdFrom &&
+                state.bookingCreatedTo === quickRange.createdTo;
+              return (
+                <Link
+                  key={days}
+                  href={buildAccountHref(state, {
+                    bookingCreatedFrom: quickRange.createdFrom,
+                    bookingCreatedTo: quickRange.createdTo,
+                    bookingPage: 1,
+                  })}
+                  className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                    isActive
+                      ? "border-teal-300 bg-teal-50 text-teal-700"
+                      : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {days} ngày
+                </Link>
+              );
+            })}
+          </div>
+          <div className="grid gap-2 xl:grid-cols-[1fr_170px_170px_170px_170px_auto_auto]">
+            <input
+              name="bookingSearch"
+              defaultValue={state.bookingSearch}
+              placeholder="Mã đơn, tên tour hoặc điểm khởi hành..."
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+            <select
+              name="bookingStatus"
+              defaultValue={state.bookingStatus}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
             >
-              Xóa lọc
-            </Link>
-          ) : null}
+              <option value="">Tất cả trạng thái đơn</option>
+              <option value="PENDING">Chờ xác nhận</option>
+              <option value="CONFIRMED">Đã xác nhận</option>
+              <option value="COMPLETED">Hoàn thành</option>
+              <option value="CANCELLED">Đã hủy</option>
+            </select>
+            <select
+              name="paymentStatus"
+              defaultValue={state.paymentStatus}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            >
+              <option value="">Tất cả thanh toán</option>
+              <option value="UNPAID">Chưa thanh toán</option>
+              <option value="PAID">Đã thanh toán</option>
+            </select>
+            <input
+              type="date"
+              name="bookingCreatedFrom"
+              defaultValue={state.bookingCreatedFrom}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+            <input
+              type="date"
+              name="bookingCreatedTo"
+              defaultValue={state.bookingCreatedTo}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
+            >
+              Lọc đơn
+            </button>
+            {hasBookingFilters ? (
+              <Link
+                href={clearBookingHref}
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+              >
+                Xóa lọc
+              </Link>
+            ) : null}
+          </div>
         </form>
         {bookingQuickStatusBase.length ? (
           <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -729,6 +832,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <input type="hidden" name="bookingSearch" value={state.bookingSearch} />
           <input type="hidden" name="bookingStatus" value={state.bookingStatus} />
           <input type="hidden" name="paymentStatus" value={state.paymentStatus} />
+          <input type="hidden" name="bookingCreatedFrom" value={state.bookingCreatedFrom} />
+          <input type="hidden" name="bookingCreatedTo" value={state.bookingCreatedTo} />
           <input type="hidden" name="bookingPage" value={state.bookingPage} />
           <input type="hidden" name="reviewSearch" value={state.reviewSearch} />
           <input type="hidden" name="reviewSort" value={state.reviewSort} />
@@ -843,6 +948,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <input type="hidden" name="bookingSearch" value={state.bookingSearch} />
           <input type="hidden" name="bookingStatus" value={state.bookingStatus} />
           <input type="hidden" name="paymentStatus" value={state.paymentStatus} />
+          <input type="hidden" name="bookingCreatedFrom" value={state.bookingCreatedFrom} />
+          <input type="hidden" name="bookingCreatedTo" value={state.bookingCreatedTo} />
           <input type="hidden" name="bookingPage" value={state.bookingPage} />
           <input type="hidden" name="favoriteSearch" value={state.favoriteSearch} />
           <input type="hidden" name="favoriteSort" value={state.favoriteSort} />
