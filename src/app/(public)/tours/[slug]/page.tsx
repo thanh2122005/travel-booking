@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock3, MapPin, Plane, Star, Users } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { SectionHeading } from "@/components/common/section-heading";
 import { TourBookingCard } from "@/components/tour/tour-booking-card";
 import { TourCard } from "@/components/tour/tour-card";
@@ -275,20 +276,13 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
         </aside>
       </section>
 
-      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
-        <a
-          href="#dat-tour"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Đặt tour
-        </a>
-        <Link
-          href={quickConsultHref}
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-sm font-semibold text-teal-700 transition hover:bg-teal-100"
-        >
-          Tư vấn nhanh
-        </Link>
-      </div>
+      <MobileQuickActions
+        items={[
+          { href: "#dat-tour", label: "Đặt tour", icon: Plane, active: true },
+          { href: "#danh-gia", label: "Đánh giá", icon: Star },
+          { href: quickConsultHref, label: "Tư vấn", icon: Users },
+        ]}
+      />
 
       <section id="lien-quan" className="space-y-5">
         <SectionHeading title="Tour liên quan" description="Gợi ý thêm các tour khác cùng điểm đến." />

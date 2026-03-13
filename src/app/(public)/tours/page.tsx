@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Heart, List, ListFilter, Search } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { SectionHeading } from "@/components/common/section-heading";
 import { TourCard } from "@/components/tour/tour-card";
 import { getTours, type TourFilterInput } from "@/lib/db/public-queries";
@@ -412,26 +413,13 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
         />
       )}
 
-      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
-        <a
-          href="#bo-loc-tour"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Lọc tour
-        </a>
-        <a
-          href="#ket-qua-tour"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Kết quả
-        </a>
-        <Link
-          href="/favorites"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
-        >
-          Yêu thích
-        </Link>
-      </div>
+      <MobileQuickActions
+        items={[
+          { href: "#bo-loc-tour", label: "Lọc tour", icon: ListFilter },
+          { href: "#ket-qua-tour", label: "Kết quả", icon: List, active: true },
+          { href: "/favorites", label: "Yêu thích", icon: Heart },
+        ]}
+      />
     </div>
   );
 }
