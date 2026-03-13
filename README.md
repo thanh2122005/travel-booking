@@ -179,7 +179,10 @@ src/
 - API user quan trọng (`booking`, `favorites`, `reviews`, `account/profile`) dùng guard chung để:
   - bắt buộc đăng nhập
   - chặn tài khoản `BLOCKED`
+- API mutation công khai có rate-limit theo IP/user để giảm spam và lạm dụng.
 - Guard quyền user/admin ưu tiên đồng bộ role + status theo DB (fallback session khi DB tạm lỗi ở dev/demo).
+- Route export CSV admin có chặn CSV formula injection khi mở bằng Excel/Sheets.
+- Truy vấn admin theo ngày tự động giới hạn khoảng thời gian để tránh query quá tải.
 - Khu vực `/admin` chặn truy cập theo role + status ngay từ middleware.
 
 ## 11. Checklist trước khi deploy
