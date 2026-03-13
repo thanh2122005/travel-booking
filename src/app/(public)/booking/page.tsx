@@ -24,6 +24,8 @@ type BookingQueryOverrides = {
   search?: string;
   status?: BookingStatusValue | "";
   paymentStatus?: PaymentStatusValue | "";
+  createdFrom?: string;
+  createdTo?: string;
   page?: number;
 };
 
@@ -38,6 +40,7 @@ const paymentStatusLabels: Record<PaymentStatusValue, string> = {
   UNPAID: "Chưa thanh toán",
   PAID: "Đã thanh toán",
 };
+const quickDateRanges = [7, 30, 90] as const;
 
 const bookingSteps = [
   {
@@ -88,13 +91,46 @@ function parsePage(value: string) {
   return normalized >= 1 ? normalized : 1;
 }
 
+function parseDateAtBoundary(value: string, boundary: "start" | "end") {
+  if (!value) return undefined;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return undefined;
+
+  if (boundary === "start") {
+    date.setHours(0, 0, 0, 0);
+  } else {
+    date.setHours(23, 59, 59, 999);
+  }
+  return date;
+}
+
+function toInputDateValue(date: Date) {
+  const localDate = new Date(date);
+  localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset());
+  return localDate.toISOString().slice(0, 10);
+}
+
+function createQuickDateRange(days: number) {
+  const end = new Date();
+  end.setHours(0, 0, 0, 0);
+  const start = new Date(end);
+  start.setDate(start.getDate() - (days - 1));
+
+  return {
+    createdFrom: toInputDateValue(start),
+    createdTo: toInputDateValue(end),
+  };
+}
+
 export default async function BookingPage({ searchParams }: BookingPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
   const status = parseStatus(normalizeParam(params.status));
   const paymentStatus = parsePaymentStatus(normalizeParam(params.paymentStatus));
+  const createdFrom = normalizeParam(params.createdFrom);
+  const createdTo = normalizeParam(params.createdTo);
   const requestedPage = parsePage(normalizeParam(params.page));
-  const hasActiveFilters = Boolean(search || status || paymentStatus);
+  const hasActiveFilters = Boolean(search || status || paymentStatus || createdFrom || createdTo);
   const normalizedSearch = search.trim().toLowerCase();
 
   const session = await getAuthSession();
@@ -112,11 +148,27 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
       booking.tour.departureLocation.toLowerCase().includes(normalizedSearch)
     );
   });
-  const statusFilterBaseBookings = searchMatchedBookings.filter(
+  const createdFromDate = parseDateAtBoundary(createdFrom, "start");
+  const createdToDate = parseDateAtBoundary(createdTo, "end");
+  const dateFilteredBookings = searchMatchedBookings.filter((booking) => {
+    const createdAt = new Date(booking.createdAt);
+    if (Number.isNaN(createdAt.getTime())) {
+      return true;
+    }
+
+    if (createdFromDate && createdAt < createdFromDate) {
+      return false;
+    }
+    if (createdToDate && createdAt > createdToDate) {
+      return false;
+    }
+    return true;
+  });
+  const statusFilterBaseBookings = dateFilteredBookings.filter(
     (booking) => !paymentStatus || booking.paymentStatus === paymentStatus,
   );
   const filteredBookings = statusFilterBaseBookings.filter((booking) => !status || booking.status === status);
-  const paymentFilterBaseBookings = searchMatchedBookings.filter((booking) => !status || booking.status === status);
+  const paymentFilterBaseBookings = dateFilteredBookings.filter((booking) => !status || booking.status === status);
   const pageSize = 12;
   const totalPages = Math.max(1, Math.ceil(filteredBookings.length / pageSize));
   const currentPage = Math.min(requestedPage, totalPages);
@@ -128,6 +180,8 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
     const nextSearch = overrides.search ?? search;
     const nextStatus = overrides.status ?? status;
     const nextPaymentStatus = overrides.paymentStatus ?? paymentStatus;
+    const nextCreatedFrom = overrides.createdFrom ?? createdFrom;
+    const nextCreatedTo = overrides.createdTo ?? createdTo;
     const nextPage = overrides.page ?? currentPage;
     const query = new URLSearchParams();
 
@@ -140,6 +194,12 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
     if (nextPaymentStatus) {
       query.set("paymentStatus", nextPaymentStatus);
     }
+    if (nextCreatedFrom) {
+      query.set("createdFrom", nextCreatedFrom);
+    }
+    if (nextCreatedTo) {
+      query.set("createdTo", nextCreatedTo);
+    }
     if (nextPage > 1) {
       query.set("page", String(nextPage));
     }
@@ -149,7 +209,14 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
   };
 
   const buildPageHref = (page: number) => buildBookingHref({ page });
-  const clearFiltersHref = buildBookingHref({ search: "", status: "", paymentStatus: "", page: 1 });
+  const clearFiltersHref = buildBookingHref({
+    search: "",
+    status: "",
+    paymentStatus: "",
+    createdFrom: "",
+    createdTo: "",
+    page: 1,
+  });
   const countByStatus: Record<BookingStatusValue, number> = {
     PENDING: 0,
     CONFIRMED: 0,
@@ -217,7 +284,32 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
           <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
             Tìm kiếm đơn đặt tour
           </label>
-          <div className="grid gap-2 md:grid-cols-[1fr_180px_190px_auto_auto]">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-slate-500">Mốc nhanh:</span>
+            {quickDateRanges.map((days) => {
+              const quickRange = createQuickDateRange(days);
+              const isActive =
+                createdFrom === quickRange.createdFrom && createdTo === quickRange.createdTo;
+              return (
+                <Link
+                  key={days}
+                  href={buildBookingHref({
+                    createdFrom: quickRange.createdFrom,
+                    createdTo: quickRange.createdTo,
+                    page: 1,
+                  })}
+                  className={`inline-flex h-8 items-center rounded-md border px-3 text-xs font-semibold transition ${
+                    isActive
+                      ? "border-teal-600 bg-teal-600 text-white"
+                      : "border-slate-300 text-slate-700 hover:bg-slate-100"
+                  }`}
+                >
+                  {days} ngày
+                </Link>
+              );
+            })}
+          </div>
+          <div className="grid gap-2 md:grid-cols-[1fr_160px_170px_170px_170px_auto_auto]">
             <input
               id="search"
               name="search"
@@ -245,6 +337,18 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
               <option value="UNPAID">Chưa thanh toán</option>
               <option value="PAID">Đã thanh toán</option>
             </select>
+            <input
+              type="date"
+              name="createdFrom"
+              defaultValue={createdFrom}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+            <input
+              type="date"
+              name="createdTo"
+              defaultValue={createdTo}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
             <button
               type="submit"
               className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
@@ -494,7 +598,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
           <EmptyState
             title="Không tìm thấy đơn phù hợp"
             description="Hãy thử từ khóa khác hoặc xóa bộ lọc để xem toàn bộ đơn đặt tour."
-            ctaHref="/booking"
+            ctaHref={clearFiltersHref}
             ctaLabel="Xóa bộ lọc"
           />
         ) : session?.user ? (
