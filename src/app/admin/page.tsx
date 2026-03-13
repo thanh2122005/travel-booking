@@ -125,6 +125,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     { label: "Tổng điểm đến", value: data.metrics.totalLocations.toString() },
     { label: "Tổng đơn đặt", value: data.metrics.totalBookings.toString() },
     { label: "Tổng đánh giá", value: data.metrics.totalReviews.toString() },
+    { label: "Yêu cầu tư vấn", value: data.metrics.totalInquiries.toString() },
+    { label: "Đăng ký nhận tin", value: data.metrics.totalNewsletter.toString() },
     { label: "Doanh thu xác nhận", value: formatPrice(data.metrics.totalRevenue) },
   ];
   const periodMetricCards = [

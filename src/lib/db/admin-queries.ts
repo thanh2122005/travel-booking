@@ -1,4 +1,4 @@
-﻿import { BookingStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
+import { BookingStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
 import {
   demoCreateLocation,
   demoCreateItinerary,
@@ -380,6 +380,8 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
       totalBookings,
       totalReviews,
       totalFavorites,
+      totalInquiries,
+      totalNewsletter,
       revenueAgg,
       bookingStatusGroups,
       paymentStatusGroups,
@@ -394,6 +396,8 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
       db.booking.count(),
       db.review.count(),
       db.favorite.count(),
+      db.contactInquiry.count(),
+      db.newsletterSubscriber.count(),
       db.booking.aggregate({
         where: {
           status: {
@@ -610,6 +614,8 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
         totalBookings,
         totalReviews,
         totalFavorites,
+        totalInquiries,
+        totalNewsletter,
         totalRevenue: revenueAgg._sum.totalPrice ?? 0,
       },
       bookingsByStatus,

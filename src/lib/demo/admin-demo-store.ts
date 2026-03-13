@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
@@ -800,6 +800,8 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
       totalBookings: state.bookings.length,
       totalReviews: state.reviews.length,
       totalFavorites: state.favorites.length,
+      totalInquiries: 0,
+      totalNewsletter: 0,
       totalRevenue: revenue,
     },
     bookingsByStatus,
