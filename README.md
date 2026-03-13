@@ -113,6 +113,10 @@ Truy cập: `http://localhost:3000`
 - `npm run prisma:push`: đồng bộ schema nhanh (không migration file)
 - `npm run prisma:seed`: seed dữ liệu mẫu
 
+CI tự động (GitHub Actions):
+
+- Chạy `npm run lint` và `npx tsc --noEmit` cho mỗi lần push/PR vào `main`.
+
 ## 7. Deploy production (gợi ý Vercel + PostgreSQL)
 
 ### 7.1 Chuẩn bị database
