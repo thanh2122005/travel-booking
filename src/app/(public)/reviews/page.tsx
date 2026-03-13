@@ -23,6 +23,11 @@ type ReviewQueryOverrides = {
   createdTo?: string;
   page?: number;
 };
+const reviewSortLabels: Record<ReviewSortValue, string> = {
+  newest: "Mới nhất",
+  "rating-desc": "Điểm cao đến thấp",
+  "rating-asc": "Điểm thấp đến cao",
+};
 
 const fallbackAvatar = [
   "/immerse-vietnam/images/test-1.jpg",
@@ -86,6 +91,31 @@ function createQuickDateRange(days: number) {
     createdFrom: toInputDateValue(start),
     createdTo: toInputDateValue(end),
   };
+}
+
+function formatInputDate(value: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function buildDateRangeLabel(createdFrom: string, createdTo: string) {
+  if (createdFrom && createdTo) {
+    return `Ngày đánh giá: ${formatInputDate(createdFrom)} - ${formatInputDate(createdTo)}`;
+  }
+  if (createdFrom) {
+    return `Đánh giá từ ngày: ${formatInputDate(createdFrom)}`;
+  }
+  if (createdTo) {
+    return `Đánh giá đến ngày: ${formatInputDate(createdTo)}`;
+  }
+  return "";
 }
 
 export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
@@ -205,6 +235,14 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
     createdTo: "",
     page: 1,
   });
+  const dateRangeLabel = buildDateRangeLabel(createdFrom, createdTo);
+  const activeFilterLabels = [
+    ...(search ? [`Từ khóa: ${search}`] : []),
+    ...(location ? [`Điểm đến: ${location}`] : []),
+    ...(minRating ? [`Mức điểm: từ ${minRating} sao`] : []),
+    ...(sort !== "newest" ? [`Sắp xếp: ${reviewSortLabels[sort]}`] : []),
+    ...(dateRangeLabel ? [dateRangeLabel] : []),
+  ];
 
   return (
     <div className="space-y-8 pb-24 lg:pb-0">
@@ -352,6 +390,18 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
               </Link>
             ) : null}
           </div>
+          {activeFilterLabels.length ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {activeFilterLabels.map((label) => (
+                <span
+                  key={label}
+                  className="inline-flex h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </form>
 
         {data.reviews.length ? (
