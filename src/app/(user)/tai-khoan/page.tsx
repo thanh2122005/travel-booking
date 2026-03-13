@@ -1188,7 +1188,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       <MobileQuickActions
         hiddenOn="md"
         items={[
-          { href: "#booking", label: "Đặt tour", icon: TicketCheck, active: true },
+          { href: "#ho-so", label: "Hồ sơ", icon: UserCircle2 },
+          { href: "#booking", label: "Đơn tour", icon: TicketCheck, active: true },
           { href: "#yeu-thich", label: "Yêu thích", icon: Heart },
           { href: "#danh-gia", label: "Đánh giá", icon: MessageSquareText },
         ]}
