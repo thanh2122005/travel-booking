@@ -13,13 +13,21 @@ type MobileQuickActionsProps = {
   items: MobileQuickActionItem[];
   hiddenOn?: "md" | "lg";
   className?: string;
+  ariaLabel?: string;
 };
 
-export function MobileQuickActions({ items, hiddenOn = "lg", className }: MobileQuickActionsProps) {
+export function MobileQuickActions({
+  items,
+  hiddenOn = "lg",
+  className,
+  ariaLabel = "Thao tác nhanh",
+}: MobileQuickActionsProps) {
   const hiddenClass = hiddenOn === "md" ? "md:hidden" : "lg:hidden";
 
   return (
     <div
+      role="navigation"
+      aria-label={ariaLabel}
       className={cn(
         "fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur",
         hiddenClass,
@@ -45,14 +53,26 @@ export function MobileQuickActions({ items, hiddenOn = "lg", className }: Mobile
 
         if (isNativeAnchor) {
           return (
-            <a key={item.href} href={item.href} className={itemClassName}>
+            <a
+              key={item.href}
+              href={item.href}
+              className={itemClassName}
+              aria-current={item.active ? "page" : undefined}
+              title={item.label}
+            >
               {content}
             </a>
           );
         }
 
         return (
-          <Link key={item.href} href={item.href} className={itemClassName}>
+          <Link
+            key={item.href}
+            href={item.href}
+            className={itemClassName}
+            aria-current={item.active ? "page" : undefined}
+            title={item.label}
+          >
             {content}
           </Link>
         );
