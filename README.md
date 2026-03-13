@@ -22,6 +22,7 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - Trang cảm hứng và thư viện ảnh có lọc/phân trang theo điểm đến
 - Form liên hệ hỗ trợ prefill theo tour/điểm đến từ luồng tư vấn nhanh
 - Cụm giới thiệu/liên hệ/tours/điểm đến/inspiration/gallery/booking/favorites/reviews có thao tác nhanh mobile để nhảy tới khu vực chính
+- Trang chủ có điều hướng nhanh mobile tới các section quan trọng (điểm đến/tour/đánh giá/cảm hứng)
 - Có trang lỗi cục bộ/toàn cục tiếng Việt để giữ trải nghiệm nhất quán khi runtime phát sinh lỗi
 
 ### Khu vực người dùng
@@ -180,6 +181,7 @@ src/
   - bắt buộc đăng nhập
   - chặn tài khoản `BLOCKED`
 - API mutation công khai có rate-limit theo IP/user để giảm spam và lạm dụng.
+- API mutation chuẩn hóa xử lý body JSON lỗi định dạng (trả về 400 thay vì 500).
 - Guard quyền user/admin ưu tiên đồng bộ role + status theo DB (fallback session khi DB tạm lỗi ở dev/demo).
 - Route export CSV admin có chặn CSV formula injection khi mở bằng Excel/Sheets.
 - Truy vấn admin theo ngày tự động giới hạn khoảng thời gian để tránh query quá tải.
