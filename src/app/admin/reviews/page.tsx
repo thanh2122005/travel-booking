@@ -282,7 +282,7 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
         items={[
           { href: "#bo-loc-review", label: "Bộ lọc" },
           { href: "#danh-sach-review", label: "Danh sách", active: true },
-          { href: "/admin/bookings", label: "Bookings" },
+          { href: "/admin/bookings", label: "Đơn tour" },
         ]}
       />
     </div>

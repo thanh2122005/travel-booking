@@ -307,7 +307,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
         items={[
           { href: "#bo-loc-booking", label: "Bộ lọc" },
           { href: "#danh-sach-booking", label: "Danh sách", active: true },
-          { href: "/admin/reviews", label: "Reviews" },
+          { href: "/admin/reviews", label: "Đánh giá" },
         ]}
       />
     </div>
