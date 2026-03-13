@@ -11,14 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { sanitizeRelativeCallbackUrl } from "@/lib/auth/callback-url";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const rawCallbackUrl = searchParams.get("callbackUrl");
-  const callbackUrl =
-    rawCallbackUrl && rawCallbackUrl.startsWith("/") ? rawCallbackUrl : undefined;
+  const callbackUrl = sanitizeRelativeCallbackUrl(searchParams.get("callbackUrl"));
   const registerHref = callbackUrl
     ? `/dang-ky?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/dang-ky";

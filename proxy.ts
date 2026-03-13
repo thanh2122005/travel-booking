@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { authSecret } from "@/lib/auth/auth-secret";
+import { buildCallbackUrl } from "@/lib/auth/callback-url";
 
 const authRoutes = ["/dang-nhap", "/dang-ky"];
 const userRoutes = ["/tai-khoan"];
@@ -15,6 +16,7 @@ export async function proxy(request: NextRequest) {
   });
 
   const { pathname } = request.nextUrl;
+  const callbackUrl = buildCallbackUrl(pathname, request.nextUrl.search);
   const isAuthenticated = Boolean(token);
   const isBlocked = token?.status === "BLOCKED";
   const isAdminApiRequest = pathname.startsWith(adminApiPrefix);
@@ -41,7 +43,7 @@ export async function proxy(request: NextRequest) {
   if (adminRoutes.some((route) => pathname.startsWith(route))) {
     if (!isAuthenticated) {
       const loginUrl = new URL("/dang-nhap", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
+      loginUrl.searchParams.set("callbackUrl", callbackUrl);
       return NextResponse.redirect(loginUrl);
     }
 
@@ -57,7 +59,7 @@ export async function proxy(request: NextRequest) {
   if (userRoutes.some((route) => pathname.startsWith(route))) {
     if (!isAuthenticated) {
       const loginUrl = new URL("/dang-nhap", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
+      loginUrl.searchParams.set("callbackUrl", callbackUrl);
       return NextResponse.redirect(loginUrl);
     }
 

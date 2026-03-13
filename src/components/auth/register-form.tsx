@@ -10,14 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { sanitizeRelativeCallbackUrl } from "@/lib/auth/callback-url";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 
 export function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const rawCallbackUrl = searchParams.get("callbackUrl");
-  const callbackUrl =
-    rawCallbackUrl && rawCallbackUrl.startsWith("/") ? rawCallbackUrl : undefined;
+  const callbackUrl = sanitizeRelativeCallbackUrl(searchParams.get("callbackUrl"));
   const loginHref = callbackUrl
     ? `/dang-nhap?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/dang-nhap";

@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { buildCallbackUrl } from "@/lib/auth/callback-url";
 import { cn } from "@/lib/utils";
 
 function getDisplayName(name?: string | null) {
@@ -13,7 +14,8 @@ function getDisplayName(name?: string | null) {
 
 export function AuthUserMenu() {
   const pathname = usePathname();
-  const callbackUrl = pathname || "/";
+  const searchParams = useSearchParams();
+  const callbackUrl = buildCallbackUrl(pathname || "/", searchParams.toString() ? `?${searchParams.toString()}` : "");
   const { data: session, status } = useSession();
 
   if (status === "loading") {
