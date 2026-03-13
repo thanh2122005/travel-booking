@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { AccountProfileForm } from "@/components/account/account-profile-form";
 import { EmptyState } from "@/components/common/empty-state";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { SafeImage } from "@/components/common/safe-image";
 import { BookingCancelButton } from "@/components/booking/booking-cancel-button";
 import { FavoriteRemoveButton } from "@/components/favorite/favorite-remove-button";
@@ -946,26 +947,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         )}
       </section>
 
-      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur md:hidden">
-        <a
-          href="#booking"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Đặt tour
-        </a>
-        <a
-          href="#yeu-thich"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Yêu thích
-        </a>
-        <a
-          href="#danh-gia"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
-        >
-          Đánh giá
-        </a>
-      </div>
+      <MobileQuickActions
+        hiddenOn="md"
+        items={[
+          { href: "#booking", label: "Đặt tour", icon: TicketCheck, active: true },
+          { href: "#yeu-thich", label: "Yêu thích", icon: Heart },
+          { href: "#danh-gia", label: "Đánh giá", icon: MessageSquareText },
+        ]}
+      />
     </div>
   );
 }

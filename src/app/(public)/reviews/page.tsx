@@ -1,8 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MessageSquareText, Star } from "lucide-react";
+import { List, ListFilter, MessageSquareText, Star, UserCircle2 } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { getPublicReviews } from "@/lib/db/public-queries";
 import { formatDate } from "@/lib/utils/format";
 
@@ -354,9 +355,9 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
           </div>
         ) : null}
 
+        <div id="ket-qua-danh-gia" className="scroll-mt-24" />
         {filteredReviews.length ? (
           <div className="space-y-4">
-            <div id="ket-qua-danh-gia" className="scroll-mt-24" />
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {pagedReviews.map((review, index) => (
                 <article key={review.id} className="iv-card p-5">
@@ -452,26 +453,13 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
         )}
       </section>
 
-      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
-        <a
-          href="#bo-loc-danh-gia"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Lọc đánh giá
-        </a>
-        <a
-          href="#ket-qua-danh-gia"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Danh sách
-        </a>
-        <Link
-          href="/tai-khoan"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
-        >
-          Tài khoản
-        </Link>
-      </div>
+      <MobileQuickActions
+        items={[
+          { href: "#bo-loc-danh-gia", label: "Lọc đánh giá", icon: ListFilter },
+          { href: "#ket-qua-danh-gia", label: "Danh sách", icon: List, active: true },
+          { href: "/tai-khoan#danh-gia", label: "Tài khoản", icon: UserCircle2 },
+        ]}
+      />
     </div>
   );
 }

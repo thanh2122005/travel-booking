@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Heart, List, ListFilter, UserCircle2 } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { SafeImage } from "@/components/common/safe-image";
 import { FavoriteRemoveButton } from "@/components/favorite/favorite-remove-button";
 import { getAuthSession } from "@/lib/auth/session";
@@ -255,9 +256,9 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
           </div>
         ) : null}
 
+        <div id="ket-qua-yeu-thich" className="scroll-mt-24" />
         {filteredFavorites.length ? (
           <div className="space-y-4">
-            <div id="ket-qua-yeu-thich" className="scroll-mt-24" />
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {pagedFavorites.map((favorite) => {
                 const displayPrice = favorite.tour.discountPrice ?? favorite.tour.price;
@@ -362,26 +363,13 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
         )}
       </section>
 
-      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
-        <a
-          href="#bo-loc-yeu-thich"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Lọc tour
-        </a>
-        <a
-          href="#ket-qua-yeu-thich"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Danh sách
-        </a>
-        <Link
-          href="/tai-khoan"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
-        >
-          Tài khoản
-        </Link>
-      </div>
+      <MobileQuickActions
+        items={[
+          { href: "#bo-loc-yeu-thich", label: "Lọc tour", icon: ListFilter },
+          { href: "#ket-qua-yeu-thich", label: "Danh sách", icon: List, active: true },
+          { href: "/tai-khoan#yeu-thich", label: "Tài khoản", icon: UserCircle2 },
+        ]}
+      />
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { CalendarCheck2, CreditCard, FileCheck2, UserRoundCheck } from "lucide-react";
+import { CalendarCheck2, CreditCard, FileCheck2, List, ListFilter, UserCircle2, UserRoundCheck } from "lucide-react";
 import { PageHeroBanner } from "@/components/common/page-hero-banner";
 import { BookingCancelButton } from "@/components/booking/booking-cancel-button";
 import { EmptyState } from "@/components/common/empty-state";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { Badge } from "@/components/ui/badge";
 import { getAuthSession } from "@/lib/auth/session";
@@ -509,26 +510,13 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
         )}
       </section>
 
-      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
-        <a
-          href="#bo-loc-don"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Lọc đơn
-        </a>
-        <a
-          href="#danh-sach-don"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Danh sách
-        </a>
-        <Link
-          href="/tai-khoan"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
-        >
-          Tài khoản
-        </Link>
-      </div>
+      <MobileQuickActions
+        items={[
+          { href: "#bo-loc-don", label: "Lọc đơn", icon: ListFilter },
+          { href: "#danh-sach-don", label: "Danh sách", icon: List, active: true },
+          { href: "/tai-khoan#booking", label: "Tài khoản", icon: UserCircle2 },
+        ]}
+      />
     </div>
   );
 }
