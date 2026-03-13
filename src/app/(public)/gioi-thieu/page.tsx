@@ -1,6 +1,7 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
 import { Camera, Mountain, Ship, Umbrella } from "lucide-react";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { PageHeroBanner } from "@/components/common/page-hero-banner";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { getHomePublicData } from "@/lib/db/public-queries";
@@ -140,26 +141,13 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
-        <a
-          href="#hanh-trinh-phat-trien"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Hành trình
-        </a>
-        <a
-          href="#diem-nhan-thuong-hieu"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Điểm nhấn
-        </a>
-        <Link
-          href="/lien-he"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
-        >
-          Liên hệ
-        </Link>
-      </div>
+      <MobileQuickActions
+        items={[
+          { href: "#hanh-trinh-phat-trien", label: "Hành trình", icon: Ship, active: true },
+          { href: "#diem-nhan-thuong-hieu", label: "Điểm nhấn", icon: Mountain },
+          { href: "/lien-he", label: "Liên hệ", icon: Camera },
+        ]}
+      />
     </div>
   );
 }

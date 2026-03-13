@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MapPin, Search } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { SafeImage } from "@/components/common/safe-image";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { getLocations } from "@/lib/db/public-queries";
@@ -286,26 +287,13 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
         />
       )}
 
-      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
-        <a
-          href="#bo-loc-dia-diem"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Lọc điểm đến
-        </a>
-        <a
-          href="#ket-qua-dia-diem"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Kết quả
-        </a>
-        <Link
-          href="/tours"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
-        >
-          Xem tour
-        </Link>
-      </div>
+      <MobileQuickActions
+        items={[
+          { href: "#bo-loc-dia-diem", label: "Lọc điểm đến", icon: Search },
+          { href: "#ket-qua-dia-diem", label: "Kết quả", icon: MapPin, active: true },
+          { href: "/tours", label: "Xem tour" },
+        ]}
+      />
     </div>
   );
 }

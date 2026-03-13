@@ -28,6 +28,7 @@ export function MobileQuickActions({ items, hiddenOn = "lg", className }: Mobile
     >
       {items.map((item) => {
         const Icon = item.icon;
+        const isNativeAnchor = item.href.startsWith("#") || /^[a-z]+:/i.test(item.href);
         const itemClassName = cn(
           "inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 text-xs font-semibold transition",
           item.active
@@ -42,7 +43,7 @@ export function MobileQuickActions({ items, hiddenOn = "lg", className }: Mobile
           </>
         );
 
-        if (item.href.startsWith("#")) {
+        if (isNativeAnchor) {
           return (
             <a key={item.href} href={item.href} className={itemClassName}>
               {content}

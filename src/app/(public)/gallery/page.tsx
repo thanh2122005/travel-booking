@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import { List, ListFilter, MapPin } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { PageHeroBanner } from "@/components/common/page-hero-banner";
 import { SafeImage } from "@/components/common/safe-image";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
@@ -333,26 +335,13 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
         </div>
       </section>
 
-      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
-        <a
-          href="#bo-loc-thu-vien"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Lọc ảnh
-        </a>
-        <a
-          href="#ket-qua-thu-vien"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Kết quả
-        </a>
-        <Link
-          href="/dia-diem"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
-        >
-          Điểm đến
-        </Link>
-      </div>
+      <MobileQuickActions
+        items={[
+          { href: "#bo-loc-thu-vien", label: "Lọc ảnh", icon: ListFilter },
+          { href: "#ket-qua-thu-vien", label: "Kết quả", icon: List, active: true },
+          { href: "/dia-diem", label: "Điểm đến", icon: MapPin },
+        ]}
+      />
     </div>
   );
 }
