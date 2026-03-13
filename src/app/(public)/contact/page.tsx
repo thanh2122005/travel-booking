@@ -1,5 +1,11 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
+import { buildAliasRedirectPath, type AliasSearchParams } from "@/lib/utils/alias-redirect";
 
-export default function ContactAliasPage() {
-  redirect("/lien-he");
+type ContactAliasPageProps = {
+  searchParams: Promise<AliasSearchParams>;
+};
+
+export default async function ContactAliasPage({ searchParams }: ContactAliasPageProps) {
+  const params = await searchParams;
+  redirect(buildAliasRedirectPath("/lien-he", params));
 }
