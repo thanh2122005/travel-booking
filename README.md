@@ -21,6 +21,7 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - Xem đánh giá và tour liên quan
 - Trang cảm hứng và thư viện ảnh có lọc/phân trang theo điểm đến
 - Form liên hệ hỗ trợ prefill theo tour/điểm đến từ luồng tư vấn nhanh
+- Trang booking/favorites/reviews hỗ trợ lọc theo ngày và mốc nhanh (7/30/90/180 ngày tùy trang)
 - Cụm giới thiệu/liên hệ/tours/điểm đến/inspiration/gallery/booking/favorites/reviews có thao tác nhanh mobile để nhảy tới khu vực chính
 - Trang chủ có điều hướng nhanh mobile tới các section quan trọng (điểm đến/tour/đánh giá/cảm hứng)
 - Có trang lỗi cục bộ/toàn cục tiếng Việt để giữ trải nghiệm nhất quán khi runtime phát sinh lỗi
@@ -192,6 +193,7 @@ src/
 
 - Callback URL trong luồng đăng nhập/đăng ký được chuẩn hóa theo đường dẫn nội bộ (`/path`) để tránh open redirect.
 - Middleware/proxy giữ lại query string khi redirect sang trang đăng nhập, giúp quay về đúng trạng thái trang trước đó.
+- Các trang public cần đăng nhập (`/booking`, `/favorites`, chi tiết tour) giữ callback theo trạng thái lọc hiện tại để quay lại đúng ngữ cảnh sau đăng nhập.
 
 ## 11. Checklist trước khi deploy
 
