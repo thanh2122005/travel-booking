@@ -59,6 +59,31 @@ function createQuickDateRange(days: number) {
   };
 }
 
+function formatInputDate(value: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function buildDateRangeLabel(createdFrom: string, createdTo: string) {
+  if (createdFrom && createdTo) {
+    return `Ngày tạo: ${formatInputDate(createdFrom)} - ${formatInputDate(createdTo)}`;
+  }
+  if (createdFrom) {
+    return `Tạo từ ngày: ${formatInputDate(createdFrom)}`;
+  }
+  if (createdTo) {
+    return `Tạo đến ngày: ${formatInputDate(createdTo)}`;
+  }
+  return "";
+}
+
 export default async function AdminReviewsPage({ searchParams }: AdminReviewsPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
@@ -73,6 +98,12 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
     ...(createdFrom ? { createdFrom } : {}),
     ...(createdTo ? { createdTo } : {}),
   };
+  const dateRangeLabel = buildDateRangeLabel(createdFrom, createdTo);
+  const activeFilterLabels = [
+    ...(search ? [`Từ khóa: ${search}`] : []),
+    ...(isVisible ? [`Hiển thị: ${isVisible === "visible" ? "Đang hiển thị" : "Đã ẩn"}`] : []),
+    ...(dateRangeLabel ? [dateRangeLabel] : []),
+  ];
 
   const data = await getAdminReviews({
     search: search || undefined,
@@ -207,6 +238,18 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
             Lọc dữ liệu
           </button>
         </div>
+        {activeFilterLabels.length ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {activeFilterLabels.map((label) => (
+              <span
+                key={label}
+                className="inline-flex h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        ) : null}
         <div className="mt-3 flex justify-end">
           <Link
             href={{
