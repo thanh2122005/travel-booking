@@ -33,7 +33,7 @@ export async function PATCH(request: Request, context: TourContentRouteContext) 
   if (guard) return guard;
 
   const { id } = await context.params;
-  const json = await parseJsonBody(request, "Du lieu cap nhat noi dung tour khong hop le.");
+  const json = await parseJsonBody(request, "Dữ liệu cập nhật nội dung tour không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }

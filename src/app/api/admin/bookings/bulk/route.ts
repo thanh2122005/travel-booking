@@ -21,7 +21,7 @@ export async function PATCH(request: Request) {
   if (guard) return guard;
 
   try {
-    const json = await parseJsonBody(request, "Du lieu cap nhat booking hang loat khong hop le.");
+    const json = await parseJsonBody(request, "Dữ liệu cập nhật booking hàng loạt không hợp lệ.");
     if (!json.ok) {
       return json.response;
     }

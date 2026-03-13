@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const json = await parseJsonBody(request, "Du lieu danh gia khong hop le.");
+  const json = await parseJsonBody(request, "Dữ liệu đánh giá không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }
@@ -169,7 +169,7 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const json = await parseJsonBody(request, "Du lieu xoa danh gia khong hop le.");
+  const json = await parseJsonBody(request, "Dữ liệu xóa đánh giá không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }

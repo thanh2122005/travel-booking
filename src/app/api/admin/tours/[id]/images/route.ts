@@ -30,7 +30,7 @@ export async function POST(request: Request, context: TourImageRouteContext) {
   if (guard) return guard;
 
   const { id: tourId } = await context.params;
-  const json = await parseJsonBody(request, "Du lieu them anh tour khong hop le.");
+  const json = await parseJsonBody(request, "Dữ liệu thêm ảnh tour không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }
@@ -69,7 +69,7 @@ export async function PATCH(request: Request, context: TourImageRouteContext) {
   if (guard) return guard;
 
   const { id: tourId } = await context.params;
-  const json = await parseJsonBody(request, "Du lieu sap xep anh tour khong hop le.");
+  const json = await parseJsonBody(request, "Dữ liệu sắp xếp ảnh tour không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }

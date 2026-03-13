@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const json = await parseJsonBody(request, "Du lieu dang ky khong hop le.");
+    const json = await parseJsonBody(request, "Dữ liệu đăng ký không hợp lệ.");
     if (!json.ok) {
       return json.response;
     }

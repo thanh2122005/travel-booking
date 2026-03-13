@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const json = await parseJsonBody(request, "Du lieu dat tour khong hop le.");
+  const json = await parseJsonBody(request, "Dữ liệu đặt tour không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }

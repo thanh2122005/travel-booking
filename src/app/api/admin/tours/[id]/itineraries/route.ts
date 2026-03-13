@@ -20,7 +20,7 @@ export async function POST(request: Request, context: ItineraryRouteContext) {
   if (guard) return guard;
 
   const { id: tourId } = await context.params;
-  const json = await parseJsonBody(request, "Du lieu tao lich trinh khong hop le.");
+  const json = await parseJsonBody(request, "Dữ liệu tạo lịch trình không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }

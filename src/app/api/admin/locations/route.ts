@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const guard = await requireAdminApi();
   if (guard) return guard;
 
-  const json = await parseJsonBody(request, "Du lieu tao diem den khong hop le.");
+  const json = await parseJsonBody(request, "Dữ liệu tạo điểm đến không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }

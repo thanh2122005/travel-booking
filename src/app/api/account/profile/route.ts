@@ -33,7 +33,7 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const json = await parseJsonBody(request, "Du lieu cap nhat ho so khong hop le.");
+  const json = await parseJsonBody(request, "Dữ liệu cập nhật hồ sơ không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }

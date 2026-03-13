@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const json = await parseJsonBody(request, "Du lieu yeu thich khong hop le.");
+  const json = await parseJsonBody(request, "Dữ liệu yêu thích không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }

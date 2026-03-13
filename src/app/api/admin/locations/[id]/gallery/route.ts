@@ -20,7 +20,7 @@ export async function PATCH(request: Request, context: LocationGalleryRouteConte
   if (guard) return guard;
 
   const { id } = await context.params;
-  const json = await parseJsonBody(request, "Du lieu gallery diem den khong hop le.");
+  const json = await parseJsonBody(request, "Dữ liệu gallery điểm đến không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }

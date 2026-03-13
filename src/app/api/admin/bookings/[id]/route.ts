@@ -19,7 +19,7 @@ export async function PATCH(request: Request, context: BookingRouteContext) {
   if (guard) return guard;
 
   const { id } = await context.params;
-  const json = await parseJsonBody(request, "Du lieu cap nhat booking khong hop le.");
+  const json = await parseJsonBody(request, "Dữ liệu cập nhật booking không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }

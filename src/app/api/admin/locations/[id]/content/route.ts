@@ -26,7 +26,7 @@ export async function PATCH(request: Request, context: LocationContentRouteConte
   if (guard) return guard;
 
   const { id } = await context.params;
-  const json = await parseJsonBody(request, "Du lieu cap nhat noi dung diem den khong hop le.");
+  const json = await parseJsonBody(request, "Dữ liệu cập nhật nội dung điểm đến không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }

@@ -12,7 +12,7 @@ type ParseJsonBodyResult =
 
 export async function parseJsonBody(
   request: Request,
-  invalidMessage = "Du lieu gui len khong hop le.",
+  invalidMessage = "Dữ liệu gửi lên không hợp lệ.",
 ): Promise<ParseJsonBodyResult> {
   try {
     const data = await request.json();
