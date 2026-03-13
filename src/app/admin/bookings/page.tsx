@@ -132,7 +132,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
             href="/admin"
             className="inline-flex h-9 items-center rounded-lg border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
           >
-            Dashboard
+            Bảng điều khiển
           </Link>
         </div>
       </section>
