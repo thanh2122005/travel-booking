@@ -104,7 +104,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
         <h1 className="text-2xl font-bold text-slate-900">Quản lý booking</h1>
         <p className="mt-1 text-sm text-slate-600">
@@ -112,7 +112,31 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
         </p>
       </div>
 
-      <form className="iv-card p-4">
+      <section className="iv-card p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Đi đến nhanh</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <a
+            href="#bo-loc-booking"
+            className="inline-flex h-9 items-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            Bộ lọc booking
+          </a>
+          <a
+            href="#danh-sach-booking"
+            className="inline-flex h-9 items-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            Danh sách
+          </a>
+          <Link
+            href="/admin"
+            className="inline-flex h-9 items-center rounded-lg border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
+          >
+            Dashboard
+          </Link>
+        </div>
+      </section>
+
+      <form id="bo-loc-booking" className="iv-card scroll-mt-24 p-4">
         <label
           htmlFor="search"
           className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"
@@ -216,6 +240,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
         </div>
       </form>
 
+      <div id="danh-sach-booking" className="scroll-mt-24" />
       {data.items.length ? (
         <>
           <AdminBookingsTable
@@ -276,6 +301,27 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
           ctaLabel="Xóa bộ lọc"
         />
       )}
+
+      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
+        <a
+          href="#bo-loc-booking"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Bộ lọc
+        </a>
+        <a
+          href="#danh-sach-booking"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Danh sách
+        </a>
+        <Link
+          href="/admin/reviews"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
+        >
+          Reviews
+        </Link>
+      </div>
     </div>
   );
 }
