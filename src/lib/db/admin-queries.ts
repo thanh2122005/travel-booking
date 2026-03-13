@@ -14,6 +14,7 @@ import {
   demoGetTours,
   demoGetUsers,
   demoExportBookings,
+  demoExportUsers,
   demoExportReviews,
   demoDeleteItinerary,
   demoDeleteTourImage,
@@ -700,6 +701,60 @@ export async function getAdminUsers(
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoGetUsers(filter);
+    }
+    throw error;
+  }
+}
+
+export async function exportAdminUsers(filter: AdminUserListFilter = {}) {
+  try {
+    const { start: createdFrom, end: createdTo } = normalizeDateRange(filter.createdFrom, filter.createdTo);
+
+    const where: Prisma.UserWhereInput = filter.search
+      ? {
+          OR: [
+            { fullName: { contains: filter.search, mode: "insensitive" } },
+            { email: { contains: filter.search, mode: "insensitive" } },
+          ],
+        }
+      : {};
+    if (filter.role) {
+      where.role = filter.role;
+    }
+    if (filter.status) {
+      where.status = filter.status;
+    }
+    if (createdFrom || createdTo) {
+      where.createdAt = {
+        ...(createdFrom ? { gte: createdFrom } : {}),
+        ...(createdTo ? { lte: createdTo } : {}),
+      };
+    }
+
+    return db.user.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 5000,
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phone: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        _count: {
+          select: {
+            bookings: true,
+            reviews: true,
+            favorites: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoExportUsers(filter);
     }
     throw error;
   }

@@ -887,6 +887,15 @@ export async function demoGetUsers(
   return paginate(rows, filter);
 }
 
+export async function demoExportUsers(filter: UserListFilter = {}) {
+  const data = await demoGetUsers({
+    ...filter,
+    page: 1,
+    pageSize: 5000,
+  });
+  return data.items;
+}
+
 export async function demoGetUserDashboardData(userId?: string) {
   const state = await readDemo();
   const user =
