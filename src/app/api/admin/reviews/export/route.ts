@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { exportAdminReviews } from "@/lib/db/admin-queries";
+import { toCsv } from "@/lib/utils/csv";
 
 function normalizeParam(value: string | null) {
   return value?.trim() ?? "";
@@ -23,16 +24,6 @@ function parseVisibleFilter(value: string) {
   if (value === "visible") return true;
   if (value === "hidden") return false;
   return undefined;
-}
-
-function escapeCsvCell(value: unknown) {
-  if (value === null || value === undefined) return "";
-  const text = String(value).replace(/"/g, '""');
-  return /[",\n]/.test(text) ? `"${text}"` : text;
-}
-
-function toCsv(rows: Array<Array<unknown>>) {
-  return rows.map((row) => row.map((value) => escapeCsvCell(value)).join(",")).join("\n");
 }
 
 function formatDateTime(value: Date | string | null | undefined) {

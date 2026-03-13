@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { getAdminDashboardData } from "@/lib/db/admin-queries";
+import { toCsv } from "@/lib/utils/csv";
 
 type TimelineGranularity = "day" | "week" | "month";
 
@@ -43,16 +44,6 @@ function formatPrice(value: number) {
 
 function formatRate(value: number) {
   return `${(value * 100).toFixed(1)}%`;
-}
-
-function escapeCsvCell(value: unknown) {
-  if (value === null || value === undefined) return "";
-  const text = String(value).replace(/"/g, '""');
-  return /[",\n]/.test(text) ? `"${text}"` : text;
-}
-
-function toCsv(rows: Array<Array<unknown>>) {
-  return rows.map((row) => row.map((value) => escapeCsvCell(value)).join(",")).join("\n");
 }
 
 function buildFileName(prefix: string) {

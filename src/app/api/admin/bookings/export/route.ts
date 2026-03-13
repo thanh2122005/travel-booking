@@ -2,6 +2,7 @@ import { BookingStatus, PaymentStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { adminLabels, exportAdminBookings } from "@/lib/db/admin-queries";
+import { toCsv } from "@/lib/utils/csv";
 
 const bookingStatusValues: BookingStatus[] = [
   BookingStatus.PENDING,
@@ -26,16 +27,6 @@ function parseDateAtBoundary(value: string, boundary: "start" | "end") {
     date.setHours(23, 59, 59, 999);
   }
   return date;
-}
-
-function escapeCsvCell(value: unknown) {
-  if (value === null || value === undefined) return "";
-  const text = String(value).replace(/"/g, '""');
-  return /[",\n]/.test(text) ? `"${text}"` : text;
-}
-
-function toCsv(rows: Array<Array<unknown>>) {
-  return rows.map((row) => row.map((value) => escapeCsvCell(value)).join(",")).join("\n");
 }
 
 function formatDateTime(value: Date | string | null | undefined) {
