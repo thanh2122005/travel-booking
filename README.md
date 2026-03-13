@@ -43,6 +43,7 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - Quản lý booking: lọc nâng cao theo ngày + cập nhật hàng loạt
 - Quản lý review: lọc nâng cao theo ngày + ẩn/hiện hàng loạt
 - Xuất CSV booking/review theo bộ lọc đang áp dụng
+- Dashboard, bookings, reviews có điều hướng nhanh và thao tác mobile nhất quán
 - Bảo vệ quyền admin: không cho hạ quyền/khóa/xóa quản trị viên cuối cùng
 - CRUD users, tours, locations, ảnh tour, itinerary
 
