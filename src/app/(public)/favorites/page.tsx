@@ -25,6 +25,11 @@ type FavoriteQueryOverrides = {
   createdTo?: string;
   page?: number;
 };
+const favoriteSortLabels: Record<FavoriteSortValue, string> = {
+  newest: "Mới lưu gần đây",
+  "price-asc": "Giá tăng dần",
+  "price-desc": "Giá giảm dần",
+};
 const quickDateRanges = [30, 90, 180] as const;
 
 function normalizeParam(value?: string | string[]) {
@@ -75,6 +80,31 @@ function createQuickDateRange(days: number) {
     createdFrom: toInputDateValue(start),
     createdTo: toInputDateValue(end),
   };
+}
+
+function formatInputDate(value: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function buildDateRangeLabel(createdFrom: string, createdTo: string) {
+  if (createdFrom && createdTo) {
+    return `Ngày lưu: ${formatInputDate(createdFrom)} - ${formatInputDate(createdTo)}`;
+  }
+  if (createdFrom) {
+    return `Lưu từ ngày: ${formatInputDate(createdFrom)}`;
+  }
+  if (createdTo) {
+    return `Lưu đến ngày: ${formatInputDate(createdTo)}`;
+  }
+  return "";
 }
 
 export default async function FavoritesPage({ searchParams }: FavoritesPageProps) {
@@ -180,6 +210,13 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
     createdTo: "",
     page: 1,
   });
+  const dateRangeLabel = buildDateRangeLabel(createdFrom, createdTo);
+  const activeFilterLabels = [
+    ...(search ? [`Từ khóa: ${search}`] : []),
+    ...(location ? [`Điểm đến: ${location}`] : []),
+    ...(sort !== "newest" ? [`Sắp xếp: ${favoriteSortLabels[sort]}`] : []),
+    ...(dateRangeLabel ? [dateRangeLabel] : []),
+  ];
 
   return (
     <div className="space-y-8 pb-24 lg:pb-0">
@@ -287,6 +324,18 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
               </Link>
             ) : null}
           </div>
+          {activeFilterLabels.length ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {activeFilterLabels.map((label) => (
+                <span
+                  key={label}
+                  className="inline-flex h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </form>
 
         {favorites.length ? (
