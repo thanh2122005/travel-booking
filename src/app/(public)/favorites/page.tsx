@@ -21,8 +21,11 @@ type FavoriteQueryOverrides = {
   search?: string;
   location?: string;
   sort?: FavoriteSortValue;
+  createdFrom?: string;
+  createdTo?: string;
   page?: number;
 };
+const quickDateRanges = [30, 90, 180] as const;
 
 function normalizeParam(value?: string | string[]) {
   if (!value) return "";
@@ -43,11 +46,44 @@ function parsePage(value: string) {
   return normalized >= 1 ? normalized : 1;
 }
 
+function parseDateAtBoundary(value: string, boundary: "start" | "end") {
+  if (!value) return undefined;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return undefined;
+
+  if (boundary === "start") {
+    date.setHours(0, 0, 0, 0);
+  } else {
+    date.setHours(23, 59, 59, 999);
+  }
+  return date;
+}
+
+function toInputDateValue(date: Date) {
+  const localDate = new Date(date);
+  localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset());
+  return localDate.toISOString().slice(0, 10);
+}
+
+function createQuickDateRange(days: number) {
+  const end = new Date();
+  end.setHours(0, 0, 0, 0);
+  const start = new Date(end);
+  start.setDate(start.getDate() - (days - 1));
+
+  return {
+    createdFrom: toInputDateValue(start),
+    createdTo: toInputDateValue(end),
+  };
+}
+
 export default async function FavoritesPage({ searchParams }: FavoritesPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
   const requestedLocation = normalizeParam(params.location).trim();
   const sort = parseSort(normalizeParam(params.sort));
+  const createdFrom = normalizeParam(params.createdFrom);
+  const createdTo = normalizeParam(params.createdTo);
   const requestedPage = parsePage(normalizeParam(params.page));
 
   const session = await getAuthSession();
@@ -72,7 +108,9 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
     });
   const location =
     locationOptions.find((item) => item.name.toLowerCase() === requestedLocation.toLowerCase())?.name ?? "";
-  const hasActiveFilters = Boolean(search || location || sort !== "newest");
+  const hasActiveFilters = Boolean(search || location || sort !== "newest" || createdFrom || createdTo);
+  const createdFromDate = parseDateAtBoundary(createdFrom, "start");
+  const createdToDate = parseDateAtBoundary(createdTo, "end");
 
   const filteredFavorites = favorites
     .filter((favorite) => {
@@ -82,7 +120,11 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
         favorite.tour.title.toLowerCase().includes(normalizedSearch) ||
         favorite.tour.shortDescription.toLowerCase().includes(normalizedSearch) ||
         favorite.tour.location.name.toLowerCase().includes(normalizedSearch);
-      return searchMatched && locationMatched;
+      const createdAt = new Date(favorite.createdAt);
+      const dateMatched =
+        Number.isNaN(createdAt.getTime()) ||
+        ((!createdFromDate || createdAt >= createdFromDate) && (!createdToDate || createdAt <= createdToDate));
+      return searchMatched && locationMatched && dateMatched;
     })
     .slice()
     .sort((a, b) => {
@@ -102,6 +144,8 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
     const nextSearch = overrides.search ?? search;
     const nextLocation = overrides.location ?? location;
     const nextSort = overrides.sort ?? sort;
+    const nextCreatedFrom = overrides.createdFrom ?? createdFrom;
+    const nextCreatedTo = overrides.createdTo ?? createdTo;
     const nextPage = overrides.page ?? currentPage;
     const query = new URLSearchParams();
 
@@ -114,6 +158,12 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
     if (nextSort !== "newest") {
       query.set("sort", nextSort);
     }
+    if (nextCreatedFrom) {
+      query.set("createdFrom", nextCreatedFrom);
+    }
+    if (nextCreatedTo) {
+      query.set("createdTo", nextCreatedTo);
+    }
     if (nextPage > 1) {
       query.set("page", String(nextPage));
     }
@@ -122,7 +172,14 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
     return serialized ? `/favorites?${serialized}` : "/favorites";
   };
   const buildPageHref = (page: number) => buildFavoritesHref({ page });
-  const clearFiltersHref = buildFavoritesHref({ search: "", location: "", sort: "newest", page: 1 });
+  const clearFiltersHref = buildFavoritesHref({
+    search: "",
+    location: "",
+    sort: "newest",
+    createdFrom: "",
+    createdTo: "",
+    page: 1,
+  });
 
   return (
     <div className="space-y-8 pb-24 lg:pb-0">
@@ -149,7 +206,32 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
           <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
             Tìm kiếm tour yêu thích
           </label>
-          <div className="grid gap-2 md:grid-cols-[1fr_210px_180px_auto_auto]">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-slate-500">Mốc nhanh:</span>
+            {quickDateRanges.map((days) => {
+              const quickRange = createQuickDateRange(days);
+              const isActive =
+                createdFrom === quickRange.createdFrom && createdTo === quickRange.createdTo;
+              return (
+                <Link
+                  key={days}
+                  href={buildFavoritesHref({
+                    createdFrom: quickRange.createdFrom,
+                    createdTo: quickRange.createdTo,
+                    page: 1,
+                  })}
+                  className={`inline-flex h-8 items-center rounded-md border px-3 text-xs font-semibold transition ${
+                    isActive
+                      ? "border-teal-600 bg-teal-600 text-white"
+                      : "border-slate-300 text-slate-700 hover:bg-slate-100"
+                  }`}
+                >
+                  {days} ngày
+                </Link>
+              );
+            })}
+          </div>
+          <div className="grid gap-2 xl:grid-cols-[1fr_210px_170px_170px_170px_auto_auto]">
             <input
               id="search"
               name="search"
@@ -178,6 +260,18 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
               <option value="price-asc">Giá tăng dần</option>
               <option value="price-desc">Giá giảm dần</option>
             </select>
+            <input
+              type="date"
+              name="createdFrom"
+              defaultValue={createdFrom}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+            <input
+              type="date"
+              name="createdTo"
+              defaultValue={createdTo}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
             <button
               type="submit"
               className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
