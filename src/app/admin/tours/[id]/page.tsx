@@ -4,6 +4,7 @@ import { ArrowLeft, MapPin } from "lucide-react";
 import { AdminItineraryManager } from "@/components/admin/admin-itinerary-manager";
 import { AdminTourContentForm } from "@/components/admin/admin-tour-content-form";
 import { AdminTourImagesManager } from "@/components/admin/admin-tour-images-manager";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { Badge } from "@/components/ui/badge";
 import { getAdminLocationOptions, getAdminTourDetail } from "@/lib/db/admin-queries";
 import { formatPrice } from "@/lib/utils/format";
@@ -26,7 +27,7 @@ export default async function AdminTourDetailPage({ params }: AdminTourDetailPag
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-24 lg:pb-0">
       <Link
         href="/admin/tours"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 transition hover:text-slate-900"
@@ -68,9 +69,23 @@ export default async function AdminTourDetailPage({ params }: AdminTourDetailPag
         </div>
       </section>
 
-      <AdminTourContentForm tour={tour} locations={locationOptions} />
-      <AdminTourImagesManager tourId={tour.id} images={tour.images} />
-      <AdminItineraryManager tourId={tour.id} itineraries={tour.itineraries} />
+      <div id="noi-dung-tour-admin" className="scroll-mt-24">
+        <AdminTourContentForm tour={tour} locations={locationOptions} />
+      </div>
+      <div id="anh-tour-admin" className="scroll-mt-24">
+        <AdminTourImagesManager tourId={tour.id} images={tour.images} />
+      </div>
+      <div id="lich-trinh-tour-admin" className="scroll-mt-24">
+        <AdminItineraryManager tourId={tour.id} itineraries={tour.itineraries} />
+      </div>
+
+      <MobileQuickActions
+        items={[
+          { href: "#noi-dung-tour-admin", label: "Nội dung" },
+          { href: "#anh-tour-admin", label: "Hình ảnh", active: true },
+          { href: "#lich-trinh-tour-admin", label: "Lịch trình" },
+        ]}
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { AdminLocationContentForm } from "@/components/admin/admin-location-content-form";
 import { AdminLocationGalleryManager } from "@/components/admin/admin-location-gallery-manager";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { Badge } from "@/components/ui/badge";
 import { getAdminLocationDetail } from "@/lib/db/admin-queries";
 import { formatDate, formatPrice } from "@/lib/utils/format";
@@ -22,7 +23,7 @@ export default async function AdminLocationDetailPage({ params }: AdminLocationD
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-24 lg:pb-0">
       <Link
         href="/admin/locations"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 transition hover:text-slate-900"
@@ -57,14 +58,18 @@ export default async function AdminLocationDetailPage({ params }: AdminLocationD
         </div>
       </section>
 
-      <AdminLocationContentForm location={location} />
-      <AdminLocationGalleryManager
-        locationId={location.id}
-        imageUrl={location.imageUrl}
-        gallery={location.gallery}
-      />
+      <div id="noi-dung-dia-diem-admin" className="scroll-mt-24">
+        <AdminLocationContentForm location={location} />
+      </div>
+      <div id="gallery-dia-diem-admin" className="scroll-mt-24">
+        <AdminLocationGalleryManager
+          locationId={location.id}
+          imageUrl={location.imageUrl}
+          gallery={location.gallery}
+        />
+      </div>
 
-      <section className="space-y-3 rounded-2xl border bg-white p-5">
+      <section id="tour-dia-diem-admin" className="space-y-3 scroll-mt-24 rounded-2xl border bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-slate-900">
             Tour thuộc điểm đến này ({location.tours.length})
@@ -109,6 +114,14 @@ export default async function AdminLocationDetailPage({ params }: AdminLocationD
           </p>
         )}
       </section>
+
+      <MobileQuickActions
+        items={[
+          { href: "#noi-dung-dia-diem-admin", label: "Nội dung" },
+          { href: "#gallery-dia-diem-admin", label: "Gallery", active: true },
+          { href: "#tour-dia-diem-admin", label: "Tour" },
+        ]}
+      />
     </div>
   );
 }
