@@ -75,15 +75,59 @@ type DashboardTimelineOptions = {
   endDate?: Date | string;
 };
 
+const MAX_ADMIN_DATE_RANGE_DAYS = 366;
+
 function getPagination(filter: AdminListFilter) {
   const page = Math.max(filter.page ?? 1, 1);
   const pageSize = Math.min(Math.max(filter.pageSize ?? 12, 1), 50);
   return { page, pageSize, skip: (page - 1) * pageSize };
 }
 
+function normalizeDateRange(
+  from?: Date,
+  to?: Date,
+  maxDays = MAX_ADMIN_DATE_RANGE_DAYS,
+) {
+  let start = from ? startOfDay(from) : undefined;
+  let end = to ? endOfDay(to) : undefined;
+
+  if (!start && !end) {
+    return { start, end };
+  }
+
+  if (!start && end) {
+    start = startOfDay(end);
+    start.setDate(start.getDate() - (maxDays - 1));
+  }
+
+  if (start && !end) {
+    end = endOfDay(start);
+    end.setDate(end.getDate() + (maxDays - 1));
+  }
+
+  if (start && end && start > end) {
+    const swappedStart = startOfDay(end);
+    const swappedEnd = endOfDay(start);
+    start = swappedStart;
+    end = swappedEnd;
+  }
+
+  if (start && end) {
+    const days = Math.max(
+      1,
+      Math.ceil((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)) + 1,
+    );
+    if (days > maxDays) {
+      start = startOfDay(end);
+      start.setDate(start.getDate() - (maxDays - 1));
+    }
+  }
+
+  return { start, end };
+}
+
 function buildAdminBookingWhere(filter: AdminBookingListFilter) {
-  const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
-  const createdTo = filter.createdTo ? endOfDay(filter.createdTo) : undefined;
+  const { start: createdFrom, end: createdTo } = normalizeDateRange(filter.createdFrom, filter.createdTo);
 
   const where: Prisma.BookingWhereInput = filter.search
     ? {
@@ -113,8 +157,7 @@ function buildAdminBookingWhere(filter: AdminBookingListFilter) {
 }
 
 function buildAdminReviewWhere(filter: AdminReviewListFilter) {
-  const createdFrom = filter.createdFrom ? startOfDay(filter.createdFrom) : undefined;
-  const createdTo = filter.createdTo ? endOfDay(filter.createdTo) : undefined;
+  const { start: createdFrom, end: createdTo } = normalizeDateRange(filter.createdFrom, filter.createdTo);
 
   const where: Prisma.ReviewWhereInput = filter.search
     ? {
@@ -272,11 +315,17 @@ function resolveDashboardOptions(options?: DashboardTimelineOptions) {
         : defaultStartDate),
   );
   const normalizedEndDate = endOfDay(endDate);
-  const startDate = rawStartDate > normalizedEndDate ? startOfDay(normalizedEndDate) : rawStartDate;
+  const { start: normalizedStartDate, end: boundedEndDate } = normalizeDateRange(
+    rawStartDate,
+    normalizedEndDate,
+    MAX_ADMIN_DATE_RANGE_DAYS,
+  );
+  const startDate = normalizedStartDate ?? startOfDay(normalizedEndDate);
+  const safeEndDate = boundedEndDate ?? normalizedEndDate;
 
   const dayDiff = Math.max(
     1,
-    Math.ceil((normalizedEndDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)),
+    Math.ceil((safeEndDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)),
   );
   const granularity: TimelineGranularity =
     options?.granularity ??
@@ -284,7 +333,7 @@ function resolveDashboardOptions(options?: DashboardTimelineOptions) {
 
   return {
     startDate,
-    endDate: normalizedEndDate,
+    endDate: safeEndDate,
     rangeDays,
     monthCount,
     granularity,
