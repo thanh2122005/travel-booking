@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdminBookingsTable } from "@/components/admin/admin-bookings-table";
 import { EmptyState } from "@/components/common/empty-state";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { adminLabels, getAdminBookings } from "@/lib/db/admin-queries";
 
 export const dynamic = "force-dynamic";
@@ -302,26 +303,13 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
         />
       )}
 
-      <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur lg:hidden">
-        <a
-          href="#bo-loc-booking"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Bộ lọc
-        </a>
-        <a
-          href="#danh-sach-booking"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Danh sách
-        </a>
-        <Link
-          href="/admin/reviews"
-          className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
-        >
-          Reviews
-        </Link>
-      </div>
+      <MobileQuickActions
+        items={[
+          { href: "#bo-loc-booking", label: "Bộ lọc" },
+          { href: "#danh-sach-booking", label: "Danh sách", active: true },
+          { href: "/admin/reviews", label: "Reviews" },
+        ]}
+      />
     </div>
   );
 }
