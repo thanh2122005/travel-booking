@@ -1,5 +1,6 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
+import { EmptyState } from "@/components/common/empty-state";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 
 type InspirationLocation = {
@@ -54,11 +55,13 @@ export function HomeInspiration({ locations }: HomeInspirationProps) {
           ))}
         </div>
       ) : (
-        <article className="iv-card p-5 text-sm text-slate-600">
-          Chưa có dữ liệu cảm hứng du lịch. Vui lòng thêm điểm đến để hiển thị mục này.
-        </article>
+        <EmptyState
+          title="Chưa có dữ liệu cảm hứng du lịch"
+          description="Các bài viết cảm hứng sẽ hiển thị tại đây khi hệ thống có thêm dữ liệu điểm đến."
+          ctaHref="/dia-diem"
+          ctaLabel="Xem điểm đến"
+        />
       )}
     </section>
   );
 }
-
