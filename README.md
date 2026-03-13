@@ -188,6 +188,11 @@ src/
 - Ứng dụng trả thêm security headers cơ bản (frame/content-type/referrer/permissions policy).
 - Khu vực `/admin` chặn truy cập theo role + status ngay từ middleware.
 
+### Bổ sung bảo mật đăng nhập
+
+- Callback URL trong luồng đăng nhập/đăng ký được chuẩn hóa theo đường dẫn nội bộ (`/path`) để tránh open redirect.
+- Middleware/proxy giữ lại query string khi redirect sang trang đăng nhập, giúp quay về đúng trạng thái trang trước đó.
+
 ## 11. Checklist trước khi deploy
 
 1. Đồng bộ biến môi trường production (`DATABASE_URL`, `NEXTAUTH_URL`, secret).
