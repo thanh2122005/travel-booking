@@ -45,6 +45,7 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - KPI theo kỳ lọc và bảng top tour theo doanh thu xác nhận
 - Quản lý booking: lọc nâng cao theo ngày + cập nhật hàng loạt
 - Quản lý review: lọc nâng cao theo ngày + ẩn/hiện hàng loạt
+- Quản lý users: lọc theo ngày tạo tài khoản + mốc nhanh 7/30/90 ngày
 - Xuất CSV booking/review theo bộ lọc đang áp dụng
 - Dashboard, bookings, reviews có điều hướng nhanh và thao tác mobile nhất quán
 - Bảo vệ quyền admin: không cho hạ quyền/khóa/xóa quản trị viên cuối cùng
