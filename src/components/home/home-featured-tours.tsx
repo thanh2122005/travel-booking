@@ -1,4 +1,5 @@
-import Link from "next/link";
+﻿import Link from "next/link";
+import { EmptyState } from "@/components/common/empty-state";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { TourCard } from "@/components/tour/tour-card";
 
@@ -22,11 +23,20 @@ export function HomeFeaturedTours({ tours }: HomeFeaturedToursProps) {
         </Link>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {tours.map((tour) => (
-          <TourCard key={tour.slug} tour={tour} />
-        ))}
-      </div>
+      {tours.length ? (
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {tours.map((tour) => (
+            <TourCard key={tour.slug} tour={tour} />
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          title="Chưa có tour nổi bật"
+          description="Dữ liệu tour nổi bật sẽ xuất hiện tại đây khi hệ thống có tour đang hoạt động."
+          ctaHref="/tours"
+          ctaLabel="Xem tất cả tour"
+        />
+      )}
     </section>
   );
 }

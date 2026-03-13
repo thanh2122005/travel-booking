@@ -1,5 +1,6 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
+import { EmptyState } from "@/components/common/empty-state";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 
 type HomeReview = {
@@ -43,36 +44,45 @@ export function HomeTestimonials({ reviews }: HomeTestimonialsProps) {
         </Link>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {reviews.slice(0, 6).map((review, index) => (
-          <article key={review.id} className="iv-card flex h-full flex-col p-5">
-            <p className="text-amber-500">{`${"★".repeat(Math.max(review.rating, 1))}${"☆".repeat(5 - Math.max(review.rating, 1))}`}</p>
-            <p className="mt-3 line-clamp-5 text-sm leading-7 text-slate-600">
-              &ldquo;{review.comment}&rdquo;
-            </p>
-            <div className="mt-5 flex items-center gap-3 border-t border-slate-100 pt-4">
-              <div className="relative h-11 w-11 overflow-hidden rounded-full border border-slate-200">
-                <Image
-                  src={review.user.avatarUrl || fallbackAvatars[index % fallbackAvatars.length]}
-                  alt={review.user.fullName}
-                  fill
-                  className="object-cover"
-                  sizes="44px"
-                />
+      {reviews.length ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {reviews.slice(0, 6).map((review, index) => (
+            <article key={review.id} className="iv-card flex h-full flex-col p-5">
+              <p className="text-amber-500">{`${"★".repeat(Math.max(review.rating, 1))}${"☆".repeat(5 - Math.max(review.rating, 1))}`}</p>
+              <p className="mt-3 line-clamp-5 text-sm leading-7 text-slate-600">
+                &ldquo;{review.comment}&rdquo;
+              </p>
+              <div className="mt-5 flex items-center gap-3 border-t border-slate-100 pt-4">
+                <div className="relative h-11 w-11 overflow-hidden rounded-full border border-slate-200">
+                  <Image
+                    src={review.user.avatarUrl || fallbackAvatars[index % fallbackAvatars.length]}
+                    alt={review.user.fullName}
+                    fill
+                    className="object-cover"
+                    sizes="44px"
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">{review.user.fullName}</p>
+                  <p className="text-xs text-slate-500">
+                    {review.tour.location.name} -{" "}
+                    <Link href={`/tours/${review.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
+                      {review.tour.title}
+                    </Link>
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-900">{review.user.fullName}</p>
-                <p className="text-xs text-slate-500">
-                  {review.tour.location.name} -{" "}
-                  <Link href={`/tours/${review.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
-                    {review.tour.title}
-                  </Link>
-                </p>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          title="Chưa có đánh giá hiển thị"
+          description="Đánh giá từ khách đã đi tour sẽ được hiển thị tại đây để bạn dễ tham khảo trước khi đặt."
+          ctaHref="/tours"
+          ctaLabel="Khám phá tour"
+        />
+      )}
     </section>
   );
 }
