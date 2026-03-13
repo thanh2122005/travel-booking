@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { authSecret } from "@/lib/auth/auth-secret";
@@ -8,7 +8,7 @@ const userRoutes = ["/tai-khoan"];
 const adminRoutes = ["/admin"];
 const adminApiPrefix = "/api/admin";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const token = await getToken({
     req: request,
     secret: authSecret,
@@ -72,4 +72,3 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/dang-nhap", "/dang-ky", "/tai-khoan/:path*", "/admin/:path*", "/api/admin/:path*"],
 };
-
