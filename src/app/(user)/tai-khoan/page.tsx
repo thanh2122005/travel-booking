@@ -41,6 +41,8 @@ type AccountQueryState = {
   bookingPage: number;
   favoriteSearch: string;
   favoriteSort: FavoriteSortValue;
+  favoriteCreatedFrom: string;
+  favoriteCreatedTo: string;
   favoritePage: number;
   reviewSearch: string;
   reviewSort: ReviewSortValue;
@@ -98,6 +100,7 @@ const bookingStatusOrder: BookingStatus[] = [
 
 const paymentStatusOrder: PaymentStatus[] = [PaymentStatus.UNPAID, PaymentStatus.PAID];
 const accountBookingQuickRanges = [7, 30, 90] as const;
+const accountFavoriteQuickRanges = [30, 90, 180] as const;
 const accountSectionLinks = [
   { href: "#ho-so", label: "Hồ sơ" },
   { href: "#booking", label: "Đặt tour" },
@@ -196,6 +199,8 @@ function buildAccountHref(state: AccountQueryState, overrides: Partial<AccountQu
 
   if (next.favoriteSearch) query.set("favoriteSearch", next.favoriteSearch);
   if (next.favoriteSort !== "newest") query.set("favoriteSort", next.favoriteSort);
+  if (next.favoriteCreatedFrom) query.set("favoriteCreatedFrom", next.favoriteCreatedFrom);
+  if (next.favoriteCreatedTo) query.set("favoriteCreatedTo", next.favoriteCreatedTo);
   if (next.favoritePage > 1) query.set("favoritePage", String(next.favoritePage));
 
   if (next.reviewSearch) query.set("reviewSearch", next.reviewSearch);
@@ -276,6 +281,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     bookingPage: parsePage(normalizeParam(params.bookingPage)),
     favoriteSearch: normalizeParam(params.favoriteSearch),
     favoriteSort: parseFavoriteSort(normalizeParam(params.favoriteSort)),
+    favoriteCreatedFrom: normalizeParam(params.favoriteCreatedFrom),
+    favoriteCreatedTo: normalizeParam(params.favoriteCreatedTo),
     favoritePage: parsePage(normalizeParam(params.favoritePage)),
     reviewSearch: normalizeParam(params.reviewSearch),
     reviewSort: parseReviewSort(normalizeParam(params.reviewSort)),
@@ -303,6 +310,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const normalizedReviewSearch = state.reviewSearch.trim().toLowerCase();
   const bookingCreatedFromDate = parseDateAtBoundary(state.bookingCreatedFrom, "start");
   const bookingCreatedToDate = parseDateAtBoundary(state.bookingCreatedTo, "end");
+  const favoriteCreatedFromDate = parseDateAtBoundary(state.favoriteCreatedFrom, "start");
+  const favoriteCreatedToDate = parseDateAtBoundary(state.favoriteCreatedTo, "end");
 
   const bookingSearchMatched = data.bookings.filter((booking) => {
     const searchMatched =
@@ -360,12 +369,17 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
   const filteredFavorites = data.favorites
     .filter((favorite) => {
-      if (!normalizedFavoriteSearch) return true;
-      return (
+      const searchMatched =
+        !normalizedFavoriteSearch ||
         favorite.tour.title.toLowerCase().includes(normalizedFavoriteSearch) ||
         favorite.tour.shortDescription.toLowerCase().includes(normalizedFavoriteSearch) ||
-        favorite.tour.location.name.toLowerCase().includes(normalizedFavoriteSearch)
-      );
+        favorite.tour.location.name.toLowerCase().includes(normalizedFavoriteSearch);
+      const createdAt = new Date(favorite.createdAt);
+      const dateMatched =
+        Number.isNaN(createdAt.getTime()) ||
+        ((!favoriteCreatedFromDate || createdAt >= favoriteCreatedFromDate) &&
+          (!favoriteCreatedToDate || createdAt <= favoriteCreatedToDate));
+      return searchMatched && dateMatched;
     })
     .slice()
     .sort((a, b) => {
@@ -430,7 +444,12 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       state.bookingCreatedFrom ||
       state.bookingCreatedTo,
   );
-  const hasFavoriteFilters = Boolean(state.favoriteSearch || state.favoriteSort !== "newest");
+  const hasFavoriteFilters = Boolean(
+    state.favoriteSearch ||
+      state.favoriteSort !== "newest" ||
+      state.favoriteCreatedFrom ||
+      state.favoriteCreatedTo,
+  );
   const hasReviewFilters = Boolean(state.reviewSearch || state.reviewSort !== "newest" || state.reviewMinRating);
 
   const clearBookingHref = buildAccountHref(state, {
@@ -444,6 +463,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const clearFavoriteHref = buildAccountHref(state, {
     favoriteSearch: "",
     favoriteSort: "newest",
+    favoriteCreatedFrom: "",
+    favoriteCreatedTo: "",
     favoritePage: 1,
   });
   const clearReviewHref = buildAccountHref(state, {
@@ -551,6 +572,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <input type="hidden" name="bookingPage" value="1" />
           <input type="hidden" name="favoriteSearch" value={state.favoriteSearch} />
           <input type="hidden" name="favoriteSort" value={state.favoriteSort} />
+          <input type="hidden" name="favoriteCreatedFrom" value={state.favoriteCreatedFrom} />
+          <input type="hidden" name="favoriteCreatedTo" value={state.favoriteCreatedTo} />
           <input type="hidden" name="favoritePage" value={state.favoritePage} />
           <input type="hidden" name="reviewSearch" value={state.reviewSearch} />
           <input type="hidden" name="reviewSort" value={state.reviewSort} />
@@ -827,7 +850,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </Badge>
         </div>
 
-        <form className="mb-4 grid gap-2 md:grid-cols-[1fr_200px_auto_auto]">
+        <form className="mb-4 space-y-3">
           <input type="hidden" name="favoritePage" value="1" />
           <input type="hidden" name="bookingSearch" value={state.bookingSearch} />
           <input type="hidden" name="bookingStatus" value={state.bookingStatus} />
@@ -839,35 +862,75 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <input type="hidden" name="reviewSort" value={state.reviewSort} />
           <input type="hidden" name="reviewMinRating" value={state.reviewMinRating} />
           <input type="hidden" name="reviewPage" value={state.reviewPage} />
-          <input
-            name="favoriteSearch"
-            defaultValue={state.favoriteSearch}
-            placeholder="Tên tour, điểm đến hoặc mô tả..."
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          />
-          <select
-            name="favoriteSort"
-            defaultValue={state.favoriteSort}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          >
-            <option value="newest">Mới lưu gần đây</option>
-            <option value="price-asc">Giá tăng dần</option>
-            <option value="price-desc">Giá giảm dần</option>
-          </select>
-          <button
-            type="submit"
-            className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
-          >
-            Lọc yêu thích
-          </button>
-          {hasFavoriteFilters ? (
-            <Link
-              href={clearFavoriteHref}
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Mốc nhanh:</p>
+            {accountFavoriteQuickRanges.map((days) => {
+              const quickRange = createQuickDateRange(days);
+              const isActive =
+                state.favoriteCreatedFrom === quickRange.createdFrom &&
+                state.favoriteCreatedTo === quickRange.createdTo;
+              return (
+                <Link
+                  key={days}
+                  href={buildAccountHref(state, {
+                    favoriteCreatedFrom: quickRange.createdFrom,
+                    favoriteCreatedTo: quickRange.createdTo,
+                    favoritePage: 1,
+                  })}
+                  className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
+                    isActive
+                      ? "border-teal-300 bg-teal-50 text-teal-700"
+                      : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {days} ngày
+                </Link>
+              );
+            })}
+          </div>
+          <div className="grid gap-2 xl:grid-cols-[1fr_200px_170px_170px_170px_auto_auto]">
+            <input
+              name="favoriteSearch"
+              defaultValue={state.favoriteSearch}
+              placeholder="Tên tour, điểm đến hoặc mô tả..."
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+            <select
+              name="favoriteSort"
+              defaultValue={state.favoriteSort}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
             >
-              Xóa lọc
-            </Link>
-          ) : null}
+              <option value="newest">Mới lưu gần đây</option>
+              <option value="price-asc">Giá tăng dần</option>
+              <option value="price-desc">Giá giảm dần</option>
+            </select>
+            <input
+              type="date"
+              name="favoriteCreatedFrom"
+              defaultValue={state.favoriteCreatedFrom}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+            <input
+              type="date"
+              name="favoriteCreatedTo"
+              defaultValue={state.favoriteCreatedTo}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
+            >
+              Lọc yêu thích
+            </button>
+            {hasFavoriteFilters ? (
+              <Link
+                href={clearFavoriteHref}
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+              >
+                Xóa lọc
+              </Link>
+            ) : null}
+          </div>
         </form>
 
         {filteredFavorites.length ? (
@@ -953,6 +1016,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <input type="hidden" name="bookingPage" value={state.bookingPage} />
           <input type="hidden" name="favoriteSearch" value={state.favoriteSearch} />
           <input type="hidden" name="favoriteSort" value={state.favoriteSort} />
+          <input type="hidden" name="favoriteCreatedFrom" value={state.favoriteCreatedFrom} />
+          <input type="hidden" name="favoriteCreatedTo" value={state.favoriteCreatedTo} />
           <input type="hidden" name="favoritePage" value={state.favoritePage} />
           <input
             name="reviewSearch"
