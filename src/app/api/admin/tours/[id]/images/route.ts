@@ -3,9 +3,10 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { createAdminTourImage, reorderAdminTourImages } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
+import { requiredMediaUrlSchema } from "@/lib/validations/media-url";
 
 const createTourImageSchema = z.object({
-  imageUrl: z.string().trim().min(1, "URL ảnh là bắt buộc."),
+  imageUrl: requiredMediaUrlSchema("URL ảnh là bắt buộc."),
   sortOrder: z.number().int().positive().optional(),
 });
 

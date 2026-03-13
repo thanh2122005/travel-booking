@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { updateAdminLocationContent } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
+import { requiredMediaUrlSchema } from "@/lib/validations/media-url";
 
 const updateLocationContentSchema = z.object({
   name: z.string().trim().min(1, "Tên điểm đến là bắt buộc."),
@@ -12,7 +13,7 @@ const updateLocationContentSchema = z.object({
   country: z.string().trim().min(1, "Quốc gia là bắt buộc."),
   shortDescription: z.string().trim().min(1, "Mô tả ngắn là bắt buộc."),
   description: z.string().trim().min(1, "Mô tả chi tiết là bắt buộc."),
-  imageUrl: z.string().trim().min(1, "Ảnh đại diện là bắt buộc."),
+  imageUrl: requiredMediaUrlSchema("Ảnh đại diện là bắt buộc."),
   featured: z.boolean(),
 });
 

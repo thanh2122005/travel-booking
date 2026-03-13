@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { createAdminTour } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
+import { requiredMediaUrlSchema } from "@/lib/validations/media-url";
 
 const createTourSchema = z.object({
   title: z.string().trim().min(1, "Tên tour là bắt buộc."),
@@ -17,7 +18,7 @@ const createTourSchema = z.object({
   maxGuests: z.number().int().positive("Số khách tối đa phải lớn hơn 0."),
   transportation: z.string().trim().min(1, "Phương tiện là bắt buộc."),
   departureLocation: z.string().trim().min(1, "Điểm khởi hành là bắt buộc."),
-  featuredImage: z.string().trim().min(1, "Ảnh đại diện là bắt buộc."),
+  featuredImage: requiredMediaUrlSchema("Ảnh đại diện là bắt buộc."),
   status: z.nativeEnum(TourStatus).optional(),
   featured: z.boolean().optional(),
   locationId: z.string().trim().min(1, "Điểm đến là bắt buộc."),

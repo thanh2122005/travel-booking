@@ -3,10 +3,11 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { updateAdminLocationGallery } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
+import { requiredMediaUrlSchema } from "@/lib/validations/media-url";
 
 const updateLocationGallerySchema = z.object({
   gallery: z
-    .array(z.string().trim().min(1, "URL ảnh không hợp lệ."))
+    .array(requiredMediaUrlSchema("URL ảnh không hợp lệ."))
     .min(1, "Gallery điểm đến phải có ít nhất 1 ảnh."),
 });
 

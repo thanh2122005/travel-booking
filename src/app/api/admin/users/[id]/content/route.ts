@@ -4,12 +4,13 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { updateAdminUserContent } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
+import { optionalNullableMediaUrlSchema } from "@/lib/validations/media-url";
 
 const userContentUpdateSchema = z.object({
   fullName: z.string().trim().min(1, "Họ tên là bắt buộc."),
   email: z.string().trim().email("Email không hợp lệ."),
   phone: z.string().trim().nullable().optional(),
-  avatarUrl: z.string().trim().nullable().optional(),
+  avatarUrl: optionalNullableMediaUrlSchema("URL ảnh đại diện không hợp lệ."),
   role: z.nativeEnum(UserRole),
   status: z.nativeEnum(UserStatus),
 });

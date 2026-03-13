@@ -3,9 +3,10 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { deleteAdminTourImage, updateAdminTourImage } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
+import { optionalMediaUrlSchema } from "@/lib/validations/media-url";
 
 const updateTourImageSchema = z.object({
-  imageUrl: z.string().trim().min(1, "URL ảnh không hợp lệ.").optional(),
+  imageUrl: optionalMediaUrlSchema("URL ảnh không hợp lệ."),
   sortOrder: z.number().int().positive("Thứ tự ảnh phải lớn hơn 0.").optional(),
 });
 
