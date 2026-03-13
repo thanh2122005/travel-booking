@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { deleteAdminLocation, updateAdminLocation } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const locationUpdateSchema = z.object({
   featured: z.boolean(),
@@ -16,8 +17,12 @@ export async function PATCH(request: Request, context: LocationRouteContext) {
   if (guard) return guard;
 
   const { id } = await context.params;
-  const body = await request.json();
-  const parsed = locationUpdateSchema.safeParse(body);
+  const json = await parseJsonBody(request, "Du lieu cap nhat diem den khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+
+  const parsed = locationUpdateSchema.safeParse(json.data);
   if (!parsed.success) {
     return NextResponse.json({ message: "Dữ liệu cập nhật không hợp lệ." }, { status: 400 });
   }

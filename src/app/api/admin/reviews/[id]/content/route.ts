@@ -2,6 +2,7 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { updateAdminReviewContent } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const reviewContentUpdateSchema = z.object({
   rating: z.number().int().min(1, "Rating phải từ 1 đến 5.").max(5, "Rating phải từ 1 đến 5."),
@@ -18,7 +19,11 @@ export async function PATCH(request: Request, context: ReviewContentRouteContext
   if (guard) return guard;
 
   const { id } = await context.params;
-  const body = await request.json();
+  const json = await parseJsonBody(request, "Du lieu cap nhat noi dung review khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+  const body = json.data;
   const parsed = reviewContentUpdateSchema.safeParse(body);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];

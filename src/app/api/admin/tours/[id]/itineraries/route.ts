@@ -1,8 +1,9 @@
-import { Prisma } from "@prisma/client";
+﻿import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { createAdminItinerary } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const createItinerarySchema = z.object({
   dayNumber: z.number().int().positive("Ngày hành trình phải lớn hơn 0."),
@@ -19,8 +20,12 @@ export async function POST(request: Request, context: ItineraryRouteContext) {
   if (guard) return guard;
 
   const { id: tourId } = await context.params;
-  const body = await request.json();
-  const parsed = createItinerarySchema.safeParse(body);
+  const json = await parseJsonBody(request, "Du lieu tao lich trinh khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+
+  const parsed = createItinerarySchema.safeParse(json.data);
 
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];

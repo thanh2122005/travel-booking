@@ -2,6 +2,7 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { updateAdminReview } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const reviewUpdateSchema = z.object({
   isVisible: z.boolean(),
@@ -16,7 +17,11 @@ export async function PATCH(request: Request, context: ReviewRouteContext) {
   if (guard) return guard;
 
   const { id } = await context.params;
-  const body = await request.json();
+  const json = await parseJsonBody(request, "Du lieu cap nhat review khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+  const body = json.data;
   const parsed = reviewUpdateSchema.safeParse(body);
 
   if (!parsed.success) {

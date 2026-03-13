@@ -1,8 +1,9 @@
-import { Prisma } from "@prisma/client";
+﻿import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { updateAdminLocationContent } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const updateLocationContentSchema = z.object({
   name: z.string().trim().min(1, "Tên điểm đến là bắt buộc."),
@@ -24,8 +25,12 @@ export async function PATCH(request: Request, context: LocationContentRouteConte
   if (guard) return guard;
 
   const { id } = await context.params;
-  const body = await request.json();
-  const parsed = updateLocationContentSchema.safeParse(body);
+  const json = await parseJsonBody(request, "Du lieu cap nhat noi dung diem den khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+
+  const parsed = updateLocationContentSchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(

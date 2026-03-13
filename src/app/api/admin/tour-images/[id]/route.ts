@@ -1,7 +1,8 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { deleteAdminTourImage, updateAdminTourImage } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const updateTourImageSchema = z.object({
   imageUrl: z.string().trim().min(1, "URL ảnh không hợp lệ.").optional(),
@@ -17,8 +18,12 @@ export async function PATCH(request: Request, context: TourImageByIdRouteContext
   if (guard) return guard;
 
   const { id } = await context.params;
-  const body = await request.json();
-  const parsed = updateTourImageSchema.safeParse(body);
+  const json = await parseJsonBody(request, "Du lieu cap nhat anh tour khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+
+  const parsed = updateTourImageSchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(

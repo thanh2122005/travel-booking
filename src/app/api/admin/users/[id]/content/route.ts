@@ -1,8 +1,9 @@
-import { Prisma, UserRole, UserStatus } from "@prisma/client";
+﻿import { Prisma, UserRole, UserStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { updateAdminUserContent } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const userContentUpdateSchema = z.object({
   fullName: z.string().trim().min(1, "Họ tên là bắt buộc."),
@@ -22,8 +23,12 @@ export async function PATCH(request: Request, context: UserContentRouteContext) 
   if (guard) return guard;
 
   const { id } = await context.params;
-  const body = await request.json();
-  const parsed = userContentUpdateSchema.safeParse(body);
+  const json = await parseJsonBody(request, "Du lieu cap nhat noi dung nguoi dung khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+
+  const parsed = userContentUpdateSchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(

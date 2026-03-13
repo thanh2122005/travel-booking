@@ -1,8 +1,9 @@
-import { TourStatus } from "@prisma/client";
+﻿import { TourStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { createAdminTour } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const createTourSchema = z.object({
   title: z.string().trim().min(1, "Tên tour là bắt buộc."),
@@ -26,8 +27,12 @@ export async function POST(request: Request) {
   const guard = await requireAdminApi();
   if (guard) return guard;
 
-  const body = await request.json();
-  const parsed = createTourSchema.safeParse(body);
+  const json = await parseJsonBody(request, "Du lieu tao tour khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+
+  const parsed = createTourSchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(

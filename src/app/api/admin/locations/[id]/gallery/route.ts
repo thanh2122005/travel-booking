@@ -1,7 +1,8 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { updateAdminLocationGallery } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const updateLocationGallerySchema = z.object({
   gallery: z
@@ -18,8 +19,12 @@ export async function PATCH(request: Request, context: LocationGalleryRouteConte
   if (guard) return guard;
 
   const { id } = await context.params;
-  const body = await request.json();
-  const parsed = updateLocationGallerySchema.safeParse(body);
+  const json = await parseJsonBody(request, "Du lieu gallery diem den khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+
+  const parsed = updateLocationGallerySchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(

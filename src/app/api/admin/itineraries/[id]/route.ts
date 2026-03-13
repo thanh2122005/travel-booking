@@ -1,8 +1,9 @@
-import { Prisma } from "@prisma/client";
+﻿import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { deleteAdminItinerary, updateAdminItinerary } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const updateItinerarySchema = z.object({
   dayNumber: z.number().int().positive("Ngày hành trình phải lớn hơn 0.").optional(),
@@ -19,8 +20,12 @@ export async function PATCH(request: Request, context: ItineraryByIdRouteContext
   if (guard) return guard;
 
   const { id } = await context.params;
-  const body = await request.json();
-  const parsed = updateItinerarySchema.safeParse(body);
+  const json = await parseJsonBody(request, "Du lieu cap nhat lich trinh khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+
+  const parsed = updateItinerarySchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(

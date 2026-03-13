@@ -3,6 +3,7 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { updateAdminBookingDetail } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const bookingDetailUpdateSchema = z.object({
   fullName: z.string().trim().min(1, "Họ tên là bắt buộc."),
@@ -25,7 +26,11 @@ export async function PATCH(request: Request, context: BookingDetailRouteContext
   if (guard) return guard;
 
   const { id } = await context.params;
-  const body = await request.json();
+  const json = await parseJsonBody(request, "Du lieu cap nhat chi tiet booking khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+  const body = json.data;
   const parsed = bookingDetailUpdateSchema.safeParse(body);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];

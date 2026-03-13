@@ -1,7 +1,8 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { createAdminTourImage, reorderAdminTourImages } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const createTourImageSchema = z.object({
   imageUrl: z.string().trim().min(1, "URL ảnh là bắt buộc."),
@@ -28,8 +29,12 @@ export async function POST(request: Request, context: TourImageRouteContext) {
   if (guard) return guard;
 
   const { id: tourId } = await context.params;
-  const body = await request.json();
-  const parsed = createTourImageSchema.safeParse(body);
+  const json = await parseJsonBody(request, "Du lieu them anh tour khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+
+  const parsed = createTourImageSchema.safeParse(json.data);
 
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
@@ -63,8 +68,12 @@ export async function PATCH(request: Request, context: TourImageRouteContext) {
   if (guard) return guard;
 
   const { id: tourId } = await context.params;
-  const body = await request.json();
-  const parsed = reorderTourImagesSchema.safeParse(body);
+  const json = await parseJsonBody(request, "Du lieu sap xep anh tour khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+
+  const parsed = reorderTourImagesSchema.safeParse(json.data);
 
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];

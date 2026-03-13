@@ -1,8 +1,9 @@
-import { Prisma, TourStatus } from "@prisma/client";
+﻿import { Prisma, TourStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { updateAdminTourContent } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const updateTourContentSchema = z.object({
   title: z.string().trim().min(1, "Tên tour là bắt buộc."),
@@ -31,8 +32,12 @@ export async function PATCH(request: Request, context: TourContentRouteContext) 
   if (guard) return guard;
 
   const { id } = await context.params;
-  const body = await request.json();
-  const parsed = updateTourContentSchema.safeParse(body);
+  const json = await parseJsonBody(request, "Du lieu cap nhat noi dung tour khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+
+  const parsed = updateTourContentSchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(
