@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Compass, MapPin } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
+import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { SafeImage } from "@/components/common/safe-image";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { TourCard } from "@/components/tour/tour-card";
@@ -56,7 +57,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
   const featuredToursByLocationHref = `/tours?location=${encodeURIComponent(location.slug)}&featured=1`;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 pb-24 lg:pb-0">
       <section className="iv-page-hero">
         <div className="absolute inset-0">
           <SafeImage src={location.imageUrl} alt={location.name} fill className="object-cover opacity-80" sizes="100vw" priority />
@@ -72,7 +73,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <section id="thong-tin-diem-den" className="grid scroll-mt-24 gap-6 lg:grid-cols-[1fr_340px]">
         <article className="iv-card space-y-4 p-6">
           <HomeSectionHeading
             eyebrow="Điểm nổi bật"
@@ -158,7 +159,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
         </aside>
       </section>
 
-      <section className="space-y-5">
+      <section id="tour-theo-diem-den" className="space-y-5 scroll-mt-24">
         <HomeSectionHeading
           eyebrow="Tour theo điểm đến"
           title={`Tour đang mở tại ${location.name}`}
@@ -180,6 +181,14 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
           />
         )}
       </section>
+
+      <MobileQuickActions
+        items={[
+          { href: "#thong-tin-diem-den", label: "Thông tin", icon: Compass },
+          { href: "#tour-theo-diem-den", label: "Tour tại đây", icon: MapPin, active: true },
+          { href: toursByLocationHref, label: "Xem tour" },
+        ]}
+      />
     </div>
   );
 }
