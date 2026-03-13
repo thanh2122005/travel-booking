@@ -3,6 +3,7 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { updateAdminBookingsBulk } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const bulkBookingSchema = z
   .object({
@@ -20,7 +21,11 @@ export async function PATCH(request: Request) {
   if (guard) return guard;
 
   try {
-    const body = await request.json();
+    const json = await parseJsonBody(request, "Du lieu cap nhat booking hang loat khong hop le.");
+    if (!json.ok) {
+      return json.response;
+    }
+    const body = json.data;
     const parsed = bulkBookingSchema.safeParse(body);
 
     if (!parsed.success) {

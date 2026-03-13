@@ -4,6 +4,7 @@ import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { demoCreatePublicBooking } from "@/lib/demo/admin-demo-store";
 import { requireActiveUserApi } from "@/lib/auth/user-api";
 import { db } from "@/lib/db/prisma";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { bookingSchema } from "@/lib/validations/booking";
 
@@ -78,7 +79,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = await request.json();
+  const json = await parseJsonBody(request, "Du lieu dat tour khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+  const body = json.data;
   const parsed = bookingSchema.safeParse(body);
 
   if (!parsed.success) {

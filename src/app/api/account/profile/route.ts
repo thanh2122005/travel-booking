@@ -3,6 +3,7 @@ import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { db } from "@/lib/db/prisma";
 import { demoUpdateUserContent } from "@/lib/demo/admin-demo-store";
 import { requireActiveUserApi } from "@/lib/auth/user-api";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { profileUpdateSchema } from "@/lib/validations/profile";
 
@@ -32,7 +33,11 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const body = await request.json();
+  const json = await parseJsonBody(request, "Du lieu cap nhat ho so khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+  const body = json.data;
   const parsed = profileUpdateSchema.safeParse(body);
 
   if (!parsed.success) {

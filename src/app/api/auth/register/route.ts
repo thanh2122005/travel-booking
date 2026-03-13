@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db/prisma";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { registerSchema } from "@/lib/validations/auth";
 
@@ -27,7 +28,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
+    const json = await parseJsonBody(request, "Du lieu dang ky khong hop le.");
+    if (!json.ok) {
+      return json.response;
+    }
+    const body = json.data;
     const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {

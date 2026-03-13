@@ -4,6 +4,7 @@ import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { demoTogglePublicFavorite } from "@/lib/demo/admin-demo-store";
 import { requireActiveUserApi } from "@/lib/auth/user-api";
 import { db } from "@/lib/db/prisma";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { favoriteSchema } from "@/lib/validations/tour-interactions";
 
@@ -33,7 +34,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = await request.json();
+  const json = await parseJsonBody(request, "Du lieu yeu thich khong hop le.");
+  if (!json.ok) {
+    return json.response;
+  }
+  const body = json.data;
   const parsed = favoriteSchema.safeParse(body);
 
   if (!parsed.success) {

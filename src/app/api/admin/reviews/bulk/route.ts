@@ -2,6 +2,7 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { updateAdminReviewsBulk } from "@/lib/db/admin-queries";
+import { parseJsonBody } from "@/lib/http/parse-json-body";
 
 const bulkReviewSchema = z.object({
   ids: z.array(z.string().min(1)).min(1).max(200),
@@ -13,7 +14,11 @@ export async function PATCH(request: Request) {
   if (guard) return guard;
 
   try {
-    const body = await request.json();
+    const json = await parseJsonBody(request, "Du lieu cap nhat review hang loat khong hop le.");
+    if (!json.ok) {
+      return json.response;
+    }
+    const body = json.data;
     const parsed = bulkReviewSchema.safeParse(body);
 
     if (!parsed.success) {
