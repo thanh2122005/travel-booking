@@ -65,6 +65,13 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
   const createdTo = normalizeParam(params.createdTo);
   const page = toValidPage(normalizeParam(params.page));
   const hasActiveFilters = Boolean(search || role || status || createdFrom || createdTo);
+  const exportQuery = new URLSearchParams();
+  if (search) exportQuery.set("search", search);
+  if (role) exportQuery.set("role", role);
+  if (status) exportQuery.set("status", status);
+  if (createdFrom) exportQuery.set("createdFrom", createdFrom);
+  if (createdTo) exportQuery.set("createdTo", createdTo);
+  const exportHref = `/api/admin/users/export${exportQuery.toString() ? `?${exportQuery.toString()}` : ""}`;
 
   const data = await getAdminUsers({
     search: search || undefined,
@@ -128,7 +135,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             );
           })}
         </div>
-        <div className="grid gap-2 xl:grid-cols-[1fr_180px_180px_170px_170px_auto_auto]">
+        <div className="grid gap-2 xl:grid-cols-[1fr_180px_180px_170px_170px_auto_auto_auto]">
           <input
             id="search"
             name="search"
@@ -169,6 +176,12 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
           <button type="submit" className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold">
             Tìm kiếm
           </button>
+          <Link
+            href={exportHref}
+            className="iv-btn-soft inline-flex h-10 items-center justify-center px-4 text-sm font-semibold"
+          >
+            Xuất CSV
+          </Link>
           {hasActiveFilters ? (
             <Link
               href="/admin/users"
