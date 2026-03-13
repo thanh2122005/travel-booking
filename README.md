@@ -181,7 +181,7 @@ src/
   - bắt buộc đăng nhập
   - chặn tài khoản `BLOCKED`
 - API mutation công khai có rate-limit theo IP/user để giảm spam và lạm dụng.
-- API mutation chuẩn hóa xử lý body JSON lỗi định dạng (trả về 400 thay vì 500).
+- API mutation (public + admin) chuẩn hóa xử lý body JSON lỗi định dạng (trả về 400 thay vì 500).
 - Guard quyền user/admin ưu tiên đồng bộ role + status theo DB (fallback session khi DB tạm lỗi ở dev/demo).
 - Route export CSV admin có chặn CSV formula injection khi mở bằng Excel/Sheets.
 - Truy vấn admin theo ngày tự động giới hạn khoảng thời gian để tránh query quá tải.
