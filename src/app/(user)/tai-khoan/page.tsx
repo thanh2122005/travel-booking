@@ -110,6 +110,16 @@ const accountSectionLinks = [
   { href: "#yeu-thich", label: "Yêu thích" },
   { href: "#danh-gia", label: "Đánh giá" },
 ] as const;
+const favoriteSortLabels: Record<FavoriteSortValue, string> = {
+  newest: "Mới lưu gần đây",
+  "price-asc": "Giá tăng dần",
+  "price-desc": "Giá giảm dần",
+};
+const reviewSortLabels: Record<ReviewSortValue, string> = {
+  newest: "Mới cập nhật",
+  "rating-desc": "Điểm cao đến thấp",
+  "rating-asc": "Điểm thấp đến cao",
+};
 
 function normalizeParam(value?: string | string[]) {
   if (!value) return "";
@@ -187,6 +197,31 @@ function parseMinRating(value: string) {
   if (!Number.isFinite(rating)) return 0;
   const normalized = Math.trunc(rating);
   return normalized >= 1 && normalized <= 5 ? normalized : 0;
+}
+
+function formatInputDate(value: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function buildDateRangeLabel(createdFrom: string, createdTo: string, prefix: string) {
+  if (createdFrom && createdTo) {
+    return `${prefix}: ${formatInputDate(createdFrom)} - ${formatInputDate(createdTo)}`;
+  }
+  if (createdFrom) {
+    return `${prefix} từ: ${formatInputDate(createdFrom)}`;
+  }
+  if (createdTo) {
+    return `${prefix} đến: ${formatInputDate(createdTo)}`;
+  }
+  return "";
 }
 
 function buildAccountHref(state: AccountQueryState, overrides: Partial<AccountQueryState>) {
@@ -471,6 +506,38 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       state.reviewCreatedFrom ||
       state.reviewCreatedTo,
   );
+  const bookingDateRangeLabel = buildDateRangeLabel(
+    state.bookingCreatedFrom,
+    state.bookingCreatedTo,
+    "Ngày đặt",
+  );
+  const bookingActiveFilterLabels = [
+    ...(state.bookingSearch ? [`Từ khóa: ${state.bookingSearch}`] : []),
+    ...(state.bookingStatus ? [`Trạng thái đơn: ${bookingStatusMap[state.bookingStatus].label}`] : []),
+    ...(state.paymentStatus ? [`Thanh toán: ${paymentStatusMap[state.paymentStatus].label}`] : []),
+    ...(bookingDateRangeLabel ? [bookingDateRangeLabel] : []),
+  ];
+  const favoriteDateRangeLabel = buildDateRangeLabel(
+    state.favoriteCreatedFrom,
+    state.favoriteCreatedTo,
+    "Ngày lưu",
+  );
+  const favoriteActiveFilterLabels = [
+    ...(state.favoriteSearch ? [`Từ khóa: ${state.favoriteSearch}`] : []),
+    ...(state.favoriteSort !== "newest" ? [`Sắp xếp: ${favoriteSortLabels[state.favoriteSort]}`] : []),
+    ...(favoriteDateRangeLabel ? [favoriteDateRangeLabel] : []),
+  ];
+  const reviewDateRangeLabel = buildDateRangeLabel(
+    state.reviewCreatedFrom,
+    state.reviewCreatedTo,
+    "Ngày đánh giá",
+  );
+  const reviewActiveFilterLabels = [
+    ...(state.reviewSearch ? [`Từ khóa: ${state.reviewSearch}`] : []),
+    ...(state.reviewSort !== "newest" ? [`Sắp xếp: ${reviewSortLabels[state.reviewSort]}`] : []),
+    ...(state.reviewMinRating ? [`Mức điểm: từ ${state.reviewMinRating} sao`] : []),
+    ...(reviewDateRangeLabel ? [reviewDateRangeLabel] : []),
+  ];
 
   const clearBookingHref = buildAccountHref(state, {
     bookingSearch: "",
@@ -684,6 +751,18 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             ) : null}
           </div>
         </form>
+        {bookingActiveFilterLabels.length ? (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {bookingActiveFilterLabels.map((label) => (
+              <span
+                key={label}
+                className="inline-flex h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        ) : null}
         {bookingQuickStatusBase.length ? (
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Trạng thái nhanh:</p>
@@ -914,7 +993,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               );
             })}
           </div>
-          <div className="grid gap-2 xl:grid-cols-[1fr_200px_170px_170px_170px_auto_auto]">
+          <div className="grid gap-2 xl:grid-cols-[1fr_220px_170px_170px_auto_auto]">
             <input
               name="favoriteSearch"
               defaultValue={state.favoriteSearch}
@@ -958,6 +1037,18 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             ) : null}
           </div>
         </form>
+        {favoriteActiveFilterLabels.length ? (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {favoriteActiveFilterLabels.map((label) => (
+              <span
+                key={label}
+                className="inline-flex h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        ) : null}
 
         {filteredFavorites.length ? (
           <div>
@@ -1127,6 +1218,18 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             ) : null}
           </div>
         </form>
+        {reviewActiveFilterLabels.length ? (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {reviewActiveFilterLabels.map((label) => (
+              <span
+                key={label}
+                className="inline-flex h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        ) : null}
 
         {filteredReviews.length ? (
           <div>
@@ -1197,3 +1300,4 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     </div>
   );
 }
+
