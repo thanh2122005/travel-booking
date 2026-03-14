@@ -1,7 +1,7 @@
 ﻿import { Prisma, UserRole, UserStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import { requireAdminApi } from "@/lib/auth/admin-api";
+import { requireAdminApiAuth } from "@/lib/auth/admin-api";
 import { updateAdminUserContent } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { optionalNullableMediaUrlSchema } from "@/lib/validations/media-url";
@@ -20,8 +20,8 @@ type UserContentRouteContext = {
 };
 
 export async function PATCH(request: Request, context: UserContentRouteContext) {
-  const guard = await requireAdminApi();
-  if (guard) return guard;
+  const auth = await requireAdminApiAuth();
+  if (auth.response) return auth.response;
 
   const { id } = await context.params;
   const json = await parseJsonBody(request, "Dữ liệu cập nhật nội dung người dùng không hợp lệ.");
@@ -34,6 +34,16 @@ export async function PATCH(request: Request, context: UserContentRouteContext) 
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(
       { message: firstIssue?.message ?? "Dữ liệu cập nhật người dùng không hợp lệ." },
+      { status: 400 },
+    );
+  }
+
+  if (
+    id === auth.userId &&
+    (parsed.data.role !== UserRole.ADMIN || parsed.data.status === UserStatus.BLOCKED)
+  ) {
+    return NextResponse.json(
+      { message: "Bạn không thể tự hạ quyền hoặc tự khóa tài khoản quản trị." },
       { status: 400 },
     );
   }

@@ -1,7 +1,7 @@
 ﻿import { UserRole, UserStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import { requireAdminApi } from "@/lib/auth/admin-api";
+import { requireAdminApiAuth } from "@/lib/auth/admin-api";
 import { deleteAdminUser, getAdminUsers, updateAdminUser } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 
@@ -15,8 +15,8 @@ type UserRouteContext = {
 };
 
 export async function PATCH(request: Request, context: UserRouteContext) {
-  const guard = await requireAdminApi();
-  if (guard) return guard;
+  const auth = await requireAdminApiAuth();
+  if (auth.response) return auth.response;
 
   const { id } = await context.params;
   const json = await parseJsonBody(request, "Dữ liệu cập nhật người dùng không hợp lệ.");
@@ -27,6 +27,16 @@ export async function PATCH(request: Request, context: UserRouteContext) {
   const parsed = userUpdateSchema.safeParse(json.data);
   if (!parsed.success) {
     return NextResponse.json({ message: "Dữ liệu cập nhật không hợp lệ." }, { status: 400 });
+  }
+
+  if (
+    id === auth.userId &&
+    ((parsed.data.role && parsed.data.role !== UserRole.ADMIN) || parsed.data.status === UserStatus.BLOCKED)
+  ) {
+    return NextResponse.json(
+      { message: "Bạn không thể tự hạ quyền hoặc tự khóa tài khoản quản trị." },
+      { status: 400 },
+    );
   }
 
   const updated = await updateAdminUser(id, parsed.data).catch(() => null);
@@ -44,10 +54,17 @@ export async function PATCH(request: Request, context: UserRouteContext) {
 }
 
 export async function DELETE(_request: Request, context: UserRouteContext) {
-  const guard = await requireAdminApi();
-  if (guard) return guard;
+  const auth = await requireAdminApiAuth();
+  if (auth.response) return auth.response;
 
   const { id } = await context.params;
+  if (id === auth.userId) {
+    return NextResponse.json(
+      { message: "Bạn không thể tự xóa tài khoản quản trị đang đăng nhập." },
+      { status: 400 },
+    );
+  }
+
   const removed = await deleteAdminUser(id).catch(() => null);
 
   if (removed === "LAST_ADMIN") {
