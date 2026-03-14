@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { CalendarDays, Search } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
@@ -21,6 +21,18 @@ type InspirationQueryOverrides = {
   featured?: boolean;
   page?: number;
 };
+
+const sortLabels: Record<InspirationSortValue, string> = {
+  "moi-cap-nhat": "Mới cập nhật",
+  "noi-bat": "Ưu tiên nổi bật",
+  "ten-a-z": "Tên A-Z",
+};
+
+const sortQuickOptions: Array<{ value: InspirationSortValue; label: string }> = [
+  { value: "moi-cap-nhat", label: "Mới cập nhật" },
+  { value: "noi-bat", label: "Ưu tiên nổi bật" },
+  { value: "ten-a-z", label: "Tên A-Z" },
+];
 
 function normalizeParam(value?: string | string[]) {
   if (!value) return "";
@@ -116,6 +128,11 @@ export default async function InspirationPage({ searchParams }: InspirationPageP
     page: 1,
   });
   const buildPageHref = (page: number) => buildInspirationHref(state, { page });
+  const activeFilterLabels = [
+    ...(search ? [`Từ khóa: ${search}`] : []),
+    ...(featuredOnly ? ["Chỉ bài viết nổi bật"] : []),
+    ...(sort !== "moi-cap-nhat" ? [`Sắp xếp: ${sortLabels[sort]}`] : []),
+  ];
 
   return (
     <div className="space-y-10 pb-24 lg:pb-0">
@@ -193,6 +210,64 @@ export default async function InspirationPage({ searchParams }: InspirationPageP
             ) : null}
           </div>
         </form>
+
+        <div className="iv-card p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Lọc nhanh</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              href={buildInspirationHref(state, {
+                featured: !featuredOnly,
+                page: 1,
+              })}
+              className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-semibold transition ${
+                featuredOnly
+                  ? "border-teal-300 bg-teal-50 text-teal-700"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              {featuredOnly ? "Bỏ lọc nổi bật" : "Chỉ nổi bật"}
+            </Link>
+            {sortQuickOptions.map((option) => (
+              <Link
+                key={option.value}
+                href={buildInspirationHref(state, {
+                  sort: option.value,
+                  page: 1,
+                })}
+                className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-semibold transition ${
+                  sort === option.value
+                    ? "border-teal-300 bg-teal-50 text-teal-700"
+                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                {option.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <article className="rounded-xl border bg-card px-4 py-3 text-sm text-muted-foreground">
+          Hiển thị <span className="font-semibold text-foreground">{visibleLocations.length}</span> /{" "}
+          <span className="font-semibold text-foreground">{filteredLocations.length}</span> bài viết
+          {totalPages > 1 ? (
+            <>
+              {" "}- Trang <span className="font-semibold text-foreground">{currentPage}</span>/{totalPages}
+            </>
+          ) : null}
+          .
+          {activeFilterLabels.length ? (
+            <span className="mt-2 flex flex-wrap gap-2">
+              {activeFilterLabels.map((label) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center rounded-full border border-teal-200 bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700"
+                >
+                  {label}
+                </span>
+              ))}
+            </span>
+          ) : null}
+        </article>
 
         <div id="ket-qua-cam-hung" className="scroll-mt-24" />
         {visibleLocations.length ? (
@@ -286,3 +361,6 @@ export default async function InspirationPage({ searchParams }: InspirationPageP
     </div>
   );
 }
+
+
+
