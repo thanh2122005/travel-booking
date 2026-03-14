@@ -3,6 +3,7 @@ import {
   demoExportContactInquiries,
   demoGetContactInquiries,
   demoUpdateContactInquiryStatus,
+  demoUpdateContactInquiriesBulk,
 } from "@/lib/demo/contact-inquiry-store";
 import {
   demoExportNewsletterSubscribers,
@@ -251,6 +252,28 @@ export async function updateAdminInquiryStatus(inquiryId: string, status: Inquir
   }
 }
 
+export async function updateAdminInquiriesBulk(input: {
+  ids: string[];
+  status: InquiryStatus;
+}) {
+  try {
+    return db.contactInquiry.updateMany({
+      where: {
+        id: {
+          in: input.ids,
+        },
+      },
+      data: {
+        status: input.status,
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateContactInquiriesBulk(input);
+    }
+    throw error;
+  }
+}
 export async function getAdminNewsletterSubscribers(filter: AdminNewsletterListFilter = {}) {
   try {
     const { page, pageSize, skip } = getPagination(filter, 15);
@@ -301,3 +324,5 @@ export async function exportAdminNewsletterSubscribers(filter: AdminNewsletterLi
     throw error;
   }
 }
+
+

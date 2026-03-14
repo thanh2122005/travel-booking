@@ -231,3 +231,35 @@ export async function demoUpdateContactInquiryStatus(
 
   return updated;
 }
+
+export async function demoUpdateContactInquiriesBulk(input: {
+  ids: string[];
+  status: InquiryStatusValue;
+}) {
+  const ids = new Set(input.ids);
+  if (!ids.size) {
+    return { count: 0 };
+  }
+
+  const records = await readInquiries();
+  let count = 0;
+  const now = new Date().toISOString();
+  const nextRecords = records.map((record) => {
+    if (!ids.has(record.id)) {
+      return record;
+    }
+
+    count += 1;
+    return {
+      ...record,
+      status: input.status,
+      updatedAt: now,
+    } satisfies ContactInquiryRecord;
+  });
+
+  if (count > 0) {
+    await writeInquiries(nextRecords);
+  }
+
+  return { count };
+}
