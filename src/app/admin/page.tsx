@@ -477,6 +477,77 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         </article>
       </section>
 
+      <section className="grid gap-4 lg:grid-cols-2">
+        <article className="iv-card p-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-xl font-bold text-slate-900">Yêu cầu tư vấn mới</h2>
+            <Link href="/admin/inquiries" className="text-sm font-semibold text-teal-700 hover:text-teal-800">
+              Xem tất cả
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {data.recentInquiries.length ? (
+              data.recentInquiries.map((inquiry) => (
+                <div key={inquiry.id} className="rounded-xl border border-slate-200 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-slate-900">{inquiry.referenceCode}</p>
+                    {inquiry.status === "RESOLVED" ? (
+                      <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                        Đã xử lý
+                      </span>
+                    ) : (
+                      <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                        Chờ xử lý
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm text-slate-700">{inquiry.fullName} · {inquiry.phone}</p>
+                  <p className="text-xs text-slate-500">{inquiry.email}</p>
+                  {inquiry.tour?.slug ? (
+                    <p className="mt-2 text-xs text-slate-500">
+                      Tour:{" "}
+                      <Link href={`/tours/${inquiry.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
+                        {inquiry.tour.title}
+                      </Link>
+                    </p>
+                  ) : inquiry.tour?.title ? (
+                    <p className="mt-2 text-xs text-slate-500">Tour: {inquiry.tour.title}</p>
+                  ) : null}
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                    <span>{inquiry.numberOfGuests} khách</span>
+                    {inquiry.departureDate ? <span>Khởi hành: {formatDate(inquiry.departureDate)}</span> : null}
+                    <span>{formatDate(inquiry.createdAt)}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-slate-600">Chưa có yêu cầu tư vấn mới.</p>
+            )}
+          </div>
+        </article>
+
+        <article className="iv-card p-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-xl font-bold text-slate-900">Email đăng ký mới</h2>
+            <Link href="/admin/newsletter" className="text-sm font-semibold text-teal-700 hover:text-teal-800">
+              Xem tất cả
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {data.recentNewsletterSubscribers.length ? (
+              data.recentNewsletterSubscribers.map((subscriber) => (
+                <div key={subscriber.id} className="rounded-xl border border-slate-200 p-3">
+                  <p className="text-sm font-semibold text-slate-900">{subscriber.email}</p>
+                  <p className="mt-1 text-xs text-slate-500">Đăng ký: {formatDate(subscriber.createdAt)}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-slate-600">Chưa có email đăng ký mới.</p>
+            )}
+          </div>
+        </article>
+      </section>
+
       <MobileQuickActions
         items={[
           { href: "#bo-loc-thoi-gian", label: "Bộ lọc" },
@@ -487,4 +558,5 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     </div>
   );
 }
+
 
