@@ -1,4 +1,4 @@
-import { BookingStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
+﻿import { BookingStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
 import {
   demoCreateLocation,
   demoCreateItinerary,
@@ -388,6 +388,8 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
       bookingTimelineRows,
       recentBookings,
       recentReviews,
+      recentInquiries,
+      recentNewsletterSubscribers,
       recentUsers,
     ] = await Promise.all([
       db.user.count(),
@@ -490,6 +492,36 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
               departureLocation: true,
             },
           },
+        },
+      }),
+      db.contactInquiry.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 8,
+        select: {
+          id: true,
+          referenceCode: true,
+          fullName: true,
+          email: true,
+          phone: true,
+          numberOfGuests: true,
+          departureDate: true,
+          status: true,
+          createdAt: true,
+          tour: {
+            select: {
+              title: true,
+              slug: true,
+            },
+          },
+        },
+      }),
+      db.newsletterSubscriber.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 8,
+        select: {
+          id: true,
+          email: true,
+          createdAt: true,
         },
       }),
       db.user.findMany({
@@ -637,6 +669,8 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
       timelineEndDate: timelineOptions.endDate,
       recentBookings,
       recentReviews,
+      recentInquiries,
+      recentNewsletterSubscribers,
       recentUsers,
     };
   } catch (error) {
@@ -2039,3 +2073,4 @@ export const adminLabels = {
     [UserStatus.BLOCKED]: "Bị khóa",
   },
 } as const;
+

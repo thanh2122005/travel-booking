@@ -1,4 +1,4 @@
-import "server-only";
+﻿import "server-only";
 
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
@@ -18,6 +18,8 @@ import {
   localAvatarPool,
 } from "@/lib/content/vietnam-catalog";
 import { canCancelBooking } from "@/lib/utils/booking-actions";
+import { demoGetContactInquiries } from "@/lib/demo/contact-inquiry-store";
+import { demoGetNewsletterSubscribers } from "@/lib/demo/newsletter-subscriber-store";
 
 type DemoUser = {
   id: string;
@@ -691,6 +693,10 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
   const userMap = new Map(state.users.map((user) => [user.id, user]));
   const tourMap = new Map(state.tours.map((tour) => [tour.id, tour]));
   const timelineOptions = resolveDashboardOptions(options);
+  const [inquiryData, newsletterData] = await Promise.all([
+    demoGetContactInquiries({ page: 1, pageSize: 8 }),
+    demoGetNewsletterSubscribers({ page: 1, pageSize: 8 }),
+  ]);
 
   const revenue = state.bookings
     .filter((item) => item.status === BookingStatus.CONFIRMED || item.status === BookingStatus.COMPLETED)
@@ -800,8 +806,8 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
       totalBookings: state.bookings.length,
       totalReviews: state.reviews.length,
       totalFavorites: state.favorites.length,
-      totalInquiries: 0,
-      totalNewsletter: 0,
+      totalInquiries: inquiryData.total,
+      totalNewsletter: newsletterData.total,
       totalRevenue: revenue,
     },
     bookingsByStatus,
@@ -847,6 +853,21 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
         title: tourMap.get(review.tourId)?.title ?? "Tour",
         slug: tourMap.get(review.tourId)?.slug ?? "",
       },
+    })),
+    recentInquiries: inquiryData.items.map((inquiry) => ({
+      ...inquiry,
+      createdAt: toDate(inquiry.createdAt),
+      departureDate: inquiry.departureDate ? toDate(inquiry.departureDate) : null,
+      tour: inquiry.tourId
+        ? {
+            title: tourMap.get(inquiry.tourId)?.title ?? "Tour",
+            slug: tourMap.get(inquiry.tourId)?.slug ?? "",
+          }
+        : null,
+    })),
+    recentNewsletterSubscribers: newsletterData.items.map((subscriber) => ({
+      ...subscriber,
+      createdAt: toDate(subscriber.createdAt),
     })),
     recentUsers: state.users.slice().sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).slice(0, 8).map((user) => ({
       ...user,
@@ -2427,4 +2448,5 @@ export async function demoDeletePublicReview(input: { userId: string; tourId: st
   await writeDemo(state);
   return existing;
 }
+
 
