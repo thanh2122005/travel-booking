@@ -1,10 +1,10 @@
 ﻿import { InquiryStatus } from "@prisma/client";
 import Link from "next/link";
-import { AdminInquiryActions } from "@/components/admin/admin-inquiry-actions";
+import { AdminInquiriesTable } from "@/components/admin/admin-inquiries-table";
 import { EmptyState } from "@/components/common/empty-state";
 import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { getAdminInquiries } from "@/lib/db/admin-engagement-queries";
-import { formatDate } from "@/lib/utils/format";
+
 
 export const dynamic = "force-dynamic";
 
@@ -239,65 +239,7 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
       <div id="danh-sach-tu-van" className="scroll-mt-24" />
       {data.items.length ? (
         <>
-          <div className="iv-card overflow-x-auto p-4">
-            <table className="w-full min-w-[1100px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-500">
-                  <th className="px-2 py-3 font-medium">Mã</th>
-                  <th className="px-2 py-3 font-medium">Khách hàng</th>
-                  <th className="px-2 py-3 font-medium">Liên hệ</th>
-                  <th className="px-2 py-3 font-medium">Chi tiết</th>
-                  <th className="px-2 py-3 font-medium">Nội dung</th>
-                  <th className="px-2 py-3 font-medium">Ngày gửi</th>
-                  <th className="px-2 py-3 font-medium">Trạng thái</th>
-                  <th className="px-2 py-3 font-medium text-right">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.items.map((inquiry) => (
-                  <tr key={inquiry.id} className="border-b border-slate-100 last:border-0">
-                    <td className="px-2 py-3 font-mono text-xs text-slate-700">{inquiry.referenceCode}</td>
-                    <td className="px-2 py-3 font-medium text-slate-900">{inquiry.fullName}</td>
-                    <td className="px-2 py-3">
-                      <p className="text-slate-800">{inquiry.phone}</p>
-                      <p className="text-xs text-slate-500">{inquiry.email}</p>
-                    </td>
-                    <td className="px-2 py-3 text-xs text-slate-600">
-                      {inquiry.tour?.title ? (
-                        <p className="line-clamp-2">Tour: {inquiry.tour.title}</p>
-                      ) : (
-                        <p>-</p>
-                      )}
-                      <p className="mt-1">{inquiry.numberOfGuests} khách</p>
-                      {inquiry.departureDate ? (
-                        <p className="mt-1">Khởi hành: {formatDate(inquiry.departureDate)}</p>
-                      ) : null}
-                    </td>
-                    <td className="px-2 py-3">
-                      <p className="line-clamp-3 text-xs text-slate-700">
-                        {inquiry.message || "Không có nội dung"}
-                      </p>
-                    </td>
-                    <td className="px-2 py-3 text-xs text-slate-500">{formatDate(inquiry.createdAt)}</td>
-                    <td className="px-2 py-3">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
-                          inquiry.status === "RESOLVED"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-amber-100 text-amber-700"
-                        }`}
-                      >
-                        {inquiry.status === "RESOLVED" ? "Đã xử lý" : "Chờ xử lý"}
-                      </span>
-                    </td>
-                    <td className="px-2 py-3 text-right">
-                      <AdminInquiryActions inquiryId={inquiry.id} status={inquiry.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <AdminInquiriesTable items={data.items} />
 
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-slate-600">
@@ -362,3 +304,4 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
     </div>
   );
 }
+
