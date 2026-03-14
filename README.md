@@ -51,6 +51,7 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - Xuất CSV booking/review/users/inquiries/newsletter theo bộ lọc đang áp dụng
 - Dashboard, bookings, reviews có điều hướng nhanh và thao tác mobile nhất quán
 - Bảo vệ quyền admin: không cho hạ quyền/khóa/xóa quản trị viên cuối cùng
+- API admin/users chặn tự hạ quyền, tự khóa hoặc tự xóa tài khoản đang đăng nhập
 - CRUD users, tours, locations, ảnh tour, itinerary
 
 ## 3. Yêu cầu môi trường
