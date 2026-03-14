@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { AdminBookingRevenueChart } from "@/components/admin/admin-booking-revenue-chart";
 import { EmptyState } from "@/components/common/empty-state";
@@ -184,6 +184,18 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           >
             Dữ liệu mới
           </a>
+          <Link
+            href="/admin/inquiries"
+            className="inline-flex h-9 items-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            Tư vấn
+          </Link>
+          <Link
+            href="/admin/newsletter"
+            className="inline-flex h-9 items-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            Nhận tin
+          </Link>
         </div>
       </section>
 
@@ -475,3 +487,4 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     </div>
   );
 }
+
