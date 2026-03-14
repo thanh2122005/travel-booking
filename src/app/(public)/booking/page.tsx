@@ -340,6 +340,14 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                 </Link>
               );
             })}
+            {hasActiveFilters ? (
+              <Link
+                href={clearFiltersHref}
+                className="inline-flex h-8 items-center rounded-md border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+              >
+                Xóa lọc nhanh
+              </Link>
+            ) : null}
           </div>
           <div className="grid gap-2 md:grid-cols-[1fr_160px_170px_170px_170px_auto_auto]">
             <input
