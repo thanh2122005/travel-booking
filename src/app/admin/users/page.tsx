@@ -1,11 +1,8 @@
-﻿import Link from "next/link";
-import { AdminUserActions } from "@/components/admin/admin-user-actions";
-import { AdminUserDetailDialog } from "@/components/admin/admin-user-detail-dialog";
-import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { AdminUsersTable } from "@/components/admin/admin-users-table";
 import { EmptyState } from "@/components/common/empty-state";
 import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { adminLabels, getAdminUsers } from "@/lib/db/admin-queries";
-import { formatDate } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
 
@@ -240,79 +237,11 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
       <div id="danh-sach-nguoi-dung" className="scroll-mt-24" />
       {data.items.length ? (
         <>
-          <div className="space-y-3 lg:hidden">
-            {data.items.map((user) => (
-              <article key={user.id} className="iv-card p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{user.fullName}</p>
-                    <p className="text-xs text-slate-500">{user.email}</p>
-                  </div>
-                  <Badge variant={user.status === "ACTIVE" ? "default" : "destructive"}>
-                    {adminLabels.userStatus[user.status]}
-                  </Badge>
-                </div>
-                <p className="mt-2 text-xs text-slate-500">SĐT: {user.phone || "-"}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Badge variant="outline">{adminLabels.userRole[user.role]}</Badge>
-                  <Badge variant="outline">Đơn: {user._count.bookings}</Badge>
-                  <Badge variant="outline">Đánh giá: {user._count.reviews}</Badge>
-                  <Badge variant="outline">Yêu thích: {user._count.favorites}</Badge>
-                </div>
-                <p className="mt-3 text-xs text-slate-500">Ngày tạo: {formatDate(user.createdAt)}</p>
-                <div className="mt-3 space-y-2">
-                  <AdminUserActions userId={user.id} role={user.role} status={user.status} />
-                  <AdminUserDetailDialog user={user} />
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <div className="iv-card hidden overflow-x-auto p-4 lg:block">
-            <table className="w-full min-w-[980px] text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-slate-500">
-                  <th className="px-2 py-3 font-medium">Họ tên</th>
-                  <th className="px-2 py-3 font-medium">Email</th>
-                  <th className="px-2 py-3 font-medium">Số điện thoại</th>
-                  <th className="px-2 py-3 font-medium">Vai trò</th>
-                  <th className="px-2 py-3 font-medium">Trạng thái</th>
-                  <th className="px-2 py-3 font-medium">Đơn đặt</th>
-                  <th className="px-2 py-3 font-medium">Đánh giá</th>
-                  <th className="px-2 py-3 font-medium">Yêu thích</th>
-                  <th className="px-2 py-3 font-medium">Ngày tạo</th>
-                  <th className="px-2 py-3 font-medium">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.items.map((user) => (
-                  <tr key={user.id} className="border-b border-slate-100 last:border-0">
-                    <td className="px-2 py-3 font-medium text-slate-800">{user.fullName}</td>
-                    <td className="px-2 py-3">{user.email}</td>
-                    <td className="px-2 py-3 text-slate-600">{user.phone || "-"}</td>
-                    <td className="px-2 py-3">
-                      <Badge variant="outline">{adminLabels.userRole[user.role]}</Badge>
-                    </td>
-                    <td className="px-2 py-3">
-                      <Badge variant={user.status === "ACTIVE" ? "default" : "destructive"}>
-                        {adminLabels.userStatus[user.status]}
-                      </Badge>
-                    </td>
-                    <td className="px-2 py-3">{user._count.bookings}</td>
-                    <td className="px-2 py-3">{user._count.reviews}</td>
-                    <td className="px-2 py-3">{user._count.favorites}</td>
-                    <td className="px-2 py-3 text-slate-500">{formatDate(user.createdAt)}</td>
-                    <td className="px-2 py-3">
-                      <div className="space-y-2">
-                        <AdminUserActions userId={user.id} role={user.role} status={user.status} />
-                        <AdminUserDetailDialog user={user} />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <AdminUsersTable
+            items={data.items}
+            roleLabels={adminLabels.userRole}
+            statusLabels={adminLabels.userStatus}
+          />
 
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-slate-600">

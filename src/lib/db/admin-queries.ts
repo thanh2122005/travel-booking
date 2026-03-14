@@ -1,4 +1,4 @@
-﻿import { BookingStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
+import { BookingStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
 import {
   demoCreateLocation,
   demoCreateItinerary,
@@ -36,6 +36,7 @@ import {
   demoDeleteTour,
   demoUpdateUserContent,
   demoUpdateUser,
+  demoUpdateUsersBulk,
   demoDeleteUser,
 } from "@/lib/demo/admin-demo-store";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
@@ -1623,6 +1624,69 @@ export async function updateAdminUser(
   }
 }
 
+export async function updateAdminUsersBulk(input: {
+  ids: string[];
+  role?: UserRole;
+  status?: UserStatus;
+}) {
+  try {
+    const uniqueIds = Array.from(new Set(input.ids.map((id) => id.trim()).filter(Boolean))).slice(0, 200);
+    if (!uniqueIds.length || (!input.role && !input.status)) {
+      return { count: 0 };
+    }
+
+    const users = await db.user.findMany({
+      where: {
+        id: {
+          in: uniqueIds,
+        },
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+
+    if (!users.length) {
+      return { count: 0 };
+    }
+
+    const changedAdminCount = users.filter(
+      (user) =>
+        user.role === UserRole.ADMIN &&
+        ((input.role && input.role !== UserRole.ADMIN) || input.status === UserStatus.BLOCKED),
+    ).length;
+
+    if (changedAdminCount > 0) {
+      const totalAdmins = await db.user.count({
+        where: { role: UserRole.ADMIN },
+      });
+      if (totalAdmins <= changedAdminCount) {
+        return "LAST_ADMIN";
+      }
+    }
+
+    const result = await db.user.updateMany({
+      where: {
+        id: {
+          in: users.map((user) => user.id),
+        },
+      },
+      data: {
+        ...(input.role ? { role: input.role } : {}),
+        ...(input.status ? { status: input.status } : {}),
+      },
+    });
+
+    return { count: result.count };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateUsersBulk(input);
+    }
+    throw error;
+  }
+}
+
 export async function deleteAdminUser(userId: string) {
   try {
     const current = await db.user.findUnique({
@@ -2073,4 +2137,3 @@ export const adminLabels = {
     [UserStatus.BLOCKED]: "Bị khóa",
   },
 } as const;
-

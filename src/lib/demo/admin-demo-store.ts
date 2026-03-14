@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
@@ -1836,6 +1836,53 @@ export async function demoUpdateUser(id: string, payload: { role?: UserRole; sta
   return user;
 }
 
+export async function demoUpdateUsersBulk(input: {
+  ids: string[];
+  role?: UserRole;
+  status?: UserStatus;
+}) {
+  const state = await readDemo();
+  const uniqueIds = Array.from(
+    new Set(input.ids.map((id) => id.trim()).filter(Boolean)),
+  ).slice(0, 200);
+
+  if (!uniqueIds.length || (!input.role && !input.status)) {
+    return { count: 0 };
+  }
+
+  const selectedUsers = state.users.filter((user) => uniqueIds.includes(user.id));
+  if (!selectedUsers.length) {
+    return { count: 0 };
+  }
+
+  const changedAdminCount = selectedUsers.filter(
+    (user) =>
+      user.role === UserRole.ADMIN &&
+      ((input.role && input.role !== UserRole.ADMIN) || input.status === UserStatus.BLOCKED),
+  ).length;
+
+  if (changedAdminCount > 0) {
+    const adminCount = state.users.filter((item) => item.role === UserRole.ADMIN).length;
+    if (adminCount <= changedAdminCount) {
+      return "LAST_ADMIN";
+    }
+  }
+
+  const updatedAt = nowIso();
+  for (const user of selectedUsers) {
+    if (input.role) {
+      user.role = input.role;
+    }
+    if (input.status) {
+      user.status = input.status;
+    }
+    user.updatedAt = updatedAt;
+  }
+
+  await writeDemo(state);
+  return { count: selectedUsers.length };
+}
+
 export async function demoDeleteUser(id: string) {
   const state = await readDemo();
   const userIndex = state.users.findIndex((item) => item.id === id);
@@ -2448,5 +2495,3 @@ export async function demoDeletePublicReview(input: { userId: string; tourId: st
   await writeDemo(state);
   return existing;
 }
-
-
