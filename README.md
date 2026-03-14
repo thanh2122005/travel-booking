@@ -1,4 +1,4 @@
-﻿# Travel Booking System
+# Travel Booking System
 
 Nền tảng đặt tour du lịch xây dựng bằng Next.js App Router, Prisma và PostgreSQL.
 Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
@@ -47,7 +47,7 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - Quản lý review: lọc nâng cao theo ngày + ẩn/hiện hàng loạt
 - Quản lý users: lọc theo ngày tạo tài khoản + mốc nhanh 7/30/90 ngày + cập nhật vai trò/trạng thái hàng loạt
 - Quản lý yêu cầu tư vấn: lọc trạng thái/ngày gửi + cập nhật trạng thái đơn lẻ/hàng loạt
-- Quản lý đăng ký nhận tin: lọc email/ngày đăng ký + phân trang
+- Quản lý đăng ký nhận tin: lọc email/ngày đăng ký + phân trang + xóa hàng loạt
 - Xuất CSV booking/review/users/inquiries/newsletter theo bộ lọc đang áp dụng
 - Dashboard, bookings, reviews có điều hướng nhanh và thao tác mobile nhất quán
 - Bảo vệ quyền admin: không cho hạ quyền/khóa/xóa quản trị viên cuối cùng
@@ -216,6 +216,3 @@ src/
   - Thử chạy terminal với quyền phù hợp (hoặc môi trường CI khác).
   - Xác nhận phần mềm bảo mật không chặn tiến trình con của Node.js.
   - Dùng `npm run lint` + `npx tsc --noEmit` để xác minh logic mã nguồn trước khi chuyển môi trường build.
-
-
-
