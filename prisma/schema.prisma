@@ -99,6 +99,7 @@ model Tour {
   bookings    Booking[]
   reviews     Review[]
   favorites   Favorite[]
+  contactInquiries ContactInquiry[]
 
   @@index([locationId])
   @@index([status])
@@ -187,4 +188,37 @@ model Favorite {
   @@unique([userId, tourId])
   @@index([userId])
   @@index([tourId])
+}
+
+model ContactInquiry {
+  id             String    @id @default(cuid())
+  referenceCode  String    @unique
+  fullName       String
+  phone          String
+  email          String
+  tourId         String?
+  departureDate  DateTime?
+  numberOfGuests Int
+  message        String
+  status         InquiryStatus @default(PENDING)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tour Tour? @relation(fields: [tourId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([email])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+enum InquiryStatus {
+  PENDING
+  RESOLVED
 }

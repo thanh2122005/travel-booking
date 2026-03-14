@@ -1,4 +1,7 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
+import { db } from "@/lib/db/prisma";
+import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { saveNewsletterSubscriber } from "@/lib/demo/newsletter-subscriber-store";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { newsletterSchema } from "@/lib/validations/newsletter";
@@ -42,19 +45,42 @@ export async function POST(request: Request) {
     );
   }
 
+  const normalizedEmail = parsed.data.email.trim().toLowerCase();
+
   try {
-    const result = await saveNewsletterSubscriber(parsed.data.email);
-    if (result.status === "EXISTED") {
-      return NextResponse.json({
-        message: "Email này đã đăng ký nhận tin trước đó.",
-      });
-    }
+    await db.newsletterSubscriber.create({
+      data: { email: normalizedEmail },
+    });
 
     return NextResponse.json(
       { message: "Đăng ký nhận tin thành công. Cảm ơn bạn đã theo dõi." },
       { status: 201 },
     );
-  } catch {
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json({
+        message: "Email này đã đăng ký nhận tin trước đó.",
+      });
+    }
+
+    if (isDatabaseUnavailableError(error)) {
+      const result = await saveNewsletterSubscriber(normalizedEmail);
+      if (result.status === "EXISTED") {
+        return NextResponse.json({
+          message: "Email này đã đăng ký nhận tin trước đó.",
+        });
+      }
+
+      return NextResponse.json(
+        { message: "Đăng ký nhận tin thành công. Cảm ơn bạn đã theo dõi." },
+        { status: 201 },
+      );
+    }
+
+    console.error("Failed to save newsletter subscriber", error);
     return NextResponse.json(
       { message: "Không thể đăng ký nhận tin lúc này, vui lòng thử lại sau." },
       { status: 500 },
