@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { MapPin, Search } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
@@ -19,6 +19,13 @@ type DestinationsPageProps = {
 };
 
 type DestinationSortValue = "noi-bat" | "ten-a-z" | "ten-z-a";
+
+const sortLabels: Record<DestinationSortValue, string> = {
+  "noi-bat": "Ưu tiên nổi bật",
+  "ten-a-z": "Tên A-Z",
+  "ten-z-a": "Tên Z-A",
+};
+
 const pageSize = 9;
 
 function normalizeParam(value?: string | string[]) {
@@ -94,6 +101,11 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
   const currentPage = Math.min(requestedPage, totalPages);
   const pagedLocations = filteredLocations.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const hasActiveFilters = Boolean(search || featuredOnly || sort !== "noi-bat");
+  const activeFilterLabels = [
+    ...(search ? [`Từ khóa: ${search}`] : []),
+    ...(featuredOnly ? ["Chỉ điểm đến nổi bật"] : []),
+    ...(sort !== "noi-bat" ? [`Sắp xếp: ${sortLabels[sort]}`] : []),
+  ];
 
   return (
     <div className="space-y-8 pb-24 lg:pb-0">
@@ -206,6 +218,18 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
           </>
         ) : null}
         .
+        {activeFilterLabels.length ? (
+          <span className="mt-2 flex flex-wrap gap-2">
+            {activeFilterLabels.map((label) => (
+              <span
+                key={label}
+                className="inline-flex items-center rounded-full border border-teal-200 bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700"
+              >
+                {label}
+              </span>
+            ))}
+          </span>
+        ) : null}
       </article>
 
       <div id="ket-qua-dia-diem" className="scroll-mt-24" />
@@ -297,3 +321,4 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
     </div>
   );
 }
+
