@@ -46,7 +46,7 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - Quản lý booking: lọc nâng cao theo ngày + cập nhật hàng loạt
 - Quản lý review: lọc nâng cao theo ngày + ẩn/hiện hàng loạt
 - Quản lý users: lọc theo ngày tạo tài khoản + mốc nhanh 7/30/90 ngày
-- Quản lý yêu cầu tư vấn: lọc trạng thái/ngày gửi + cập nhật trạng thái xử lý
+- Quản lý yêu cầu tư vấn: lọc trạng thái/ngày gửi + cập nhật trạng thái đơn lẻ/hàng loạt
 - Quản lý đăng ký nhận tin: lọc email/ngày đăng ký + phân trang
 - Xuất CSV booking/review/users/inquiries/newsletter theo bộ lọc đang áp dụng
 - Dashboard, bookings, reviews có điều hướng nhanh và thao tác mobile nhất quán
@@ -216,4 +216,5 @@ src/
   - Thử chạy terminal với quyền phù hợp (hoặc môi trường CI khác).
   - Xác nhận phần mềm bảo mật không chặn tiến trình con của Node.js.
   - Dùng `npm run lint` + `npx tsc --noEmit` để xác minh logic mã nguồn trước khi chuyển môi trường build.
+
 
