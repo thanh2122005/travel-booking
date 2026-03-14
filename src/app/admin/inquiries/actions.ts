@@ -1,11 +1,11 @@
-"use server";
+﻿"use server";
 
+import { InquiryStatus, UserRole, UserStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { UserRole, UserStatus } from "@prisma/client";
 import { getAuthSession } from "@/lib/auth/session";
-import { db } from "@/lib/db/prisma";
+import { updateAdminInquiryStatus } from "@/lib/db/admin-engagement-queries";
 
-export async function markInquiryResolved(id: string) {
+export async function setInquiryStatus(id: string, status: InquiryStatus) {
   try {
     const session = await getAuthSession();
     if (
@@ -16,10 +16,10 @@ export async function markInquiryResolved(id: string) {
       throw new Error("Không có quyền thực hiện.");
     }
 
-    await db.contactInquiry.update({
-      where: { id },
-      data: { status: "RESOLVED" },
-    });
+    const updated = await updateAdminInquiryStatus(id, status);
+    if (!updated) {
+      throw new Error("Không tìm thấy yêu cầu tư vấn.");
+    }
 
     revalidatePath("/admin/inquiries");
     return { success: true };
