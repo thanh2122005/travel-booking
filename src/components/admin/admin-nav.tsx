@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, BookMarked, MapPinned, MessageCircleMore, TicketCheck, Users } from "lucide-react";
+import { BarChart3, BookMarked, MapPinned, MessageCircleMore, TicketCheck, Users, MessageSquareQuote, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const adminNavItems = [
   { href: "/admin", label: "Tổng quan", icon: BarChart3 },
   { href: "/admin/tours", label: "Tour", icon: BookMarked },
   { href: "/admin/locations", label: "Điểm đến", icon: MapPinned },
-  { href: "/admin/bookings", label: "Đơn đặt tour", icon: TicketCheck },
+  { href: "/admin/bookings", label: "Đơn đặt", icon: TicketCheck },
   { href: "/admin/reviews", label: "Đánh giá", icon: MessageCircleMore },
-  { href: "/admin/users", label: "Người dùng", icon: Users },
+  { href: "/admin/inquiries", label: "Tư vấn", icon: MessageSquareQuote },
+  { href: "/admin/newsletter", label: "Nhận tin", icon: Mail },
+  { href: "/admin/users", label: "Thành viên", icon: Users },
 ];
 
 export function AdminNav() {
