@@ -1,4 +1,4 @@
-﻿import { InquiryStatus, Prisma } from "@prisma/client";
+import { InquiryStatus, Prisma } from "@prisma/client";
 import {
   demoExportContactInquiries,
   demoGetContactInquiries,
@@ -6,6 +6,7 @@ import {
   demoUpdateContactInquiriesBulk,
 } from "@/lib/demo/contact-inquiry-store";
 import {
+  demoDeleteNewsletterSubscribersBulk,
   demoExportNewsletterSubscribers,
   demoGetNewsletterSubscribers,
 } from "@/lib/demo/newsletter-subscriber-store";
@@ -274,6 +275,7 @@ export async function updateAdminInquiriesBulk(input: {
     throw error;
   }
 }
+
 export async function getAdminNewsletterSubscribers(filter: AdminNewsletterListFilter = {}) {
   try {
     const { page, pageSize, skip } = getPagination(filter, 15);
@@ -325,4 +327,24 @@ export async function exportAdminNewsletterSubscribers(filter: AdminNewsletterLi
   }
 }
 
+export async function deleteAdminNewsletterSubscribersBulk(input: { ids: string[] }) {
+  const uniqueIds = Array.from(new Set(input.ids.map((id) => id.trim()).filter(Boolean))).slice(0, 300);
+  if (!uniqueIds.length) {
+    return { count: 0 };
+  }
 
+  try {
+    return db.newsletterSubscriber.deleteMany({
+      where: {
+        id: {
+          in: uniqueIds,
+        },
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoDeleteNewsletterSubscribersBulk({ ids: uniqueIds });
+    }
+    throw error;
+  }
+}

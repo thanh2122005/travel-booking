@@ -1,8 +1,8 @@
-﻿import Link from "next/link";
+import Link from "next/link";
+import { AdminNewsletterTable } from "@/components/admin/admin-newsletter-table";
 import { EmptyState } from "@/components/common/empty-state";
 import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { getAdminNewsletterSubscribers } from "@/lib/db/admin-engagement-queries";
-import { formatDate } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
 
@@ -220,24 +220,7 @@ export default async function AdminNewsletterPage({ searchParams }: AdminNewslet
       <div id="danh-sach-nhan-tin" className="scroll-mt-24" />
       {data.items.length ? (
         <>
-          <div className="iv-card overflow-x-auto p-4">
-            <table className="w-full min-w-[760px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-500">
-                  <th className="px-2 py-3 font-medium">Email</th>
-                  <th className="px-2 py-3 font-medium">Ngày đăng ký</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.items.map((subscriber) => (
-                  <tr key={subscriber.id} className="border-b border-slate-100 last:border-0">
-                    <td className="px-2 py-3 font-medium text-slate-900">{subscriber.email}</td>
-                    <td className="px-2 py-3 text-slate-500">{formatDate(subscriber.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <AdminNewsletterTable items={data.items} />
 
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-slate-600">

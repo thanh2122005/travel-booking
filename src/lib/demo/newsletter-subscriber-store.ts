@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
@@ -146,4 +146,21 @@ export async function demoGetNewsletterSubscribers(filter: NewsletterListFilter 
 export async function demoExportNewsletterSubscribers(filter: NewsletterListFilter = {}) {
   const allSubscribers = await readSubscribers();
   return applySubscriberFilters(allSubscribers, filter).slice(0, 5000);
+}
+
+export async function demoDeleteNewsletterSubscribersBulk(input: { ids: string[] }) {
+  const uniqueIds = Array.from(new Set(input.ids.map((id) => id.trim()).filter(Boolean))).slice(0, 300);
+  if (!uniqueIds.length) {
+    return { count: 0 };
+  }
+
+  const subscribers = await readSubscribers();
+  const remaining = subscribers.filter((item) => !uniqueIds.includes(item.id));
+  const count = subscribers.length - remaining.length;
+
+  if (count > 0) {
+    await writeSubscribers(remaining);
+  }
+
+  return { count };
 }
