@@ -36,6 +36,7 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - Dashboard tài khoản: lịch sử booking, danh sách yêu thích, đánh giá cá nhân
 - Bộ lọc nhanh nâng cao cho đơn đặt tour/yêu thích/đánh giá trong trang tài khoản
 - Dashboard tài khoản hỗ trợ lọc theo ngày + mốc nhanh cho booking/yêu thích/đánh giá
+- Trang tài khoản có nút xóa lọc nhanh ngay cạnh cụm mốc ngày cho từng section
 - Trang chi tiết tour có thanh thao tác nhanh trên mobile (đặt tour/tư vấn nhanh)
 - Dashboard tài khoản có điều hướng nhanh theo section và thanh thao tác cố định trên mobile
 
