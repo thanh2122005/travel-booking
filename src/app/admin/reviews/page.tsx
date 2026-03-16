@@ -128,8 +128,8 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
-        <h1 className="text-2xl font-bold text-slate-900">Quản lý đánh giá</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-2xl font-bold text-slate-800">Quản lý đánh giá</h1>
+        <p className="mt-1 text-sm text-slate-500">
           Theo dõi phản hồi người dùng, lọc theo thời gian và ẩn/hiện nhiều đánh giá cùng lúc.
         </p>
       </div>
@@ -158,7 +158,7 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
         </div>
       </section>
 
-      <form id="bo-loc-review" className="iv-card scroll-mt-24 p-4">
+      <form id="bo-loc-review" className="iv-card scroll-mt-24 p-4 md:p-5">
         <label
           htmlFor="search"
           className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"
@@ -202,18 +202,18 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
             </Link>
           ) : null}
         </div>
-        <div className="grid gap-2 lg:grid-cols-[1fr_170px_170px_170px_auto]">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
           <input
             id="search"
             name="search"
             defaultValue={search}
             placeholder="Nội dung review, tên người dùng hoặc tên tour..."
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm sm:col-span-2 xl:col-span-3 focus:border-teal-500 focus:outline-none"
           />
           <select
             name="isVisible"
             defaultValue={isVisible}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="">Tất cả trạng thái</option>
             <option value="visible">Đang hiển thị</option>
@@ -223,17 +223,17 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
             type="date"
             name="createdFrom"
             defaultValue={createdFrom}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
           <input
             type="date"
             name="createdTo"
             defaultValue={createdTo}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
           <button
             type="submit"
-            className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
+            className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto"
           >
             Lọc dữ liệu
           </button>

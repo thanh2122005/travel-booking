@@ -130,13 +130,13 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
-        <h1 className="text-2xl font-bold text-slate-900">Yêu cầu tư vấn</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-2xl font-bold text-slate-800">Yêu cầu tư vấn</h1>
+        <p className="mt-1 text-sm text-slate-500">
           Theo dõi yêu cầu liên hệ từ người dùng và cập nhật trạng thái xử lý.
         </p>
       </div>
 
-      <form id="bo-loc-tu-van" className="iv-card scroll-mt-24 p-4">
+      <form id="bo-loc-tu-van" className="iv-card scroll-mt-24 p-4 md:p-5">
         <input type="hidden" name="page" value="1" />
         <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
           Tìm kiếm yêu cầu
@@ -174,22 +174,22 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
               href="/admin/inquiries"
               className="inline-flex h-8 items-center rounded-md border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
             >
-              X?a l?c nhanh
+              Xóa lọc nhanh
             </Link>
           ) : null}
         </div>
-        <div className="grid gap-2 xl:grid-cols-[1fr_190px_170px_170px_auto_auto]">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
           <input
             id="search"
             name="search"
             defaultValue={search}
             placeholder="Mã, tên khách, email, số điện thoại..."
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm sm:col-span-2 xl:col-span-2 focus:border-teal-500 focus:outline-none"
           />
           <select
             name="status"
             defaultValue={status ?? ""}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="">Tất cả trạng thái</option>
             <option value="PENDING">Chờ xử lý</option>
@@ -199,21 +199,21 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
             type="date"
             name="createdFrom"
             defaultValue={createdFrom}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
           <input
             type="date"
             name="createdTo"
             defaultValue={createdTo}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
-          <button type="submit" className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold">
+          <button type="submit" className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto">
             Lọc dữ liệu
           </button>
           {hasActiveFilters ? (
             <Link
               href="/admin/inquiries"
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+              className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
             >
               Xóa lọc
             </Link>
