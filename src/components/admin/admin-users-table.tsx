@@ -176,7 +176,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
             type="button"
             onClick={handleBulkUpdate}
             disabled={isPending}
-            className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
+            className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
           >
             {isPending ? (
               <>
@@ -229,7 +229,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
       </div>
 
       <div className="iv-card hidden overflow-x-auto p-4 lg:block">
-        <table className="w-full min-w-[1180px] text-sm">
+        <table className="w-full min-w-[1000px] text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-left text-slate-500">
               <th className="px-2 py-3 font-medium">
@@ -279,7 +279,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                 <td className="px-2 py-3">{user._count.favorites}</td>
                 <td className="px-2 py-3 text-slate-500">{formatDate(new Date(user.createdAt))}</td>
                 <td className="px-2 py-3">
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-col items-start gap-2">
                     <AdminUserActions userId={user.id} role={user.role} status={user.status} />
                     <AdminUserDetailDialog user={user} />
                   </div>

@@ -69,11 +69,11 @@ export function AdminUserActions({ userId, role, status }: AdminUserActionsProps
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex w-[154px] flex-col gap-1.5">
       <select
         value={selectedRole}
         onChange={(event) => setSelectedRole(event.target.value as UserRoleValue)}
-        className="h-9 w-[146px] rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700"
+        className="h-8 w-full rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700"
         disabled={isPending || isDeleting}
       >
         <option value="USER">Người dùng</option>
@@ -82,18 +82,18 @@ export function AdminUserActions({ userId, role, status }: AdminUserActionsProps
       <select
         value={selectedStatus}
         onChange={(event) => setSelectedStatus(event.target.value as UserStatusValue)}
-        className="h-9 w-[146px] rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700"
+        className="h-8 w-full rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700"
         disabled={isPending || isDeleting}
       >
         <option value="ACTIVE">Hoạt động</option>
         <option value="BLOCKED">Bị khóa</option>
       </select>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex gap-1.5">
         <button
           type="button"
           onClick={handleSave}
           disabled={isPending || isDeleting}
-          className="inline-flex h-9 items-center justify-center rounded-lg bg-slate-800 px-3 text-xs font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-8 flex-1 items-center justify-center rounded-md bg-slate-800 px-2.5 text-xs font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending ? (
             <>
@@ -108,7 +108,7 @@ export function AdminUserActions({ userId, role, status }: AdminUserActionsProps
           type="button"
           onClick={handleDeleteUser}
           disabled={isPending || isDeleting}
-          className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-8 items-center justify-center rounded-md border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isDeleting ? (
             <>

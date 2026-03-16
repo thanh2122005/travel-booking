@@ -172,7 +172,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             </Link>
           ) : null}
         </div>
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <input
             id="search"
             name="search"
