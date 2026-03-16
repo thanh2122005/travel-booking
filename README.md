@@ -51,6 +51,7 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - Quản lý yêu cầu tư vấn: lọc trạng thái/ngày gửi + cập nhật trạng thái đơn lẻ/hàng loạt
 - Quản lý đăng ký nhận tin: lọc email/ngày đăng ký + phân trang + xóa hàng loạt
 - Xuất CSV booking/review/users/inquiries/newsletter theo bộ lọc đang áp dụng
+- CSV dashboard doanh thu bổ sung bảng so sánh kỳ hiện tại và kỳ trước
 - Dashboard, bookings, reviews có điều hướng nhanh và thao tác mobile nhất quán
 - Bảo vệ quyền admin: không cho hạ quyền/khóa/xóa quản trị viên cuối cùng
 - API admin/users chặn tự hạ quyền, tự khóa hoặc tự xóa tài khoản đang đăng nhập
