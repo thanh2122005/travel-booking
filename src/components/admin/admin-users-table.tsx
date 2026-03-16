@@ -229,7 +229,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
       </div>
 
       <div className="iv-card hidden overflow-x-auto p-4 lg:block">
-        <table className="w-full min-w-[1020px] text-sm">
+        <table className="w-full min-w-[1180px] text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-left text-slate-500">
               <th className="px-2 py-3 font-medium">
@@ -241,7 +241,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                 />
               </th>
               <th className="px-2 py-3 font-medium">Họ tên</th>
-              <th className="px-2 py-3 font-medium">Email</th>
+              <th className="px-2 py-3 font-medium min-w-[210px]">Email</th>
               <th className="px-2 py-3 font-medium">Số điện thoại</th>
               <th className="px-2 py-3 font-medium">Vai trò</th>
               <th className="px-2 py-3 font-medium">Trạng thái</th>
@@ -263,8 +263,8 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                     className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
                   />
                 </td>
-                <td className="px-2 py-3 font-medium text-slate-800">{user.fullName}</td>
-                <td className="px-2 py-3">{user.email}</td>
+                <td className="px-2 py-3 font-medium text-slate-800 whitespace-nowrap">{user.fullName}</td>
+                <td className="px-2 py-3 text-slate-700 whitespace-nowrap">{user.email}</td>
                 <td className="px-2 py-3 text-slate-600">{user.phone || "-"}</td>
                 <td className="px-2 py-3">
                   <Badge variant="outline">{roleLabels[user.role]}</Badge>
@@ -279,7 +279,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                 <td className="px-2 py-3">{user._count.favorites}</td>
                 <td className="px-2 py-3 text-slate-500">{formatDate(new Date(user.createdAt))}</td>
                 <td className="px-2 py-3">
-                  <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <AdminUserActions userId={user.id} role={user.role} status={user.status} />
                     <AdminUserDetailDialog user={user} />
                   </div>
