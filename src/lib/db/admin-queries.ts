@@ -315,9 +315,9 @@ function resolveDashboardOptions(options?: DashboardTimelineOptions) {
   const now = new Date();
   const requestedRangeDays = options?.rangeDays;
   const rangeDays =
-    typeof requestedRangeDays === "number" && [30, 90, 180, 365].includes(requestedRangeDays)
+    typeof requestedRangeDays === "number" && [7, 30, 90, 365].includes(requestedRangeDays)
       ? requestedRangeDays
-      : 180;
+      : 30;
 
   const endDate = normalizeDate(options?.endDate) ?? now;
   const monthCount = [3, 6, 12].includes(options?.monthCount ?? 6) ? options?.monthCount ?? 6 : 6;
@@ -2189,4 +2189,7 @@ export const adminLabels = {
     [UserStatus.BLOCKED]: "Bị khóa",
   },
 } as const;
+
+
+
 
