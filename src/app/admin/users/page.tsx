@@ -172,7 +172,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             </Link>
           ) : null}
         </div>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <input
             id="search"
             name="search"
@@ -210,6 +210,8 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             defaultValue={createdTo}
             className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
           <button type="submit" className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto">
             Tìm kiếm
           </button>

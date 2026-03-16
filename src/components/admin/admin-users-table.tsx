@@ -231,7 +231,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
       </div>
 
       <div className="iv-card hidden overflow-x-auto p-4 lg:block">
-        <table className="w-full min-w-[900px] text-sm">
+        <table className="w-full min-w-[780px] text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-left text-slate-500">
               <th className="px-2 py-3 font-medium">
@@ -242,13 +242,11 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                   className="h-4 w-4 rounded border-slate-300 accent-teal-600"
                 />
               </th>
-              <th className="px-2 py-3 font-medium min-w-[220px]">Người dùng</th>
-              <th className="px-2 py-3 font-medium min-w-[120px]">Điện thoại</th>
-              <th className="px-2 py-3 font-medium">Vai trò</th>
-              <th className="px-2 py-3 font-medium">Trạng thái</th>
-              <th className="px-2 py-3 font-medium min-w-[180px]">Hoạt động</th>
+              <th className="px-2 py-3 font-medium min-w-[250px]">Người dùng</th>
+              <th className="px-2 py-3 font-medium min-w-[150px]">Phân quyền</th>
+              <th className="px-2 py-3 font-medium min-w-[145px]">Hoạt động</th>
               <th className="px-2 py-3 font-medium">Ngày tạo</th>
-              <th className="px-2 py-3 font-medium min-w-[170px]">Thao tác</th>
+              <th className="px-2 py-3 font-medium min-w-[148px]">Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -265,18 +263,20 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                 <td className="px-2 py-3">
                   <p className="font-medium text-slate-800">{user.fullName}</p>
                   <p className="text-xs text-slate-500">{user.email}</p>
-                </td>
-                <td className="px-2 py-3 text-slate-600">{user.phone || "-"}</td>
-                <td className="px-2 py-3">
-                  <Badge variant="outline">{roleLabels[user.role]}</Badge>
+                  <p className="mt-1 text-xs text-slate-500">SĐT: {user.phone || "-"}</p>
                 </td>
                 <td className="px-2 py-3">
-                  <Badge variant={user.status === "ACTIVE" ? "default" : "destructive"}>
-                    {statusLabels[user.status]}
-                  </Badge>
+                  <div className="space-y-2">
+                    <Badge variant="outline">{roleLabels[user.role]}</Badge>
+                    <div>
+                      <Badge variant={user.status === "ACTIVE" ? "default" : "destructive"}>
+                        {statusLabels[user.status]}
+                      </Badge>
+                    </div>
+                  </div>
                 </td>
                 <td className="px-2 py-3">
-                  <div className="flex flex-wrap items-center gap-1.5">
+                  <div className="space-y-1.5">
                     <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">Đơn {user._count.bookings}</span>
                     <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">Đánh giá {user._count.reviews}</span>
                     <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">Yêu thích {user._count.favorites}</span>
@@ -284,7 +284,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                 </td>
                 <td className="px-2 py-3 text-slate-500">{formatDate(new Date(user.createdAt))}</td>
                 <td className="px-2 py-3">
-                  <div className="flex flex-col items-start gap-2">
+                  <div className="flex w-[148px] flex-col items-start gap-2">
                     <AdminUserActions userId={user.id} role={user.role} status={user.status} />
                     <AdminUserDetailDialog user={user} />
                   </div>

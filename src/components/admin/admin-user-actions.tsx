@@ -69,7 +69,7 @@ export function AdminUserActions({ userId, role, status }: AdminUserActionsProps
   }
 
   return (
-    <div className="flex w-[154px] flex-col gap-1.5">
+    <div className="flex w-[148px] flex-col gap-1.5">
       <select
         value={selectedRole}
         onChange={(event) => setSelectedRole(event.target.value as UserRoleValue)}

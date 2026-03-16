@@ -85,7 +85,7 @@ export function AdminUserDetailDialog({ user }: AdminUserDetailDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="inline-flex h-8 items-center justify-center rounded-md border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100">
+      <DialogTrigger className="inline-flex h-8 w-full items-center justify-center rounded-md border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100">
         <PencilLine className="mr-1.5 h-3.5 w-3.5" />
         Sửa hồ sơ
       </DialogTrigger>

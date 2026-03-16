@@ -213,7 +213,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
             </Link>
           ) : null}
         </div>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <input
             id="search"
             name="search"
@@ -253,12 +253,31 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
             defaultValue={createdTo}
             className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
           <button
             type="submit"
             className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto"
           >
             Lọc dữ liệu
           </button>
+          <Link
+            href={{
+              pathname: "/api/admin/bookings/export",
+              query: exportQuery,
+            }}
+            className="inline-flex h-10 w-full items-center justify-center rounded-md border border-slate-300 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 sm:w-auto"
+          >
+            Xuất CSV
+          </Link>
+          {hasActiveFilters ? (
+            <Link
+              href="/admin/bookings"
+              className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
+            >
+              Xóa bộ lọc
+            </Link>
+          ) : null}
         </div>
         {activeFilterLabels.length ? (
           <div className="mt-3 flex flex-wrap gap-2">
@@ -272,17 +291,6 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
             ))}
           </div>
         ) : null}
-        <div className="mt-3 flex justify-end">
-          <Link
-            href={{
-              pathname: "/api/admin/bookings/export",
-              query: exportQuery,
-            }}
-            className="inline-flex h-9 items-center rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-          >
-            Xuất CSV
-          </Link>
-        </div>
       </form>
 
       <div id="danh-sach-booking" className="scroll-mt-24" />

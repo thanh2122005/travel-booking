@@ -43,7 +43,7 @@ export function AdminBookingActions({ bookingId, status, paymentStatus }: AdminB
   }
 
   return (
-    <div className="flex min-w-[220px] flex-col gap-2">
+    <div className="flex w-[148px] flex-col gap-1.5">
       <select
         value={selectedStatus}
         onChange={(event) => setSelectedStatus(event.target.value as BookingStatusValue)}
