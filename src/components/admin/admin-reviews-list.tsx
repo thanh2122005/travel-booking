@@ -94,13 +94,13 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
   return (
     <div className="space-y-4">
       <div className="iv-card p-4">
-        <div className="flex flex-wrap items-end gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               Cập nhật hiển thị hàng loạt
             </p>
             <p className="mt-1 text-sm text-slate-600">
-              Đã chọn <span className="font-semibold text-slate-900">{selectedIdsInPage.length}</span>{" "}
+              Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span>{" "}
               đánh giá.
             </p>
           </div>
@@ -125,7 +125,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
           <select
             value={bulkVisible}
             onChange={(event) => setBulkVisible(event.target.value)}
-            className="h-10 min-w-[180px] rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 sm:w-[190px] rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="visible">Hiển thị</option>
             <option value="hidden">Ẩn</option>
@@ -161,7 +161,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
               <div className="flex-1">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <p className="font-semibold text-slate-900">{review.user.fullName}</p>
+                    <p className="font-semibold text-slate-800">{review.user.fullName}</p>
                     <p className="text-xs text-slate-500">{review.user.email}</p>
                   </div>
                   <div className="flex items-center gap-2">

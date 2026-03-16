@@ -136,14 +136,14 @@ export function AdminBookingsTable({
   return (
     <div className="space-y-4">
       <div className="iv-card p-4">
-        <div className="flex flex-wrap items-end gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               Cập nhật hàng loạt
             </p>
             <p className="mt-1 text-sm text-slate-600">
               Đã chọn{" "}
-              <span className="font-semibold text-slate-900">{selectedIdsInPage.length}</span> booking
+              <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> booking
               trong trang hiện tại.
             </p>
           </div>
@@ -168,7 +168,7 @@ export function AdminBookingsTable({
           <select
             value={bulkStatus}
             onChange={(event) => setBulkStatus(event.target.value)}
-            className="h-10 min-w-[180px] rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 sm:w-[190px] rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="">Không đổi trạng thái đơn</option>
             {bookingStatusOptions.map((item) => (
@@ -180,7 +180,7 @@ export function AdminBookingsTable({
           <select
             value={bulkPaymentStatus}
             onChange={(event) => setBulkPaymentStatus(event.target.value)}
-            className="h-10 min-w-[180px] rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 sm:w-[190px] rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="">Không đổi trạng thái thanh toán</option>
             {paymentStatusOptions.map((item) => (
@@ -220,17 +220,17 @@ export function AdminBookingsTable({
               <div className="flex-1 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">{booking.bookingCode}</p>
+                    <p className="text-sm font-semibold text-slate-800">{booking.bookingCode}</p>
                     <p className="text-xs text-slate-500">{formatDate(new Date(booking.createdAt))}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-slate-900">{formatPrice(booking.totalPrice)}</p>
+                    <p className="text-sm font-semibold text-slate-800">{formatPrice(booking.totalPrice)}</p>
                     <p className="text-xs text-slate-500">{booking.numberOfGuests} khách</p>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-slate-900">{booking.fullName}</p>
+                  <p className="text-sm font-medium text-slate-800">{booking.fullName}</p>
                   <p className="text-xs text-slate-500">{booking.email}</p>
                 </div>
 

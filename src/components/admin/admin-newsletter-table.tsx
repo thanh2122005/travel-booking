@@ -78,11 +78,11 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
   return (
     <div className="space-y-4">
       <div className="iv-card p-4">
-        <div className="flex flex-wrap items-end gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Thao tác hàng loạt</p>
             <p className="mt-1 text-sm text-slate-600">
-              Đã chọn <span className="font-semibold text-slate-900">{selectedIdsInPage.length}</span> email
+              Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> email
               trong trang hiện tại.
             </p>
           </div>
@@ -139,7 +139,7 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
                 className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
               />
               <div>
-                <p className="text-sm font-semibold text-slate-900">{subscriber.email}</p>
+                <p className="text-sm font-semibold text-slate-800">{subscriber.email}</p>
                 <p className="mt-1 text-xs text-slate-500">Đăng ký: {formatDate(new Date(subscriber.createdAt))}</p>
               </div>
             </div>
@@ -174,7 +174,7 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
                     className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
                   />
                 </td>
-                <td className="px-2 py-3 font-medium text-slate-900">{subscriber.email}</td>
+                <td className="px-2 py-3 font-medium text-slate-800">{subscriber.email}</td>
                 <td className="px-2 py-3 text-slate-500">{formatDate(new Date(subscriber.createdAt))}</td>
               </tr>
             ))}
