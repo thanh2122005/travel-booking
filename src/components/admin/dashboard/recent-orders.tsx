@@ -1,8 +1,7 @@
 ﻿import Link from "next/link";
 import type { BookingStatus, PaymentStatus } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/utils/format";
-import { formatPrice } from "@/lib/utils/format";
+import { formatDate, formatPrice } from "@/lib/utils/format";
 import type { DashboardRecentBooking } from "@/components/admin/dashboard/types";
 
 type RecentOrdersProps = {
@@ -25,31 +24,29 @@ const bookingBadgeTone: Record<BookingStatus, string> = {
 
 export function RecentOrders({ items, bookingStatusLabels, paymentStatusLabels }: RecentOrdersProps) {
   return (
-    <article className="iv-card rounded-2xl border-slate-200 p-5">
+    <article className="iv-card rounded-2xl border-slate-200 bg-white p-5">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="text-base font-bold text-slate-800">Đơn đặt gần đây</h3>
-        <Link href="/admin/bookings" className="text-sm font-semibold text-cyan-700 hover:text-cyan-800">
+        <h3 className="text-base font-semibold text-slate-700">Đơn đặt gần đây</h3>
+        <Link href="/admin/bookings" className="text-xs font-semibold text-cyan-700 hover:text-cyan-800">
           Xem tất cả
         </Link>
       </div>
 
       {items.length ? (
-        <div className="space-y-3">
-          {items.map((booking) => (
+        <div className="space-y-2.5">
+          {items.slice(0, 7).map((booking) => (
             <article key={booking.id} className="rounded-xl border border-slate-200 bg-white p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-slate-800">{booking.bookingCode}</p>
-                <p className="text-xs text-slate-500">{formatDate(booking.createdAt)}</p>
+                <p className="text-sm font-medium text-slate-700">{booking.bookingCode}</p>
+                <p className="text-sm font-semibold text-slate-700">{formatPrice(booking.totalPrice)}</p>
               </div>
 
-              <p className="mt-1 text-sm text-slate-600">
-                {booking.fullName} · {" "}
-                <Link href={`/tours/${booking.tour.slug}`} className="font-medium text-cyan-700 hover:text-cyan-800">
-                  {booking.tour.title}
-                </Link>
+              <p className="mt-1 text-xs text-slate-500">
+                {booking.fullName} • {formatDate(booking.createdAt)}
               </p>
-
-              <p className="mt-1 text-sm font-semibold text-slate-800">{formatPrice(booking.totalPrice)}</p>
+              <Link href={`/tours/${booking.tour.slug}`} className="mt-1 block truncate text-sm text-cyan-700 hover:text-cyan-800">
+                {booking.tour.title}
+              </Link>
 
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <Badge className={bookingBadgeTone[booking.status]}>{bookingStatusLabels[booking.status]}</Badge>

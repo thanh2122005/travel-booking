@@ -2,9 +2,9 @@
 import {
   BookOpen,
   CircleDollarSign,
-  Compass,
   FileDown,
   Handshake,
+  MessageSquareMore,
   ShoppingBag,
   Users,
 } from "lucide-react";
@@ -14,12 +14,11 @@ import { DashboardHeader } from "@/components/admin/dashboard/dashboard-header";
 import { StatsCards } from "@/components/admin/dashboard/stats-cards";
 import { RevenueChart } from "@/components/admin/dashboard/revenue-chart";
 import { TopToursTable } from "@/components/admin/dashboard/top-tours-table";
-import { BookingStatusCard } from "@/components/admin/dashboard/booking-status-card";
-import { PaymentStatusCard } from "@/components/admin/dashboard/payment-status-card";
 import { RecentOrders } from "@/components/admin/dashboard/recent-orders";
 import { LatestReviews } from "@/components/admin/dashboard/latest-reviews";
 import { NewConsultations } from "@/components/admin/dashboard/new-consultations";
 import { NewSubscribers } from "@/components/admin/dashboard/new-subscribers";
+import { StatusSummary } from "@/components/admin/dashboard/status-summary";
 import type {
   DashboardRecentBooking,
   DashboardRecentInquiry,
@@ -74,6 +73,15 @@ function formatRate(value: number) {
   return `${(value * 100).toFixed(1)}%`;
 }
 
+function formatCurrencyDelta(value: number) {
+  const sign = value >= 0 ? "+" : "-";
+  const abs = Math.abs(value);
+
+  if (abs >= 1_000_000_000) return `${sign}${(abs / 1_000_000_000).toFixed(1)} tỷ`;
+  if (abs >= 1_000_000) return `${sign}${(abs / 1_000_000).toFixed(0)} triệu`;
+  return `${sign}${new Intl.NumberFormat("vi-VN").format(Math.round(abs))} đ`;
+}
+
 function buildQuery(
   currentParams: Record<string, string | string[] | undefined>,
   patch: Record<string, string>,
@@ -101,26 +109,26 @@ function buildQuery(
 function buildDeltaText(current: number, previous: number, type: "number" | "currency" | "rate") {
   const diff = current - previous;
   if (diff === 0) {
-    return { tone: "flat" as const, text: "Không đổi so với kỳ trước" };
+    return { tone: "flat" as const, text: "Không đổi" };
   }
 
   if (type === "number") {
     return {
       tone: diff > 0 ? ("up" as const) : ("down" as const),
-      text: `${diff > 0 ? "+" : ""}${Math.round(diff)} đơn so với kỳ trước`,
+      text: `${diff > 0 ? "+" : ""}${Math.round(diff)} đơn`,
     };
   }
 
   if (type === "currency") {
     return {
       tone: diff > 0 ? ("up" as const) : ("down" as const),
-      text: `${diff > 0 ? "+" : ""}${formatPrice(Math.abs(diff))} so với kỳ trước`,
+      text: formatCurrencyDelta(diff),
     };
   }
 
   return {
     tone: diff > 0 ? ("up" as const) : ("down" as const),
-    text: `${diff > 0 ? "+" : ""}${(diff * 100).toFixed(1)} điểm % so với kỳ trước`,
+    text: `${diff > 0 ? "+" : ""}${(diff * 100).toFixed(1)} đ.%`,
   };
 }
 
@@ -190,18 +198,16 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const statsCards = [
     {
       key: "revenue",
-      label: "Doanh thu xác nhận",
+      label: "Doanh thu",
       value: formatPrice(data.timeRangeStats.confirmedRevenue),
-      hint: "Tổng doanh thu từ đơn đã xác nhận và hoàn thành trong kỳ.",
       deltaText: revenueDelta.text,
       deltaTone: revenueDelta.tone,
       icon: CircleDollarSign,
     },
     {
       key: "bookings",
-      label: "Đơn đặt trong kỳ",
+      label: "Đơn trong kỳ",
       value: data.timeRangeStats.bookings.toString(),
-      hint: "Số lượng booking phát sinh theo khoảng thời gian đã chọn.",
       deltaText: orderDelta.text,
       deltaTone: orderDelta.tone,
       icon: ShoppingBag,
@@ -210,7 +216,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       key: "confirmation-rate",
       label: "Tỷ lệ xác nhận",
       value: formatRate(data.timeRangeStats.confirmationRate),
-      hint: `${data.timeRangeStats.confirmedBookings}/${data.timeRangeStats.bookings} đơn đã xác nhận.`,
       deltaText: confirmationDelta.text,
       deltaTone: confirmationDelta.tone,
       icon: Handshake,
@@ -219,7 +224,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       key: "payment-rate",
       label: "Tỷ lệ thanh toán",
       value: formatRate(data.timeRangeStats.paymentRate),
-      hint: `${data.timeRangeStats.paidBookings}/${data.timeRangeStats.bookings} đơn đã thanh toán.`,
       deltaText: paymentDelta.text,
       deltaTone: paymentDelta.tone,
       icon: BookOpen,
@@ -228,68 +232,53 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       key: "users",
       label: "Người dùng",
       value: data.metrics.totalUsers.toString(),
-      hint: "Tổng tài khoản đã đăng ký trên hệ thống.",
+      hint: `${data.metrics.totalTours} tour đang quản lý`,
       icon: Users,
     },
     {
-      key: "tours",
-      label: "Tour đang quản lý",
-      value: data.metrics.totalTours.toString(),
-      hint: `Điểm đến hiện có: ${data.metrics.totalLocations}`,
-      icon: Compass,
+      key: "leads",
+      label: "Leads mới",
+      value: data.metrics.totalInquiries.toString(),
+      hint: `${data.metrics.totalNewsletter} email nhận tin`,
+      icon: MessageSquareMore,
     },
   ] as const;
 
   const periodLabel = `${formatDate(data.timelineStartDate)} - ${formatDate(data.timelineEndDate)}`;
 
   return (
-    <div className="space-y-6 pb-24 lg:pb-6">
+    <div className="space-y-5 pb-24 lg:pb-6">
       <DashboardHeader
         periodLabel={periodLabel}
-        description="Theo dõi KPI quan trọng, xu hướng doanh thu và các phát sinh mới để vận hành hệ thống ổn định mỗi ngày."
-        cards={[
+        quickStats={[
           { label: "Đơn trong kỳ", value: data.timeRangeStats.bookings.toString() },
           { label: "Doanh thu kỳ", value: formatPrice(data.timeRangeStats.confirmedRevenue) },
-          { label: "Đơn chờ xử lý", value: data.bookingsByStatus.PENDING.toString() },
+          { label: "Chờ xử lý", value: data.bookingsByStatus.PENDING.toString() },
         ]}
         actions={
           <>
             <Link
               href="/admin/bookings"
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
             >
-              Quản lý đơn đặt
+              Quản lý đơn
             </Link>
             <Link
               href={{
                 pathname: "/api/admin/dashboard/export",
                 query: exportQuery,
               }}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-4 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-100"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-4 text-sm font-medium text-cyan-700 transition hover:bg-cyan-100"
             >
               <FileDown className="h-4 w-4" />
-              Xuất báo cáo CSV
+              Xuất CSV
             </Link>
           </>
         }
       />
 
-      <StatsCards items={[...statsCards]} />
-
-      <section id="bo-loc-thoi-gian" className="iv-card scroll-mt-24 rounded-2xl border-slate-200 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-slate-700">Bộ lọc thời gian báo cáo</p>
-          {hasTimelineFilterOverrides ? (
-            <Link
-              href="/admin"
-              className="inline-flex h-8 items-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
-            >
-              Đặt lại bộ lọc
-            </Link>
-          ) : null}
-        </div>
-
-        <div className="mt-3 flex flex-wrap gap-2">
+      <section id="bo-loc-thoi-gian" className="iv-card scroll-mt-24 rounded-2xl border-slate-200 bg-white p-4">
+        <div className="flex flex-wrap items-center gap-2">
           {rangeOptions.map((option) => {
             const active = !hasCustomDateRange && rangeDays === option.value;
             return (
@@ -306,21 +295,30 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 className={`inline-flex h-8 items-center rounded-lg border px-3 text-xs font-semibold transition ${
                   active
                     ? "border-cyan-600 bg-cyan-600 text-white"
-                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                    : "border-slate-300 text-slate-600 hover:bg-slate-50"
                 }`}
               >
                 {option.label}
               </Link>
             );
           })}
+
+          {hasTimelineFilterOverrides ? (
+            <Link
+              href="/admin"
+              className="ml-auto inline-flex h-8 items-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+            >
+              Đặt lại
+            </Link>
+          ) : null}
         </div>
 
-        <form className="mt-3 grid gap-2 md:grid-cols-[140px_170px_170px_auto]">
+        <form className="mt-3 grid gap-2 md:grid-cols-[130px_170px_170px_auto]">
           <input type="hidden" name="rangeDays" value={String(rangeDays)} />
           <select
             name="granularity"
             defaultValue={data.timelineGranularity}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-cyan-500 focus:outline-none"
+            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 focus:border-cyan-500 focus:outline-none"
           >
             <option value="day">Theo ngày</option>
             <option value="week">Theo tuần</option>
@@ -330,19 +328,21 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             type="date"
             name="startDate"
             defaultValue={startDate || toInputDateValue(data.timelineStartDate)}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-cyan-500 focus:outline-none"
+            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 focus:border-cyan-500 focus:outline-none"
           />
           <input
             type="date"
             name="endDate"
             defaultValue={endDate || toInputDateValue(data.timelineEndDate)}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-cyan-500 focus:outline-none"
+            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 focus:border-cyan-500 focus:outline-none"
           />
-          <button type="submit" className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold">
+          <button type="submit" className="iv-btn-primary inline-flex h-10 items-center justify-center px-4 text-sm font-medium">
             Áp dụng
           </button>
         </form>
       </section>
+
+      <StatsCards items={[...statsCards]} />
 
       <section className="grid gap-4 2xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <RevenueChart
@@ -352,19 +352,15 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           endDateLabel={formatDate(data.timelineEndDate)}
         />
 
-        <div className="space-y-4">
-          <BookingStatusCard counts={data.bookingsByStatus} labels={adminLabels.bookingStatus} />
-          <PaymentStatusCard counts={data.paymentsByStatus} labels={adminLabels.paymentStatus} />
-        </div>
-      </section>
-
-      <section id="top-tour" className="scroll-mt-24">
-        <TopToursTable
-          items={data.topRevenueTours as DashboardTopTourItem[]}
-          startDateLabel={formatDate(data.timelineStartDate)}
-          endDateLabel={formatDate(data.timelineEndDate)}
+        <StatusSummary
+          bookingCounts={data.bookingsByStatus}
+          paymentCounts={data.paymentsByStatus}
+          bookingLabels={adminLabels.bookingStatus}
+          paymentLabels={adminLabels.paymentStatus}
         />
       </section>
+
+      <TopToursTable items={data.topRevenueTours as DashboardTopTourItem[]} />
 
       <section id="du-lieu-moi" className="grid scroll-mt-24 gap-4 xl:grid-cols-2">
         <RecentOrders
@@ -383,13 +379,12 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       <MobileQuickActions
         items={[
           { href: "#bo-loc-thoi-gian", label: "Bộ lọc" },
-          { href: "#top-tour", label: "Top tour" },
           { href: "#du-lieu-moi", label: "Dữ liệu mới", active: true },
+          { href: "/admin/bookings", label: "Đơn đặt" },
         ]}
       />
     </div>
   );
 }
-
 
 

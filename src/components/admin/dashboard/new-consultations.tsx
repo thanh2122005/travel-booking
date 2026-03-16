@@ -19,42 +19,33 @@ const statusTone: Record<InquiryStatus, string> = {
 
 export function NewConsultations({ items }: NewConsultationsProps) {
   return (
-    <article className="iv-card rounded-2xl border-slate-200 p-5">
+    <article className="iv-card rounded-2xl border-slate-200 bg-white p-5">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="text-base font-bold text-slate-800">Yêu cầu tư vấn mới</h3>
-        <Link href="/admin/inquiries" className="text-sm font-semibold text-cyan-700 hover:text-cyan-800">
+        <h3 className="text-base font-semibold text-slate-700">Yêu cầu tư vấn mới</h3>
+        <Link href="/admin/inquiries" className="text-xs font-semibold text-cyan-700 hover:text-cyan-800">
           Xem tất cả
         </Link>
       </div>
 
       {items.length ? (
-        <div className="space-y-3">
-          {items.map((inquiry) => (
+        <div className="space-y-2.5">
+          {items.slice(0, 7).map((inquiry) => (
             <article key={inquiry.id} className="rounded-xl border border-slate-200 bg-white p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-slate-800">{inquiry.referenceCode}</p>
-                <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${statusTone[inquiry.status]}`}>
+                <p className="text-sm font-medium text-slate-700">{inquiry.fullName}</p>
+                <span className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${statusTone[inquiry.status]}`}>
                   {statusLabel[inquiry.status]}
                 </span>
               </div>
 
-              <p className="mt-1 text-sm text-slate-600">{inquiry.fullName} · {inquiry.phone}</p>
-              <p className="text-xs text-slate-500">{inquiry.email}</p>
+              <p className="mt-1 text-xs text-slate-500">{inquiry.referenceCode} • {formatDate(inquiry.createdAt)}</p>
+              <p className="mt-1 line-clamp-1 text-sm text-slate-600">{inquiry.email} • {inquiry.phone}</p>
 
               {inquiry.tour ? (
-                <p className="mt-2 text-xs text-slate-500">
-                  Tour:{" "}
-                  <Link href={`/tours/${inquiry.tour.slug}`} className="font-medium text-cyan-700 hover:text-cyan-800">
-                    {inquiry.tour.title}
-                  </Link>
-                </p>
+                <Link href={`/tours/${inquiry.tour.slug}`} className="mt-1 block text-xs text-cyan-700 hover:text-cyan-800">
+                  {inquiry.tour.title}
+                </Link>
               ) : null}
-
-              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                <span>{inquiry.numberOfGuests} khách</span>
-                {inquiry.departureDate ? <span>Khởi hành: {formatDate(inquiry.departureDate)}</span> : null}
-                <span>Tạo lúc: {formatDate(inquiry.createdAt)}</span>
-              </div>
             </article>
           ))}
         </div>

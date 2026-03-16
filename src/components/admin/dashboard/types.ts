@@ -5,7 +5,7 @@ export type DashboardKpiItem = {
   key: string;
   label: string;
   value: string;
-  hint: string;
+  hint?: string;
   deltaText?: string;
   deltaTone?: "up" | "down" | "flat";
   icon: LucideIcon;
