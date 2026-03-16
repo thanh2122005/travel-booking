@@ -243,6 +243,14 @@ export default async function InspirationPage({ searchParams }: InspirationPageP
                 {option.label}
               </Link>
             ))}
+            {hasActiveFilters ? (
+              <Link
+                href={clearFiltersHref}
+                className="inline-flex h-9 items-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+              >
+                Xóa lọc nhanh
+              </Link>
+            ) : null}
           </div>
         </div>
 

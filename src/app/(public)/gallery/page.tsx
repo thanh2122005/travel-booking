@@ -231,6 +231,14 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
                 {item.name}
               </Link>
             ))}
+            {hasActiveFilters ? (
+              <Link
+                href={clearFiltersHref}
+                className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+              >
+                Xóa lọc nhanh
+              </Link>
+            ) : null}
           </div>
         ) : null}
 

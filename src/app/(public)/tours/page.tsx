@@ -154,6 +154,7 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
       ? [`Giá: ${formatPriceFilter(filters.minPrice, filters.maxPrice)}`]
       : []),
   ];
+  const hasActiveFilters = activeFilterLabels.length > 0;
 
   return (
     <div className="space-y-8 py-6 pb-24 lg:pb-6">
@@ -336,6 +337,14 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
               {option.label}
             </Link>
           ))}
+          {hasActiveFilters ? (
+            <Link
+              href="/tours"
+              className="inline-flex h-9 items-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+            >
+              {"X\u00f3a l\u1ecdc nhanh"}
+            </Link>
+          ) : null}
         </div>
       </div>
 

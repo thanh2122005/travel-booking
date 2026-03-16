@@ -205,6 +205,14 @@ export default async function DestinationsPage({ searchParams }: DestinationsPag
           >
             Tên Z-A
           </Link>
+          {hasActiveFilters ? (
+            <Link
+              href="/dia-diem"
+              className="inline-flex h-9 items-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+            >
+              {"X\u00f3a l\u1ecdc nhanh"}
+            </Link>
+          ) : null}
         </div>
       </div>
 
