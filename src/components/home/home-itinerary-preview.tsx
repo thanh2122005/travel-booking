@@ -1,4 +1,5 @@
 ﻿import Link from "next/link";
+import { Clock3, Route } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 
@@ -36,10 +37,13 @@ export function HomeItineraryPreview({ tours }: HomeItineraryPreviewProps) {
             const hiddenCount = Math.max(0, tour.itineraries.length - previewItems.length);
 
             return (
-              <article key={tour.id} className="iv-card p-5">
+              <article key={tour.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">{tour.location.name}</p>
+                    <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">
+                      <Route className="h-3.5 w-3.5" />
+                      {tour.location.name}
+                    </p>
                     <h3 className="mt-1 text-xl font-bold tracking-tight text-slate-900">{tour.title}</h3>
                   </div>
                   <Link href={`/tours/${tour.slug}`} className="iv-btn-soft inline-flex h-9 items-center px-3 text-xs font-semibold">
@@ -50,9 +54,9 @@ export function HomeItineraryPreview({ tours }: HomeItineraryPreviewProps) {
                 {previewItems.length ? (
                   <div className="mt-4 space-y-2">
                     {previewItems.map((item) => (
-                      <div key={item.id} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                      <div key={item.id} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
                         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Ngày {item.dayNumber}</p>
-                        <p className="mt-1 text-sm font-medium text-slate-800">{item.title}</p>
+                        <p className="mt-1 text-sm font-semibold text-slate-800">{item.title}</p>
                       </div>
                     ))}
                   </div>
@@ -62,13 +66,18 @@ export function HomeItineraryPreview({ tours }: HomeItineraryPreviewProps) {
                   </p>
                 )}
 
-                {hiddenCount > 0 ? (
-                  <div className="mt-3">
+                <div className="mt-3 flex items-center justify-between">
+                  {hiddenCount > 0 ? (
                     <Link href={`/tours/${tour.slug}#lich-trinh`} className="text-sm font-semibold text-teal-700 hover:text-teal-800">
                       Xem thêm {hiddenCount} ngày lịch trình
                     </Link>
-                  </div>
-                ) : null}
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500">
+                      <Clock3 className="h-3.5 w-3.5" />
+                      Lịch trình đã hiển thị đầy đủ
+                    </span>
+                  )}
+                </div>
               </article>
             );
           })}

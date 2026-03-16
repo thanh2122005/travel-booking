@@ -78,36 +78,34 @@ export function HomeHero({ featuredLocations, stats }: HomeHeroProps) {
           </div>
         </div>
 
-        <div className="iv-glass h-fit rounded-3xl p-5 shadow-2xl iv-fade-up lg:p-6">
-          <h2 className="text-xl font-bold text-white">Tìm nhanh tour phù hợp</h2>
-          <p className="mt-2 text-sm text-slate-100/90">Lọc theo điểm đến, khoảng giá và nhu cầu du lịch của bạn.</p>
+        <div className="h-fit rounded-3xl border border-white/35 bg-white/93 p-5 shadow-2xl iv-fade-up backdrop-blur lg:p-6">
+          <h2 className="text-xl font-bold text-slate-900">Tìm nhanh tour phù hợp</h2>
+          <p className="mt-2 text-sm text-slate-600">Lọc theo điểm đến, khoảng giá và nhu cầu du lịch của bạn.</p>
           <form action="/tours" className="mt-5 space-y-3">
             <div>
-              <label htmlFor="hero-search" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-100">
+              <label htmlFor="hero-search" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
                 Từ khóa
               </label>
               <input
                 id="hero-search"
                 name="search"
                 placeholder="Ví dụ: biển, Đà Nẵng, nghỉ dưỡng"
-                className="h-11 w-full rounded-xl border border-white/30 bg-white/10 px-3 text-sm text-white placeholder:text-slate-300 focus:border-teal-300 focus:outline-none"
+                className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:outline-none"
               />
             </div>
             <div>
-              <label htmlFor="hero-location" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-100">
+              <label htmlFor="hero-location" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
                 Điểm đến
               </label>
               <select
                 id="hero-location"
                 name="location"
                 defaultValue=""
-                className="h-11 w-full rounded-xl border border-white/30 bg-white/10 px-3 text-sm text-white focus:border-teal-300 focus:outline-none"
+                className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none"
               >
-                <option value="" className="text-slate-900">
-                  Tất cả điểm đến
-                </option>
+                <option value="">Tất cả điểm đến</option>
                 {featuredLocations.map((location) => (
-                  <option key={location.id} value={location.slug} className="text-slate-900">
+                  <option key={location.id} value={location.slug}>
                     {location.name}
                   </option>
                 ))}
@@ -117,7 +115,7 @@ export function HomeHero({ featuredLocations, stats }: HomeHeroProps) {
               <div>
                 <label
                   htmlFor="hero-min-price"
-                  className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-100"
+                  className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
                 >
                   Giá từ
                 </label>
@@ -126,13 +124,13 @@ export function HomeHero({ featuredLocations, stats }: HomeHeroProps) {
                   name="minPrice"
                   type="number"
                   placeholder="1000000"
-                  className="h-11 w-full rounded-xl border border-white/30 bg-white/10 px-3 text-sm text-white placeholder:text-slate-300 focus:border-teal-300 focus:outline-none"
+                  className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:outline-none"
                 />
               </div>
               <div>
                 <label
                   htmlFor="hero-max-price"
-                  className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-100"
+                  className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
                 >
                   Đến
                 </label>
@@ -141,7 +139,7 @@ export function HomeHero({ featuredLocations, stats }: HomeHeroProps) {
                   name="maxPrice"
                   type="number"
                   placeholder="5000000"
-                  className="h-11 w-full rounded-xl border border-white/30 bg-white/10 px-3 text-sm text-white placeholder:text-slate-300 focus:border-teal-300 focus:outline-none"
+                  className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -154,4 +152,3 @@ export function HomeHero({ featuredLocations, stats }: HomeHeroProps) {
     </section>
   );
 }
-
