@@ -1,11 +1,8 @@
-import Image from "next/image";
-import Link from "next/link";
-import { List, ListFilter, MapPin } from "lucide-react";
+﻿import Link from "next/link";
+import { Grid3X3, List, ListFilter, MapPin, Sparkles } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
-import { PageHeroBanner } from "@/components/common/page-hero-banner";
 import { SafeImage } from "@/components/common/safe-image";
-import { HomeSectionHeading } from "@/components/home/home-section-heading";
 import { getLocations } from "@/lib/db/public-queries";
 
 export const dynamic = "force-dynamic";
@@ -140,43 +137,43 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
   const clearFiltersHref = buildGalleryHref(state, { location: "", page: 1 });
   const buildPageHref = (page: number) => buildGalleryHref(state, { page });
 
-  const spotlightLocations = location
-    ? locations
-        .filter((item) => item.slug === location)
-        .concat(locations.filter((item) => item.slug !== location))
-        .slice(0, 6)
-    : locations.slice(0, 6);
-
   return (
     <div className="space-y-10 pb-24 lg:pb-0">
-      <PageHeroBanner
-        eyebrow="Thư viện"
-        title="Việt Nam qua lăng kính cảm xúc"
-        description={
-          selectedLocationName
-            ? `Khám phá bộ ảnh điểm đến ${selectedLocationName} và lên kế hoạch hành trình theo góc nhìn trực quan.`
-            : "Thư viện hình ảnh giúp bạn cảm nhận rõ hơn vẻ đẹp của từng điểm đến trước khi lên lịch trình."
-        }
-        videoSrc="/immerse-vietnam/videos/blogcover.mp4"
-      />
+      <section className="overflow-hidden rounded-3xl border bg-[radial-gradient(circle_at_top,_#1e3a8a_0%,_#0f172a_40%,_#020617_100%)] p-7 text-white md:p-10">
+        <p className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
+          <Sparkles className="h-3.5 w-3.5" />
+          Thư viện hình ảnh
+        </p>
+        <h1 className="mt-4 max-w-3xl text-3xl font-black leading-tight md:text-5xl">
+          Khoảnh khắc du lịch Việt Nam qua từng khung hình
+        </h1>
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-200 md:text-base">
+          {selectedLocationName
+            ? `Bạn đang xem bộ ảnh theo địa điểm ${selectedLocationName}. Chọn địa điểm khác để khám phá thêm góc nhìn mới.`
+            : "Bộ sưu tập ảnh được tổng hợp từ điểm đến nổi bật, giúp bạn hình dung rõ trải nghiệm trước khi đặt tour."}
+        </p>
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <article className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur">
+            <p className="text-xs uppercase tracking-[0.14em] text-cyan-200">Tổng ảnh</p>
+            <p className="mt-2 text-2xl font-black">{filteredEntries.length}</p>
+          </article>
+          <article className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur">
+            <p className="text-xs uppercase tracking-[0.14em] text-cyan-200">Điểm đến</p>
+            <p className="mt-2 text-2xl font-black">{locationOptions.length}</p>
+          </article>
+          <article className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur">
+            <p className="text-xs uppercase tracking-[0.14em] text-cyan-200">Trang hiện tại</p>
+            <p className="mt-2 text-2xl font-black">{currentPage}/{totalPages}</p>
+          </article>
+        </div>
+      </section>
 
       <section className="space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <HomeSectionHeading
-            eyebrow="Khoảnh khắc"
-            title="Bộ sưu tập hình ảnh du lịch"
-            description={`Hiển thị ${visibleEntries.length}/${filteredEntries.length} ảnh trên trang ${currentPage}/${totalPages}.`}
-          />
-          <Link href="/dia-diem" className="iv-btn-soft inline-flex h-10 items-center px-4 text-sm font-semibold">
-            Xem điểm đến
-          </Link>
-        </div>
-
         <div id="bo-loc-thu-vien" className="scroll-mt-24" />
         <form className="iv-card p-4">
           <input type="hidden" name="page" value="1" />
           <label htmlFor="gallery-location" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-            Lọc ảnh theo điểm đến
+            Lọc thư viện theo địa điểm
           </label>
           <div className="grid gap-2 md:grid-cols-[1fr_auto_auto]">
             <select
@@ -185,7 +182,7 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
               defaultValue={location}
               className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
             >
-              <option value="">Tất cả điểm đến</option>
+              <option value="">Tất cả địa điểm</option>
               {locationOptions.map((item) => (
                 <option key={item.slug} value={item.slug}>
                   {item.name}
@@ -218,7 +215,7 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
             >
               Tất cả
             </Link>
-            {locationOptions.slice(0, 8).map((item) => (
+            {locationOptions.slice(0, 10).map((item) => (
               <Link
                 key={item.slug}
                 href={buildGalleryHref(state, { location: item.slug, page: 1 })}
@@ -231,111 +228,112 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
                 {item.name}
               </Link>
             ))}
-            {hasActiveFilters ? (
-              <Link
-                href={clearFiltersHref}
-                className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
-              >
-                Xóa lọc nhanh
-              </Link>
-            ) : null}
           </div>
         ) : null}
-
-        <div id="ket-qua-thu-vien" className="scroll-mt-24" />
-        {visibleEntries.length ? (
-          <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {visibleEntries.map((item, index) => (
-                <article key={`${item.src}-${index}`} className="group iv-card overflow-hidden">
-                  <div className="relative h-64">
-                    <Image
-                      src={item.src}
-                      alt={`Ảnh du lịch Việt Nam ${index + 1}`}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                    />
-                  </div>
-                </article>
-              ))}
-            </div>
-
-            {totalPages > 1 ? (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
-                <p className="text-slate-600">
-                  Trang <span className="font-semibold text-slate-900">{currentPage}</span> / {totalPages}
-                </p>
-                <div className="flex items-center gap-2">
-                  {currentPage > 1 ? (
-                    <Link
-                      href={buildPageHref(currentPage - 1)}
-                      className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
-                    >
-                      Trang trước
-                    </Link>
-                  ) : (
-                    <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
-                      Trang trước
-                    </span>
-                  )}
-                  {currentPage < totalPages ? (
-                    <Link
-                      href={buildPageHref(currentPage + 1)}
-                      className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
-                    >
-                      Trang sau
-                    </Link>
-                  ) : (
-                    <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
-                      Trang sau
-                    </span>
-                  )}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        ) : galleryEntries.length ? (
-          <EmptyState
-            title="Không có ảnh phù hợp"
-            description="Hãy thử chọn điểm đến khác để xem thêm hình ảnh."
-            ctaHref={clearFiltersHref}
-            ctaLabel="Xóa bộ lọc"
-          />
-        ) : (
-          <EmptyState
-            title="Chưa có ảnh hiển thị"
-            description="Hiện chưa có dữ liệu ảnh từ hệ thống."
-            ctaHref="/dia-diem"
-            ctaLabel="Xem điểm đến"
-          />
-        )}
       </section>
 
-      <section className="space-y-5">
-        <HomeSectionHeading
-          eyebrow="Địa điểm nổi bật"
-          title="Điểm đến đang được quan tâm"
-          description="Danh sách địa điểm được cập nhật từ dữ liệu hệ thống để đảm bảo luôn nhất quán."
-        />
+      <div id="ket-qua-thu-vien" className="scroll-mt-24" />
+      {visibleEntries.length ? (
+        <section className="space-y-4">
+          <article className="rounded-xl border bg-card px-4 py-3 text-sm text-muted-foreground">
+            Hiển thị <span className="font-semibold text-foreground">{visibleEntries.length}</span> /{" "}
+            <span className="font-semibold text-foreground">{filteredEntries.length}</span> ảnh.
+          </article>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {spotlightLocations.map((location) => (
-            <article key={location.id} className="iv-card overflow-hidden">
-              <Link href={`/dia-diem/${location.slug}`} className="group block">
-                <div className="relative h-56">
+          <div className="columns-1 gap-4 sm:columns-2 xl:columns-3">
+            {visibleEntries.map((item, index) => (
+              <article key={`${item.src}-${index}`} className="group mb-4 break-inside-avoid overflow-hidden rounded-2xl border bg-card shadow-sm">
+                <div className={`relative ${index % 3 === 0 ? "h-[360px]" : index % 2 === 0 ? "h-[300px]" : "h-[260px]"}`}>
                   <SafeImage
-                    src={location.imageUrl}
-                    alt={location.name}
+                    src={item.src}
+                    alt={`Ảnh du lịch ${item.locationName || "Việt Nam"}`}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 768px) 100vw, 33vw"
                   />
                 </div>
-                <div className="space-y-2 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">{location.provinceOrCity}</p>
-                  <h3 className="text-xl font-bold tracking-tight text-slate-900">{location.name}</h3>
-                  <p className="line-clamp-3 text-sm leading-7 text-slate-600">{location.shortDescription}</p>
+                <div className="flex items-center justify-between p-3 text-xs text-slate-600">
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5 text-teal-600" />
+                    {item.locationName || "Việt Nam"}
+                  </span>
+                  <span>#{index + 1 + (currentPage - 1) * pageSize}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          {totalPages > 1 ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+              <p className="text-slate-600">
+                Trang <span className="font-semibold text-slate-900">{currentPage}</span> / {totalPages}
+              </p>
+              <div className="flex items-center gap-2">
+                {currentPage > 1 ? (
+                  <Link
+                    href={buildPageHref(currentPage - 1)}
+                    className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
+                  >
+                    Trang trước
+                  </Link>
+                ) : (
+                  <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
+                    Trang trước
+                  </span>
+                )}
+                {currentPage < totalPages ? (
+                  <Link
+                    href={buildPageHref(currentPage + 1)}
+                    className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
+                  >
+                    Trang sau
+                  </Link>
+                ) : (
+                  <span className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 font-medium text-slate-400">
+                    Trang sau
+                  </span>
+                )}
+              </div>
+            </div>
+          ) : null}
+        </section>
+      ) : galleryEntries.length ? (
+        <EmptyState
+          title="Không có ảnh phù hợp"
+          description="Hãy thử chọn địa điểm khác hoặc xóa bộ lọc để xem toàn bộ thư viện."
+          ctaHref={clearFiltersHref}
+          ctaLabel="Xóa bộ lọc"
+        />
+      ) : (
+        <EmptyState
+          title="Chưa có ảnh hiển thị"
+          description="Hiện chưa có dữ liệu ảnh từ hệ thống."
+          ctaHref="/dia-diem"
+          ctaLabel="Xem điểm đến"
+        />
+      )}
+
+      <section className="space-y-5">
+        <div className="flex items-center gap-2">
+          <Grid3X3 className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-bold">Điểm đến nổi bật trong thư viện</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {locations.slice(0, 6).map((item) => (
+            <article key={item.id} className="iv-card overflow-hidden">
+              <Link href={`/dia-diem/${item.slug}`} className="group block">
+                <div className="relative h-52">
+                  <SafeImage
+                    src={item.imageUrl}
+                    alt={item.name}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                </div>
+                <div className="space-y-1.5 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal-700">{item.provinceOrCity}</p>
+                  <h3 className="text-lg font-bold text-slate-900">{item.name}</h3>
                 </div>
               </Link>
             </article>
@@ -353,3 +351,4 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
     </div>
   );
 }
+
