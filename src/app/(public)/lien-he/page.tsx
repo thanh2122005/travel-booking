@@ -1,4 +1,5 @@
-﻿import { Clock3, Mail, MapPin, Phone, ShieldCheck, Sparkles } from "lucide-react";
+﻿import Image from "next/image";
+import { Clock3, Mail, MapPin, Phone, ShieldCheck, Sparkles } from "lucide-react";
 import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { ContactInquiryForm } from "@/components/contact/contact-inquiry-form";
 import { getContactTourOptions } from "@/lib/db/public-queries";
@@ -66,23 +67,42 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
 
   return (
     <div className="space-y-10 pb-24 lg:pb-0">
-      <section className="overflow-hidden rounded-3xl border bg-[linear-gradient(135deg,#0f172a_0%,#0f766e_50%,#1e3a8a_100%)] p-7 text-white md:p-10">
-        <p className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-teal-100">
-          <Mail className="h-3.5 w-3.5" />
-          Liên hệ tư vấn
-        </p>
-        <h1 className="mt-4 text-3xl font-black leading-tight md:text-5xl">Kết nối với đội ngũ chuyên gia du lịch</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-200 md:text-base">
-          Chia sẻ nhu cầu của bạn để nhận gợi ý tour phù hợp nhất theo lịch trình, ngân sách và phong cách du lịch.
-        </p>
-        <div className="mt-6 grid gap-3 md:grid-cols-3">
-          {supportHighlights.map((item) => (
-            <article key={item.title} className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur">
-              <item.icon className="h-5 w-5 text-teal-100" />
-              <h3 className="mt-3 text-base font-semibold">{item.title}</h3>
-              <p className="mt-1 text-sm text-slate-200">{item.description}</p>
-            </article>
-          ))}
+      <section className="overflow-hidden rounded-3xl border bg-card">
+        <div className="grid gap-6 p-6 md:p-8 lg:grid-cols-[1.15fr_0.85fr]">
+          <article className="space-y-4">
+            <p className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">
+              <Mail className="h-3.5 w-3.5" />
+              Liên hệ tư vấn
+            </p>
+            <h1 className="text-3xl font-black leading-tight md:text-5xl">Kết nối với đội ngũ chuyên gia du lịch</h1>
+            <p className="max-w-2xl text-sm leading-7 text-slate-600 md:text-base">
+              Chúng tôi hỗ trợ bạn chọn tour theo nhu cầu thực tế, tránh lãng phí thời gian và tối ưu trải nghiệm ngay từ bước tư vấn.
+            </p>
+            <div className="grid gap-3 md:grid-cols-3">
+              {supportHighlights.map((item) => (
+                <article key={item.title} className="rounded-2xl border bg-slate-50 p-4">
+                  <item.icon className="h-5 w-5 text-teal-600" />
+                  <h3 className="mt-2 text-sm font-semibold">{item.title}</h3>
+                  <p className="mt-1 text-xs leading-6 text-slate-600">{item.description}</p>
+                </article>
+              ))}
+            </div>
+          </article>
+
+          <article className="relative min-h-[260px] overflow-hidden rounded-2xl border">
+            <Image
+              src="/immerse-vietnam/images/DaNang/DaNang.jpg"
+              alt="Tư vấn du lịch"
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 35vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+            <div className="absolute bottom-4 left-4 right-4 rounded-xl bg-white/95 p-3 backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal-700">Chuyên viên tư vấn</p>
+              <p className="mt-1 text-sm text-slate-700">Luôn đồng hành từ lúc chọn tour đến khi hoàn tất chuyến đi.</p>
+            </div>
+          </article>
         </div>
       </section>
 
