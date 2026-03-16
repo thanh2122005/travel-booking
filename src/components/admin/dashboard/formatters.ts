@@ -17,3 +17,4 @@ export function deltaToneClass(tone: "up" | "down" | "flat") {
   if (tone === "down") return "text-rose-600";
   return "text-slate-500";
 }
+

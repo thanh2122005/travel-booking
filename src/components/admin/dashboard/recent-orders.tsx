@@ -16,7 +16,7 @@ const paymentBadgeTone: Record<PaymentStatus, string> = {
 };
 
 const bookingBadgeTone: Record<BookingStatus, string> = {
-  PENDING: "border-slate-300 bg-slate-100 text-slate-700",
+  PENDING: "border-slate-300 bg-slate-100 text-slate-600",
   CONFIRMED: "border-cyan-200 bg-cyan-50 text-cyan-700",
   CANCELLED: "border-rose-200 bg-rose-50 text-rose-700",
   COMPLETED: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -26,7 +26,7 @@ export function RecentOrders({ items, bookingStatusLabels, paymentStatusLabels }
   return (
     <article className="iv-card rounded-2xl border-slate-200 bg-white p-5">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="text-base font-semibold text-slate-700">Đơn đặt gần đây</h3>
+        <h3 className="text-base font-semibold text-slate-600">Đơn đặt gần đây</h3>
         <Link href="/admin/bookings" className="text-xs font-semibold text-cyan-700 hover:text-cyan-800">
           Xem tất cả
         </Link>
@@ -37,11 +37,11 @@ export function RecentOrders({ items, bookingStatusLabels, paymentStatusLabels }
           {items.slice(0, 7).map((booking) => (
             <article key={booking.id} className="rounded-xl border border-slate-200 bg-white p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-medium text-slate-700">{booking.bookingCode}</p>
-                <p className="text-sm font-semibold text-slate-700">{formatPrice(booking.totalPrice)}</p>
+                <p className="text-sm font-medium text-slate-600">{booking.bookingCode}</p>
+                <p className="text-sm font-semibold text-slate-600">{formatPrice(booking.totalPrice)}</p>
               </div>
 
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-slate-600">
                 {booking.fullName} • {formatDate(booking.createdAt)}
               </p>
               <Link href={`/tours/${booking.tour.slug}`} className="mt-1 block truncate text-sm text-cyan-700 hover:text-cyan-800">
@@ -56,10 +56,12 @@ export function RecentOrders({ items, bookingStatusLabels, paymentStatusLabels }
           ))}
         </div>
       ) : (
-        <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+        <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-600">
           Chưa có đơn đặt mới.
         </p>
       )}
     </article>
   );
 }
+
+

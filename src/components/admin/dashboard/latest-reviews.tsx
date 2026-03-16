@@ -18,7 +18,7 @@ export function LatestReviews({ items }: LatestReviewsProps) {
   return (
     <article className="iv-card rounded-2xl border-slate-200 bg-white p-5">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="text-base font-semibold text-slate-700">Đánh giá mới nhất</h3>
+        <h3 className="text-base font-semibold text-slate-600">Đánh giá mới nhất</h3>
         <Link href="/admin/reviews" className="text-xs font-semibold text-cyan-700 hover:text-cyan-800">
           Xem tất cả
         </Link>
@@ -29,7 +29,7 @@ export function LatestReviews({ items }: LatestReviewsProps) {
           {items.slice(0, 7).map((review) => (
             <article key={review.id} className="rounded-xl border border-slate-200 bg-white p-3">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium text-slate-700">{review.user.fullName}</p>
+                <p className="text-sm font-medium text-slate-600">{review.user.fullName}</p>
                 <p className="text-xs text-slate-500">{formatDate(review.createdAt)}</p>
               </div>
 
@@ -42,10 +42,12 @@ export function LatestReviews({ items }: LatestReviewsProps) {
           ))}
         </div>
       ) : (
-        <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+        <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-600">
           Chưa có đánh giá mới.
         </p>
       )}
     </article>
   );
 }
+
+

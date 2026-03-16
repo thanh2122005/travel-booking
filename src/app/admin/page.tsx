@@ -259,7 +259,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           <>
             <Link
               href="/admin/bookings"
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-500 transition hover:bg-slate-50"
             >
               Quản lý đơn
             </Link>
@@ -295,7 +295,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 className={`inline-flex h-8 items-center rounded-lg border px-3 text-xs font-semibold transition ${
                   active
                     ? "border-cyan-600 bg-cyan-600 text-white"
-                    : "border-slate-300 text-slate-600 hover:bg-slate-50"
+                    : "border-slate-300 text-slate-500 hover:bg-slate-50"
                 }`}
               >
                 {option.label}
@@ -318,7 +318,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           <select
             name="granularity"
             defaultValue={data.timelineGranularity}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 focus:border-cyan-500 focus:outline-none"
+            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-500 focus:border-cyan-500 focus:outline-none"
           >
             <option value="day">Theo ngày</option>
             <option value="week">Theo tuần</option>
@@ -328,13 +328,13 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             type="date"
             name="startDate"
             defaultValue={startDate || toInputDateValue(data.timelineStartDate)}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 focus:border-cyan-500 focus:outline-none"
+            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-500 focus:border-cyan-500 focus:outline-none"
           />
           <input
             type="date"
             name="endDate"
             defaultValue={endDate || toInputDateValue(data.timelineEndDate)}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 focus:border-cyan-500 focus:outline-none"
+            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-500 focus:border-cyan-500 focus:outline-none"
           />
           <button type="submit" className="iv-btn-primary inline-flex h-10 items-center justify-center px-4 text-sm font-medium">
             Áp dụng
@@ -386,5 +386,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     </div>
   );
 }
+
 
 

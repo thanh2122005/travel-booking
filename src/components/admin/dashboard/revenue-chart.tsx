@@ -97,7 +97,7 @@ export function RevenueChart({ timeline, granularity, startDateLabel, endDateLab
   if (!rows.length) {
     return (
       <article className="iv-card rounded-2xl border-slate-200 bg-white p-5">
-        <h2 className="text-lg font-semibold text-slate-700">Doanh thu và đơn đặt theo thời gian</h2>
+        <h2 className="text-lg font-semibold text-slate-600">Doanh thu và đơn đặt theo thời gian</h2>
         <p className="mt-2 text-sm text-slate-500">Chưa có dữ liệu cho khoảng thời gian này.</p>
       </article>
     );
@@ -141,7 +141,7 @@ export function RevenueChart({ timeline, granularity, startDateLabel, endDateLab
     <article className="iv-card rounded-2xl border-slate-200 bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-700">Doanh thu và đơn đặt theo thời gian</h2>
+          <h2 className="text-lg font-semibold text-slate-600">Doanh thu và đơn đặt theo thời gian</h2>
           <p className="mt-1 text-sm text-slate-500">
             Theo {granularityLabel[granularity]} từ {startDateLabel} đến {endDateLabel}
           </p>
@@ -260,17 +260,19 @@ export function RevenueChart({ timeline, granularity, startDateLabel, endDateLab
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <article className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">Tổng đơn</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-700">{formatCompactNumber(totalBookings)}</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-600">{formatCompactNumber(totalBookings)}</p>
         </article>
         <article className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">Tổng doanh thu</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-700">{formatPrice(totalRevenue)}</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-600">{formatPrice(totalRevenue)}</p>
         </article>
         <article className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">Mốc dữ liệu</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-700">{formatCompactNumber(rows.length)}</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-600">{formatCompactNumber(rows.length)}</p>
         </article>
       </div>
     </article>
   );
 }
+
+

@@ -10,7 +10,7 @@ export function TopToursTable({ items }: TopToursTableProps) {
   return (
     <section className="iv-card rounded-2xl border-slate-200 bg-white p-5">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h2 className="text-base font-semibold text-slate-700">Top tour doanh thu</h2>
+        <h2 className="text-base font-semibold text-slate-600">Top tour doanh thu</h2>
         <Link href="/admin/tours" className="text-xs font-semibold text-cyan-700 hover:text-cyan-800">
           Quản lý tour
         </Link>
@@ -36,13 +36,13 @@ export function TopToursTable({ items }: TopToursTableProps) {
                 return (
                   <tr key={tour.tourId} className="border-b border-slate-100 last:border-0">
                     <td className="px-2 py-2.5">
-                      <Link href={`/tours/${tour.slug}`} className="font-medium text-slate-700 hover:text-cyan-700">
+                      <Link href={`/tours/${tour.slug}`} className="font-medium text-slate-600 hover:text-cyan-700">
                         {tour.title}
                       </Link>
                     </td>
-                    <td className="px-2 py-2.5 text-slate-600">{tour.confirmedBookings}</td>
-                    <td className="px-2 py-2.5 text-slate-600">{paymentRate}%</td>
-                    <td className="px-2 py-2.5 font-semibold text-slate-700">{formatPrice(tour.confirmedRevenue)}</td>
+                    <td className="px-2 py-2.5 text-slate-500">{tour.confirmedBookings}</td>
+                    <td className="px-2 py-2.5 text-slate-500">{paymentRate}%</td>
+                    <td className="px-2 py-2.5 font-semibold text-slate-600">{formatPrice(tour.confirmedRevenue)}</td>
                   </tr>
                 );
               })}
@@ -57,3 +57,5 @@ export function TopToursTable({ items }: TopToursTableProps) {
     </section>
   );
 }
+
+
