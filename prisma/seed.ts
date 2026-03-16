@@ -1,5 +1,6 @@
-import {
+﻿import {
   BookingStatus,
+  InquiryStatus,
   PaymentStatus,
   PrismaClient,
   TourStatus,
@@ -24,14 +25,58 @@ const bookingStatuses: BookingStatus[] = [
   BookingStatus.CANCELLED,
 ];
 
+const consultationMessages = [
+  "Mình cần lịch trình nhẹ nhàng cho gia đình có trẻ nhỏ.",
+  "Tư vấn giúp gói tour trăng mật 4 ngày 3 đêm, ưu tiên resort đẹp.",
+  "Nhóm mình 6 người muốn tour trải nghiệm ẩm thực địa phương.",
+  "Cho mình phương án tour kết hợp nghỉ dưỡng và check-in cảnh đẹp.",
+  "Mình cần tour có xe đưa đón sân bay và khách sạn trung tâm.",
+  "Tư vấn giúp tour phù hợp ngân sách khoảng 5 triệu/người.",
+  "Bên mình muốn tour team building, cần lịch trình linh hoạt.",
+  "Mình cần tour đi cuối tuần, khởi hành từ TP.HCM.",
+];
+
+const newsletterSampleEmails = [
+  "ngoclinh.travel@gmail.com",
+  "huynhbao.booking@gmail.com",
+  "lananh.explore@gmail.com",
+  "quocviet.trips@gmail.com",
+  "trangpham.vietnam@gmail.com",
+  "minhthu.weekend@gmail.com",
+  "hoangnam.tour@gmail.com",
+  "myduyen.plan@gmail.com",
+  "vinhnguyen.go@gmail.com",
+  "lethao.travelnote@gmail.com",
+  "phuonganh.vacation@gmail.com",
+  "ducanh.route@gmail.com",
+];
+
 const getTourPrice = (tour: { price: number; discountPrice: number | null }) =>
   tour.discountPrice ?? tour.price;
+
 const bookingCode = (index: number) => `TB2026${String(index + 1).padStart(5, "0")}`;
+const inquiryCode = (index: number) => `TV2026${String(index + 1).padStart(5, "0")}`;
+
+function daysAgo(days: number, hour = 9, minute = 0) {
+  const value = new Date();
+  value.setDate(value.getDate() - days);
+  value.setHours(hour, minute, 0, 0);
+  return value;
+}
+
+function daysAhead(days: number, hour = 8, minute = 0) {
+  const value = new Date();
+  value.setDate(value.getDate() + days);
+  value.setHours(hour, minute, 0, 0);
+  return value;
+}
 
 async function main() {
   await prisma.favorite.deleteMany();
   await prisma.review.deleteMany();
   await prisma.booking.deleteMany();
+  await prisma.contactInquiry.deleteMany();
+  await prisma.newsletterSubscriber.deleteMany();
   await prisma.itinerary.deleteMany();
   await prisma.tourImage.deleteMany();
   await prisma.tour.deleteMany();
@@ -112,6 +157,7 @@ async function main() {
     data: catalogTours.flatMap((tour) => {
       const currentTour = tourMap.get(tour.slug);
       if (!currentTour) return [];
+
       const baseGallery = Array.from(new Set([tour.featuredImage, ...tour.gallery].filter(Boolean)));
       const locationGallery = (locationGalleryMap.get(tour.locationSlug) ?? []).filter(
         (image) => !baseGallery.includes(image),
@@ -130,12 +176,13 @@ async function main() {
     data: catalogTours.flatMap((tour) => {
       const currentTour = tourMap.get(tour.slug);
       if (!currentTour) return [];
+
       return Array.from({ length: tour.durationDays }).map((_, index) => ({
         tourId: currentTour.id,
         dayNumber: index + 1,
         title: tour.itineraryTitles[index] ?? `Ngày ${index + 1}`,
         description:
-          "Lịch trình tham quan, ăn uống và nghỉ ngơi được tối ưu theo từng nhóm khách.",
+          "Lịch trình được tối ưu theo nhịp di chuyển thực tế, cân bằng giữa tham quan, trải nghiệm và nghỉ ngơi.",
       }));
     }),
   });
@@ -144,10 +191,9 @@ async function main() {
     where: { role: UserRole.USER },
     orderBy: { email: "asc" },
   });
-
   const activeTours = tours.filter((tour) => tour.status === TourStatus.ACTIVE);
 
-  const bookingCount = Math.max(180, activeTours.length * 8);
+  const bookingCount = Math.max(220, activeTours.length * 12);
   await prisma.booking.createMany({
     data: Array.from({ length: bookingCount }).map((_, index) => {
       const user = users[index % users.length]!;
@@ -159,6 +205,8 @@ async function main() {
           ? PaymentStatus.PAID
           : PaymentStatus.UNPAID;
 
+      const createdAt = daysAgo((index * 2) % 340, 8 + (index % 10), (index * 7) % 60);
+
       return {
         bookingCode: bookingCode(index),
         userId: user.id,
@@ -167,12 +215,14 @@ async function main() {
         email: user.email,
         phone: user.phone ?? "0909009999",
         numberOfGuests: guests,
-        note: "Ưu tiên ghế gần nhau và hỗ trợ check-in nhanh.",
+        note: "Ưu tiên chỗ ngồi gần nhau, hỗ trợ check-in sớm nếu có thể.",
         totalPrice: getTourPrice(tour) * guests,
         status,
         paymentMethod: "Chuyển khoản ngân hàng",
         paymentStatus,
-        departureDate: new Date(2026, index % 12, 8 + (index % 18)),
+        departureDate: daysAhead((index % 120) + 7, 7, 30),
+        createdAt,
+        updatedAt: createdAt,
       };
     }),
   });
@@ -183,6 +233,8 @@ async function main() {
     rating: number;
     comment: string;
     isVisible: boolean;
+    createdAt: Date;
+    updatedAt: Date;
   }[] = [];
   const reviewPairSet = new Set<string>();
 
@@ -192,17 +244,19 @@ async function main() {
     for (let round = 0; round < 4; round += 1) {
       const tour = activeTours[(userIndex * 3 + round * 7) % activeTours.length]!;
       const pairKey = `${user.id}_${tour.id}`;
-      if (reviewPairSet.has(pairKey)) {
-        continue;
-      }
+      if (reviewPairSet.has(pairKey)) continue;
       reviewPairSet.add(pairKey);
+
+      const createdAt = daysAgo((userIndex * 11 + round * 5) % 260, 10, 15);
 
       reviewData.push({
         userId: user.id,
         tourId: tour.id,
         rating: 5 - ((userIndex + round) % 3),
         comment: catalogReviewComments[(userIndex + round) % catalogReviewComments.length]!,
-        isVisible: (userIndex + round) % 6 !== 0,
+        isVisible: (userIndex + round) % 7 !== 0,
+        createdAt,
+        updatedAt: createdAt,
       });
     }
   }
@@ -213,6 +267,7 @@ async function main() {
   const favoritePairSet = new Set<string>();
   for (let userIndex = 0; userIndex < users.length; userIndex += 1) {
     const user = users[userIndex]!;
+
     for (let offset = 0; offset < 6; offset += 1) {
       const tour = activeTours[(userIndex * 3 + offset * 11) % activeTours.length]!;
       const pairKey = `${user.id}_${tour.id}`;
@@ -227,9 +282,42 @@ async function main() {
     skipDuplicates: true,
   });
 
+  const inquiryCount = 20;
+  await prisma.contactInquiry.createMany({
+    data: Array.from({ length: inquiryCount }).map((_, index) => {
+      const user = users[(index * 2) % users.length]!;
+      const tour = activeTours[(index * 5) % activeTours.length]!;
+      const createdAt = daysAgo((index * 4) % 180, 9 + (index % 5), 20);
+      const isResolved = index % 3 === 0;
+
+      return {
+        referenceCode: inquiryCode(index),
+        fullName: user.fullName,
+        phone: user.phone ?? "0909555666",
+        email: user.email,
+        tourId: tour.id,
+        departureDate: daysAhead((index % 90) + 10, 8, 0),
+        numberOfGuests: (index % 5) + 1,
+        message: consultationMessages[index % consultationMessages.length]!,
+        status: isResolved ? InquiryStatus.RESOLVED : InquiryStatus.PENDING,
+        createdAt,
+        updatedAt: createdAt,
+      };
+    }),
+  });
+
+  await prisma.newsletterSubscriber.createMany({
+    data: newsletterSampleEmails.map((email, index) => ({
+      email,
+      createdAt: daysAgo((index + 1) * 3, 7 + (index % 4), 5),
+    })),
+    skipDuplicates: true,
+  });
+
   console.log("Seed thành công.");
   console.log(`Điểm đến: ${locations.length} | Tour: ${tours.length} | Booking: ${bookingCount}`);
   console.log(`Review: ${reviewData.length} | Favorite: ${favoriteData.length}`);
+  console.log(`Tư vấn: ${inquiryCount} | Newsletter: ${newsletterSampleEmails.length}`);
   console.log("Admin: admin@example.com / Admin@123");
   console.log("User mẫu: user1@example.com / 12345678");
 }
