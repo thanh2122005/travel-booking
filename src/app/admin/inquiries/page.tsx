@@ -1,4 +1,4 @@
-﻿import { InquiryStatus } from "@prisma/client";
+import { InquiryStatus } from "@prisma/client";
 import Link from "next/link";
 import { AdminInquiriesTable } from "@/components/admin/admin-inquiries-table";
 import { EmptyState } from "@/components/common/empty-state";
@@ -178,7 +178,7 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
             </Link>
           ) : null}
         </div>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
           <input
             id="search"
             name="search"
