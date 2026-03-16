@@ -695,6 +695,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 </Link>
               );
             })}
+            {hasBookingFilters ? (
+              <Link
+                href={clearBookingHref}
+                className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+              >
+                {"X\u00f3a l\u1ecdc nhanh"}
+              </Link>
+            ) : null}
           </div>
           <div className="grid gap-2 xl:grid-cols-[1fr_170px_170px_170px_170px_auto_auto]">
             <input
@@ -992,6 +1000,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 </Link>
               );
             })}
+            {hasFavoriteFilters ? (
+              <Link
+                href={clearFavoriteHref}
+                className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+              >
+                {"X\u00f3a l\u1ecdc nhanh"}
+              </Link>
+            ) : null}
           </div>
           <div className="grid gap-2 xl:grid-cols-[1fr_220px_170px_170px_auto_auto]">
             <input
@@ -1161,6 +1177,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 </Link>
               );
             })}
+            {hasReviewFilters ? (
+              <Link
+                href={clearReviewHref}
+                className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+              >
+                {"X\u00f3a l\u1ecdc nhanh"}
+              </Link>
+            ) : null}
           </div>
           <div className="grid gap-2 xl:grid-cols-[1fr_160px_180px_170px_170px_auto_auto]">
             <input
