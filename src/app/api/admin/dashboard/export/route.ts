@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { getAdminDashboardData } from "@/lib/db/admin-queries";
 import { toCsv } from "@/lib/utils/csv";
@@ -44,6 +44,16 @@ function formatPrice(value: number) {
 
 function formatRate(value: number) {
   return `${(value * 100).toFixed(1)}%`;
+}
+
+function formatRatePointDelta(value: number) {
+  return `${Math.abs(value * 100).toFixed(1)} \u0111i\u1ec3m %`;
+}
+
+function formatSigned(value: number, formatter: (input: number) => string) {
+  if (value === 0) return formatter(0);
+  const sign = value > 0 ? "+" : "-";
+  return `${sign}${formatter(Math.abs(value))}`;
 }
 
 function buildFileName(prefix: string) {
@@ -98,6 +108,10 @@ export async function GET(request: NextRequest) {
       "Khoảng thời gian",
       `${formatDate(data.timelineStartDate)} - ${formatDate(data.timelineEndDate)}`,
     ],
+    [
+      "Kỳ so sánh",
+      `${formatDate(data.previousTimelineStartDate)} - ${formatDate(data.previousTimelineEndDate)}`,
+    ],
     ["Độ chi tiết", getGranularityLabel(data.timelineGranularity)],
     [],
     ["KPI TRONG KỲ", "Giá trị"],
@@ -112,12 +126,51 @@ export async function GET(request: NextRequest) {
       formatPrice(data.timeRangeStats.averageConfirmedOrderValue),
     ],
     [],
+    ["SO SÁNH VỚI KỲ TRƯỚC"],
+    ["Chỉ số", "Kỳ hiện tại", "Kỳ trước", "Chênh lệch"],
+    [
+      "Đơn trong kỳ",
+      data.timeRangeStats.bookings,
+      data.previousTimeRangeStats.bookings,
+      formatSigned(
+        data.timeRangeStats.bookings - data.previousTimeRangeStats.bookings,
+        (input) => input.toString(),
+      ),
+    ],
+    [
+      "Doanh thu xác nhận",
+      formatPrice(data.timeRangeStats.confirmedRevenue),
+      formatPrice(data.previousTimeRangeStats.confirmedRevenue),
+      formatSigned(
+        data.timeRangeStats.confirmedRevenue - data.previousTimeRangeStats.confirmedRevenue,
+        formatPrice,
+      ),
+    ],
+    [
+      "Tỷ lệ xác nhận",
+      formatRate(data.timeRangeStats.confirmationRate),
+      formatRate(data.previousTimeRangeStats.confirmationRate),
+      formatSigned(
+        data.timeRangeStats.confirmationRate - data.previousTimeRangeStats.confirmationRate,
+        formatRatePointDelta,
+      ),
+    ],
+    [
+      "Tỷ lệ thanh toán",
+      formatRate(data.timeRangeStats.paymentRate),
+      formatRate(data.previousTimeRangeStats.paymentRate),
+      formatSigned(
+        data.timeRangeStats.paymentRate - data.previousTimeRangeStats.paymentRate,
+        formatRatePointDelta,
+      ),
+    ],
+    [],
     ["DIỄN BIẾN THEO MỐC THỜI GIAN"],
     ["Mốc thời gian", "Số đơn", "Doanh thu xác nhận"],
     ...data.bookingRevenueTimeline.map((item) => [item.label, item.bookings, item.confirmedRevenue]),
     [],
     ["TOP TOUR THEO DOANH THU XÁC NHẬN"],
-    ["#","Tour", "Đơn trong kỳ", "Đơn xác nhận", "Đã thanh toán", "Doanh thu xác nhận"],
+    ["#", "Tour", "Đơn trong kỳ", "Đơn xác nhận", "Đã thanh toán", "Doanh thu xác nhận"],
     ...data.topRevenueTours.map((tour, index) => [
       index + 1,
       tour.title,
