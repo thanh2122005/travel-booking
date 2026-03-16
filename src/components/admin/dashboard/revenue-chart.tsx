@@ -97,7 +97,7 @@ export function RevenueChart({ timeline, granularity, startDateLabel, endDateLab
   if (!rows.length) {
     return (
       <article className="iv-card rounded-2xl border-slate-200 bg-white p-5">
-        <h2 className="text-lg font-semibold text-slate-600">Doanh thu và đơn đặt theo thời gian</h2>
+        <h2 className="text-lg font-semibold text-slate-500">Doanh thu và đơn đặt theo thời gian</h2>
         <p className="mt-2 text-sm text-slate-500">Chưa có dữ liệu cho khoảng thời gian này.</p>
       </article>
     );
@@ -141,7 +141,7 @@ export function RevenueChart({ timeline, granularity, startDateLabel, endDateLab
     <article className="iv-card rounded-2xl border-slate-200 bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-600">Doanh thu và đơn đặt theo thời gian</h2>
+          <h2 className="text-lg font-semibold text-slate-500">Doanh thu và đơn đặt theo thời gian</h2>
           <p className="mt-1 text-sm text-slate-500">
             Theo {granularityLabel[granularity]} từ {startDateLabel} đến {endDateLabel}
           </p>
@@ -187,7 +187,7 @@ export function RevenueChart({ timeline, granularity, startDateLabel, endDateLab
               setShowBookings(true);
               setShowRevenue(true);
             }}
-            className="mt-3 inline-flex h-9 items-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+            className="mt-3 inline-flex h-9 items-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-500 transition hover:bg-slate-100"
           >
             Hiện lại biểu đồ
           </button>
@@ -249,7 +249,7 @@ export function RevenueChart({ timeline, granularity, startDateLabel, endDateLab
               className="pointer-events-none absolute z-10 min-w-48 -translate-x-1/2 -translate-y-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg"
               style={{ left: tooltipLeft, top: tooltipTop }}
             >
-              <p className="font-medium text-slate-600">{activeRow.label}</p>
+              <p className="font-medium text-slate-500">{activeRow.label}</p>
               <p className="mt-1 text-cyan-700">Đơn đặt: {formatCompactNumber(activeRow.bookings)}</p>
               <p className="mt-0.5 text-blue-700">Doanh thu: {formatPrice(activeRow.confirmedRevenue)}</p>
             </div>
@@ -260,19 +260,20 @@ export function RevenueChart({ timeline, granularity, startDateLabel, endDateLab
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <article className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">Tổng đơn</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-600">{formatCompactNumber(totalBookings)}</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-500">{formatCompactNumber(totalBookings)}</p>
         </article>
         <article className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">Tổng doanh thu</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-600">{formatPrice(totalRevenue)}</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-500">{formatPrice(totalRevenue)}</p>
         </article>
         <article className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">Mốc dữ liệu</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-600">{formatCompactNumber(rows.length)}</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-500">{formatCompactNumber(rows.length)}</p>
         </article>
       </div>
     </article>
   );
 }
+
 
 

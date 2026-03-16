@@ -26,7 +26,7 @@ export function StatusSummary({
 
   return (
     <article className="iv-card rounded-2xl border-slate-200 bg-white p-5">
-      <h3 className="text-base font-semibold text-slate-600">Tình trạng vận hành</h3>
+      <h3 className="text-base font-semibold text-slate-500">Tình trạng vận hành</h3>
 
       <div className="mt-4 space-y-5">
         <div>
@@ -36,7 +36,7 @@ export function StatusSummary({
               <div key={status}>
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <span>{bookingLabels[status]}</span>
-                  <span className="font-medium text-slate-600">{count}</span>
+                  <span className="font-medium text-slate-500">{count}</span>
                 </div>
                 <div className="mt-1 h-1.5 rounded-full bg-slate-100">
                   <div className="h-full rounded-full bg-cyan-500" style={{ width: `${ratio(count, bookingTotal)}%` }} />
@@ -53,7 +53,7 @@ export function StatusSummary({
               <div key={status}>
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <span>{paymentLabels[status]}</span>
-                  <span className="font-medium text-slate-600">{count}</span>
+                  <span className="font-medium text-slate-500">{count}</span>
                 </div>
                 <div className="mt-1 h-1.5 rounded-full bg-slate-100">
                   <div
@@ -69,5 +69,6 @@ export function StatusSummary({
     </article>
   );
 }
+
 
 

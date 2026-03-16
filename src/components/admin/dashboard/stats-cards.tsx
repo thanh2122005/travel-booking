@@ -24,7 +24,7 @@ export function StatsCards({ items }: StatsCardsProps) {
               </span>
             </div>
 
-            <p className="mt-2 text-3xl font-semibold leading-none text-slate-600">{item.value}</p>
+            <p className="mt-2 text-3xl font-semibold leading-none text-slate-500">{item.value}</p>
 
             {item.deltaText ? (
               <p className={`mt-2 inline-flex items-center gap-1 text-xs font-medium ${deltaToneClass(item.deltaTone ?? "flat")}`}>
@@ -41,5 +41,6 @@ export function StatsCards({ items }: StatsCardsProps) {
     </section>
   );
 }
+
 
 

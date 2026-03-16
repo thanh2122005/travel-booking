@@ -247,7 +247,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const periodLabel = `${formatDate(data.timelineStartDate)} - ${formatDate(data.timelineEndDate)}`;
 
   return (
-    <div className="space-y-5 pb-24 lg:pb-6">
+    <div className="space-y-5 pb-24 text-slate-500 lg:pb-6">
       <DashboardHeader
         periodLabel={periodLabel}
         quickStats={[
@@ -386,6 +386,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     </div>
   );
 }
+
 
 
 
