@@ -175,6 +175,19 @@ type DemoDashboardOptions = {
   endDate?: Date | string;
 };
 
+type DashboardRangeStats = {
+  bookings: number;
+  confirmedBookings: number;
+  paidBookings: number;
+  pendingBookings: number;
+  cancelledBookings: number;
+  completedBookings: number;
+  confirmedRevenue: number;
+  confirmationRate: number;
+  paymentRate: number;
+  averageConfirmedOrderValue: number;
+};
+
 const DEMO_DIR = path.join(process.cwd(), ".data");
 const DEMO_FILE = path.join(DEMO_DIR, "admin-demo.json");
 const DEMO_DATA_VERSION = 4;
@@ -681,6 +694,60 @@ function buildBookingRevenueTimeline(
   return rows;
 }
 
+function getPreviousTimelineRange(startDate: Date, endDate: Date) {
+  const rangeDuration = endDate.getTime() - startDate.getTime();
+  const previousEndDate = new Date(startDate.getTime() - 1);
+  const previousStartDate = new Date(previousEndDate.getTime() - rangeDuration);
+
+  return {
+    startDate: previousStartDate,
+    endDate: previousEndDate,
+  };
+}
+
+function summarizeDashboardRangeStats(
+  bookings: Array<{ status: BookingStatus; paymentStatus: PaymentStatus; totalPrice: number }>,
+): DashboardRangeStats {
+  const aggregated = bookings.reduce(
+    (acc, booking) => {
+      const isConfirmed =
+        booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED;
+      const isPaid = booking.paymentStatus === PaymentStatus.PAID;
+
+      return {
+        bookings: acc.bookings + 1,
+        confirmedBookings: acc.confirmedBookings + (isConfirmed ? 1 : 0),
+        paidBookings: acc.paidBookings + (isPaid ? 1 : 0),
+        pendingBookings: acc.pendingBookings + (booking.status === BookingStatus.PENDING ? 1 : 0),
+        cancelledBookings: acc.cancelledBookings + (booking.status === BookingStatus.CANCELLED ? 1 : 0),
+        completedBookings: acc.completedBookings + (booking.status === BookingStatus.COMPLETED ? 1 : 0),
+        confirmedRevenue: acc.confirmedRevenue + (isConfirmed ? booking.totalPrice : 0),
+      };
+    },
+    {
+      bookings: 0,
+      confirmedBookings: 0,
+      paidBookings: 0,
+      pendingBookings: 0,
+      cancelledBookings: 0,
+      completedBookings: 0,
+      confirmedRevenue: 0,
+    },
+  );
+
+  const bookingCount = aggregated.bookings;
+  const confirmedCount = aggregated.confirmedBookings;
+
+  return {
+    ...aggregated,
+    confirmationRate: bookingCount ? confirmedCount / bookingCount : 0,
+    paymentRate: bookingCount ? aggregated.paidBookings / bookingCount : 0,
+    averageConfirmedOrderValue: confirmedCount
+      ? Math.round(aggregated.confirmedRevenue / confirmedCount)
+      : 0,
+  };
+}
+
 export async function demoGetLocationOptions() {
   const state = await readDemo();
   return state.locations
@@ -693,6 +760,10 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
   const userMap = new Map(state.users.map((user) => [user.id, user]));
   const tourMap = new Map(state.tours.map((tour) => [tour.id, tour]));
   const timelineOptions = resolveDashboardOptions(options);
+  const previousTimelineOptions = getPreviousTimelineRange(
+    timelineOptions.startDate,
+    timelineOptions.endDate,
+  );
   const [inquiryData, newsletterData] = await Promise.all([
     demoGetContactInquiries({ page: 1, pageSize: 8 }),
     demoGetNewsletterSubscribers({ page: 1, pageSize: 8 }),
@@ -723,32 +794,12 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
     const createdAt = new Date(booking.createdAt);
     return createdAt >= timelineOptions.startDate && createdAt <= timelineOptions.endDate;
   });
-  const timeRangeStats = bookingsInRange.reduce(
-    (acc, booking) => {
-      const isConfirmed =
-        booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED;
-      const isPaid = booking.paymentStatus === PaymentStatus.PAID;
-
-      return {
-        bookings: acc.bookings + 1,
-        confirmedBookings: acc.confirmedBookings + (isConfirmed ? 1 : 0),
-        paidBookings: acc.paidBookings + (isPaid ? 1 : 0),
-        pendingBookings: acc.pendingBookings + (booking.status === BookingStatus.PENDING ? 1 : 0),
-        cancelledBookings: acc.cancelledBookings + (booking.status === BookingStatus.CANCELLED ? 1 : 0),
-        completedBookings: acc.completedBookings + (booking.status === BookingStatus.COMPLETED ? 1 : 0),
-        confirmedRevenue: acc.confirmedRevenue + (isConfirmed ? booking.totalPrice : 0),
-      };
-    },
-    {
-      bookings: 0,
-      confirmedBookings: 0,
-      paidBookings: 0,
-      pendingBookings: 0,
-      cancelledBookings: 0,
-      completedBookings: 0,
-      confirmedRevenue: 0,
-    },
-  );
+  const timeRangeStats = summarizeDashboardRangeStats(bookingsInRange);
+  const bookingsInPreviousRange = state.bookings.filter((booking) => {
+    const createdAt = new Date(booking.createdAt);
+    return createdAt >= previousTimelineOptions.startDate && createdAt <= previousTimelineOptions.endDate;
+  });
+  const previousTimeRangeStats = summarizeDashboardRangeStats(bookingsInPreviousRange);
   const topRevenueToursMap = bookingsInRange.reduce<
     Map<
       string,
@@ -795,9 +846,6 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
       return b.bookings - a.bookings;
     })
     .slice(0, 6);
-  const bookingCount = timeRangeStats.bookings;
-  const confirmedCount = timeRangeStats.confirmedBookings;
-
   return {
     metrics: {
       totalUsers: state.users.length,
@@ -813,20 +861,16 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
     bookingsByStatus,
     paymentsByStatus,
     bookingRevenueTimeline,
-    timeRangeStats: {
-      ...timeRangeStats,
-      confirmationRate: bookingCount ? confirmedCount / bookingCount : 0,
-      paymentRate: bookingCount ? timeRangeStats.paidBookings / bookingCount : 0,
-      averageConfirmedOrderValue: confirmedCount
-        ? Math.round(timeRangeStats.confirmedRevenue / confirmedCount)
-        : 0,
-    },
+    timeRangeStats,
+    previousTimeRangeStats,
     topRevenueTours,
     monthCount: timelineOptions.monthCount,
     rangeDays: timelineOptions.rangeDays,
     timelineGranularity: timelineOptions.granularity,
     timelineStartDate: timelineOptions.startDate,
     timelineEndDate: timelineOptions.endDate,
+    previousTimelineStartDate: previousTimelineOptions.startDate,
+    previousTimelineEndDate: previousTimelineOptions.endDate,
     recentBookings: state.bookings.slice().sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).slice(0, 8).map((booking) => ({
       ...booking,
       createdAt: toDate(booking.createdAt),

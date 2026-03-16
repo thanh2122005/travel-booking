@@ -44,6 +44,25 @@ function formatRate(value: number) {
   return `${(value * 100).toFixed(1)}%`;
 }
 
+function formatRatePointDelta(value: number) {
+  return `${Math.abs(value * 100).toFixed(1)} điểm %`;
+}
+
+function formatSignedValue(value: number, formatter: (input: number) => string) {
+  if (value === 0) {
+    return formatter(0);
+  }
+
+  const sign = value > 0 ? "+" : "-";
+  return `${sign}${formatter(Math.abs(value))}`;
+}
+
+function getDeltaTone(value: number) {
+  if (value > 0) return "text-emerald-700";
+  if (value < 0) return "text-rose-700";
+  return "text-slate-600";
+}
+
 function getDateRangePresets() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -149,6 +168,37 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       label: "Giá trị đơn xác nhận TB",
       value: formatPrice(data.timeRangeStats.averageConfirmedOrderValue),
       hint: `Doanh thu kỳ: ${formatPrice(data.timeRangeStats.confirmedRevenue)}`,
+    },
+  ];
+
+  const comparisonMetricCards = [
+    {
+      label: "Đơn trong kỳ",
+      value: data.timeRangeStats.bookings.toString(),
+      delta: data.timeRangeStats.bookings - data.previousTimeRangeStats.bookings,
+      formatter: (input: number) => input.toString(),
+      previousValue: data.previousTimeRangeStats.bookings.toString(),
+    },
+    {
+      label: "Doanh thu xác nhận",
+      value: formatPrice(data.timeRangeStats.confirmedRevenue),
+      delta: data.timeRangeStats.confirmedRevenue - data.previousTimeRangeStats.confirmedRevenue,
+      formatter: (input: number) => formatPrice(input),
+      previousValue: formatPrice(data.previousTimeRangeStats.confirmedRevenue),
+    },
+    {
+      label: "Tỷ lệ xác nhận",
+      value: formatRate(data.timeRangeStats.confirmationRate),
+      delta: data.timeRangeStats.confirmationRate - data.previousTimeRangeStats.confirmationRate,
+      formatter: formatRatePointDelta,
+      previousValue: formatRate(data.previousTimeRangeStats.confirmationRate),
+    },
+    {
+      label: "Tỷ lệ thanh toán",
+      value: formatRate(data.timeRangeStats.paymentRate),
+      delta: data.timeRangeStats.paymentRate - data.previousTimeRangeStats.paymentRate,
+      formatter: formatRatePointDelta,
+      previousValue: formatRate(data.previousTimeRangeStats.paymentRate),
     },
   ];
 
@@ -339,6 +389,31 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             <p className="mt-1 text-xs text-slate-500">{item.hint}</p>
           </article>
         ))}
+      </section>
+
+      <section className="iv-card p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">So sánh với kỳ trước</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Kỳ trước: {formatDate(data.previousTimelineStartDate)} - {formatDate(data.previousTimelineEndDate)}.
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {comparisonMetricCards.map((item) => (
+            <article key={item.label} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{item.label}</p>
+              <p className="mt-2 text-2xl font-black text-slate-900">{item.value}</p>
+              <p className={`mt-1 text-xs font-semibold ${getDeltaTone(item.delta)}`}>
+                {item.delta === 0
+                  ? "Không đổi so với kỳ trước"
+                  : `Chênh lệch: ${formatSignedValue(item.delta, item.formatter)}`}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">Kỳ trước: {item.previousValue}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section id="top-tour" className="iv-card scroll-mt-24 p-5">

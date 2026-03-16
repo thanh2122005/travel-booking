@@ -1,4 +1,4 @@
-import { BookingStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
+﻿import { BookingStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
 import {
   demoCreateLocation,
   demoCreateItinerary,
@@ -82,6 +82,19 @@ type DashboardTimelineOptions = {
   granularity?: TimelineGranularity;
   startDate?: Date | string;
   endDate?: Date | string;
+};
+
+type DashboardRangeStats = {
+  bookings: number;
+  confirmedBookings: number;
+  paidBookings: number;
+  pendingBookings: number;
+  cancelledBookings: number;
+  completedBookings: number;
+  confirmedRevenue: number;
+  confirmationRate: number;
+  paymentRate: number;
+  averageConfirmedOrderValue: number;
 };
 
 const MAX_ADMIN_DATE_RANGE_DAYS = 366;
@@ -370,9 +383,67 @@ function buildBookingRevenueTimeline(
   return rows;
 }
 
+function getPreviousTimelineRange(startDate: Date, endDate: Date) {
+  const rangeDuration = endDate.getTime() - startDate.getTime();
+  const previousEndDate = new Date(startDate.getTime() - 1);
+  const previousStartDate = new Date(previousEndDate.getTime() - rangeDuration);
+
+  return {
+    startDate: previousStartDate,
+    endDate: previousEndDate,
+  };
+}
+
+function summarizeDashboardRangeStats(
+  bookings: Array<{ status: BookingStatus; paymentStatus: PaymentStatus; totalPrice: number }>,
+): DashboardRangeStats {
+  const aggregated = bookings.reduce(
+    (acc, booking) => {
+      const isConfirmed =
+        booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED;
+      const isPaid = booking.paymentStatus === PaymentStatus.PAID;
+
+      return {
+        bookings: acc.bookings + 1,
+        confirmedBookings: acc.confirmedBookings + (isConfirmed ? 1 : 0),
+        paidBookings: acc.paidBookings + (isPaid ? 1 : 0),
+        pendingBookings: acc.pendingBookings + (booking.status === BookingStatus.PENDING ? 1 : 0),
+        cancelledBookings: acc.cancelledBookings + (booking.status === BookingStatus.CANCELLED ? 1 : 0),
+        completedBookings: acc.completedBookings + (booking.status === BookingStatus.COMPLETED ? 1 : 0),
+        confirmedRevenue: acc.confirmedRevenue + (isConfirmed ? booking.totalPrice : 0),
+      };
+    },
+    {
+      bookings: 0,
+      confirmedBookings: 0,
+      paidBookings: 0,
+      pendingBookings: 0,
+      cancelledBookings: 0,
+      completedBookings: 0,
+      confirmedRevenue: 0,
+    },
+  );
+
+  const bookingCount = aggregated.bookings;
+  const confirmedCount = aggregated.confirmedBookings;
+
+  return {
+    ...aggregated,
+    confirmationRate: bookingCount ? confirmedCount / bookingCount : 0,
+    paymentRate: bookingCount ? aggregated.paidBookings / bookingCount : 0,
+    averageConfirmedOrderValue: confirmedCount
+      ? Math.round(aggregated.confirmedRevenue / confirmedCount)
+      : 0,
+  };
+}
+
 export async function getAdminDashboardData(options?: DashboardTimelineOptions) {
   try {
     const timelineOptions = resolveDashboardOptions(options);
+    const previousTimelineOptions = getPreviousTimelineRange(
+      timelineOptions.startDate,
+      timelineOptions.endDate,
+    );
 
     const [
       totalUsers,
@@ -387,6 +458,7 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
       bookingStatusGroups,
       paymentStatusGroups,
       bookingTimelineRows,
+      previousBookingRows,
       recentBookings,
       recentReviews,
       recentInquiries,
@@ -443,6 +515,19 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
               slug: true,
             },
           },
+        },
+      }),
+      db.booking.findMany({
+        where: {
+          createdAt: {
+            gte: previousTimelineOptions.startDate,
+            lte: previousTimelineOptions.endDate,
+          },
+        },
+        select: {
+          status: true,
+          paymentStatus: true,
+          totalPrice: true,
         },
       }),
       db.booking.findMany({
@@ -563,34 +648,8 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
       },
     );
     const bookingRevenueTimeline = buildBookingRevenueTimeline(bookingTimelineRows, timelineOptions);
-    const timeRangeStats = bookingTimelineRows.reduce(
-      (acc, booking) => {
-        const isConfirmed =
-          booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED;
-        const isPaid = booking.paymentStatus === PaymentStatus.PAID;
-
-        return {
-          bookings: acc.bookings + 1,
-          confirmedBookings: acc.confirmedBookings + (isConfirmed ? 1 : 0),
-          paidBookings: acc.paidBookings + (isPaid ? 1 : 0),
-          pendingBookings: acc.pendingBookings + (booking.status === BookingStatus.PENDING ? 1 : 0),
-          cancelledBookings:
-            acc.cancelledBookings + (booking.status === BookingStatus.CANCELLED ? 1 : 0),
-          completedBookings:
-            acc.completedBookings + (booking.status === BookingStatus.COMPLETED ? 1 : 0),
-          confirmedRevenue: acc.confirmedRevenue + (isConfirmed ? booking.totalPrice : 0),
-        };
-      },
-      {
-        bookings: 0,
-        confirmedBookings: 0,
-        paidBookings: 0,
-        pendingBookings: 0,
-        cancelledBookings: 0,
-        completedBookings: 0,
-        confirmedRevenue: 0,
-      },
-    );
+    const timeRangeStats = summarizeDashboardRangeStats(bookingTimelineRows);
+    const previousTimeRangeStats = summarizeDashboardRangeStats(previousBookingRows);
     const topRevenueToursMap = bookingTimelineRows.reduce<
       Map<
         string,
@@ -636,9 +695,6 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
         return b.bookings - a.bookings;
       })
       .slice(0, 6);
-    const bookingCount = timeRangeStats.bookings;
-    const confirmedCount = timeRangeStats.confirmedBookings;
-
     return {
       metrics: {
         totalUsers,
@@ -654,20 +710,16 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
       bookingsByStatus,
       paymentsByStatus,
       bookingRevenueTimeline,
-      timeRangeStats: {
-        ...timeRangeStats,
-        confirmationRate: bookingCount ? confirmedCount / bookingCount : 0,
-        paymentRate: bookingCount ? timeRangeStats.paidBookings / bookingCount : 0,
-        averageConfirmedOrderValue: confirmedCount
-          ? Math.round(timeRangeStats.confirmedRevenue / confirmedCount)
-          : 0,
-      },
+      timeRangeStats,
+      previousTimeRangeStats,
       topRevenueTours,
       monthCount: timelineOptions.monthCount,
       rangeDays: timelineOptions.rangeDays,
       timelineGranularity: timelineOptions.granularity,
       timelineStartDate: timelineOptions.startDate,
       timelineEndDate: timelineOptions.endDate,
+      previousTimelineStartDate: previousTimelineOptions.startDate,
+      previousTimelineEndDate: previousTimelineOptions.endDate,
       recentBookings,
       recentReviews,
       recentInquiries,
@@ -2137,3 +2189,4 @@ export const adminLabels = {
     [UserStatus.BLOCKED]: "Bị khóa",
   },
 } as const;
+
