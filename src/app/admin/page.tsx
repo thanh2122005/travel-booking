@@ -103,6 +103,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const endDate = normalizeParam(params.endDate);
 
   const hasCustomDateRange = Boolean(startDate || endDate);
+  const hasTimelineFilterOverrides = hasCustomDateRange || rangeDays !== 180 || Boolean(granularity);
   const rangePresets = getDateRangePresets();
   const exportQuery = {
     ...(hasCustomDateRange
@@ -331,7 +332,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           ) : null}
         </div>
 
-        <div className="mt-3 grid gap-2 lg:grid-cols-[170px_180px_180px_auto]">
+        <div className="mt-3 grid gap-2 lg:grid-cols-[170px_180px_180px_auto_auto]">
           <select
             name="granularity"
               defaultValue={data.timelineGranularity}
@@ -359,6 +360,14 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             >
               Áp dụng khoảng tùy chọn
             </button>
+            {hasTimelineFilterOverrides ? (
+              <Link
+                href="/admin"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+              >
+                {"\u0110\u1eb7t l\u1ea1i b\u1ed9 l\u1ecdc"}
+              </Link>
+            ) : null}
           </div>
           <div className="mt-3 flex justify-end">
             <Link
