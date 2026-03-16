@@ -20,6 +20,7 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - Bộ lọc/tìm kiếm tour theo điểm đến, giá, thời lượng, sắp xếp
 - Xem đánh giá và tour liên quan
 - Trang cảm hứng và thư viện ảnh có lọc/phân trang theo điểm đến
+- Cụm tours/điểm đến/cảm hứng/thư viện có nút xóa lọc nhanh ngay trong khu vực lọc nhanh
 - Form liên hệ hỗ trợ prefill theo tour/điểm đến từ luồng tư vấn nhanh
 - Trang booking/favorites/reviews hỗ trợ lọc theo ngày và mốc nhanh (7/30/90/180 ngày tùy trang)
 - Cụm giới thiệu/liên hệ/tours/điểm đến/inspiration/gallery/booking/favorites/reviews có thao tác nhanh mobile để nhảy tới khu vực chính
@@ -43,6 +44,7 @@ Toàn bộ giao diện người dùng được chuẩn hóa tiếng Việt.
 - Dashboard tổng quan vận hành
 - Biểu đồ doanh thu/đơn đặt theo mốc thời gian (ngày/tuần/tháng)
 - KPI theo kỳ lọc và bảng top tour theo doanh thu xác nhận
+- Dashboard doanh thu có so sánh kỳ hiện tại với kỳ trước theo đúng khoảng ngày đang chọn
 - Quản lý booking: lọc nâng cao theo ngày + cập nhật hàng loạt
 - Quản lý review: lọc nâng cao theo ngày + ẩn/hiện hàng loạt
 - Quản lý users: lọc theo ngày tạo tài khoản + mốc nhanh 7/30/90 ngày + cập nhật vai trò/trạng thái hàng loạt
