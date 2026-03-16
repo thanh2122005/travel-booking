@@ -1,4 +1,4 @@
-import { Prisma, TourStatus } from "@prisma/client";
+﻿import { Prisma, TourStatus } from "@prisma/client";
 import {
   demoGetHomePublicData,
   demoGetPublicLocationBySlug,
@@ -404,7 +404,7 @@ export async function getTourBySlug(slug: string, userId?: string) {
 
 export async function getLocations(search?: string) {
   try {
-    return db.location.findMany({
+    const locations = await db.location.findMany({
       where: search
         ? {
             OR: [
@@ -415,6 +415,7 @@ export async function getLocations(search?: string) {
         : undefined,
       orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
     });
+    return locations;
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoGetPublicLocations(search);
@@ -591,3 +592,4 @@ export async function getPublicReviews(limit = 24) {
     throw error;
   }
 }
+
