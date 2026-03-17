@@ -247,7 +247,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const periodLabel = `${formatDate(data.timelineStartDate)} - ${formatDate(data.timelineEndDate)}`;
 
   return (
-    <div className="space-y-5 pb-24 text-slate-500 lg:pb-6">
+    <div className="space-y-5 pb-24 lg:pb-6">
       <DashboardHeader
         periodLabel={periodLabel}
         quickStats={[
@@ -259,7 +259,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           <>
             <Link
               href="/admin/bookings"
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-500 transition hover:bg-slate-50"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
             >
               Quản lý đơn
             </Link>
@@ -277,8 +277,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         }
       />
 
-      <section id="bo-loc-thoi-gian" className="iv-card scroll-mt-24 rounded-2xl border-slate-200 bg-white p-4">
-        <div className="flex flex-wrap items-center gap-2">
+      <section id="bo-loc-thoi-gian" className="iv-card scroll-mt-24 rounded-2xl border-slate-200/80 bg-gradient-to-b from-white to-slate-50/40 p-4 md:p-5">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/80 bg-white/95 p-2">
           {rangeOptions.map((option) => {
             const active = !hasCustomDateRange && rangeDays === option.value;
             return (
@@ -313,12 +313,12 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           ) : null}
         </div>
 
-        <form className="mt-3 grid gap-2 md:grid-cols-[130px_170px_170px_auto]">
+        <form className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-[140px_170px_170px_auto]">
           <input type="hidden" name="rangeDays" value={String(rangeDays)} />
           <select
             name="granularity"
             defaultValue={data.timelineGranularity}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-500 focus:border-cyan-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 focus:border-cyan-500 focus:outline-none"
           >
             <option value="day">Theo ngày</option>
             <option value="week">Theo tuần</option>
@@ -328,15 +328,15 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             type="date"
             name="startDate"
             defaultValue={startDate || toInputDateValue(data.timelineStartDate)}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-500 focus:border-cyan-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 focus:border-cyan-500 focus:outline-none"
           />
           <input
             type="date"
             name="endDate"
             defaultValue={endDate || toInputDateValue(data.timelineEndDate)}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-500 focus:border-cyan-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 focus:border-cyan-500 focus:outline-none"
           />
-          <button type="submit" className="iv-btn-primary inline-flex h-10 items-center justify-center px-4 text-sm font-medium">
+          <button type="submit" className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-4 text-sm font-medium sm:col-span-2 xl:col-span-1">
             Áp dụng
           </button>
         </form>

@@ -26,7 +26,7 @@ export function RecentOrders({ items, bookingStatusLabels, paymentStatusLabels }
   return (
     <article className="iv-card rounded-2xl border-slate-200 bg-white p-5">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="text-base font-semibold text-slate-500">Đơn đặt gần đây</h3>
+        <h3 className="text-base font-semibold text-slate-700">Đơn đặt gần đây</h3>
         <Link href="/admin/bookings" className="text-xs font-semibold text-cyan-700 hover:text-cyan-800">
           Xem tất cả
         </Link>
@@ -37,8 +37,8 @@ export function RecentOrders({ items, bookingStatusLabels, paymentStatusLabels }
           {items.slice(0, 7).map((booking) => (
             <article key={booking.id} className="rounded-xl border border-slate-200 bg-white p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-medium text-slate-500">{booking.bookingCode}</p>
-                <p className="text-sm font-semibold text-slate-500">{formatPrice(booking.totalPrice)}</p>
+                <p className="text-sm font-medium text-slate-700">{booking.bookingCode}</p>
+                <p className="text-sm font-semibold text-slate-700">{formatPrice(booking.totalPrice)}</p>
               </div>
 
               <p className="mt-1 text-xs text-slate-500">
