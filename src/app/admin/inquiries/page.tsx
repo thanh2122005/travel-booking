@@ -130,18 +130,18 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
-        <h1 className="text-2xl font-bold text-slate-800">Yêu cầu tư vấn</h1>
+        <h1 className="text-2xl font-bold text-slate-700">Yêu cầu tư vấn</h1>
         <p className="mt-1 text-sm text-slate-500">
           Theo dõi yêu cầu liên hệ từ người dùng và cập nhật trạng thái xử lý.
         </p>
       </div>
 
-      <form id="bo-loc-tu-van" className="iv-card scroll-mt-24 p-4 md:p-5">
+      <form id="bo-loc-tu-van" className="iv-card scroll-mt-24 border-slate-200/80 bg-gradient-to-b from-white to-slate-50/40 p-4 md:p-5">
         <input type="hidden" name="page" value="1" />
         <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
           Tìm kiếm yêu cầu
         </label>
-        <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/80 bg-white/95 p-2">
           <span className="text-xs font-medium text-slate-500">Mốc nhanh:</span>
           {quickDateRanges.map((days) => {
             const quickRange = createQuickDateRange(days);
@@ -178,7 +178,7 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
             </Link>
           ) : null}
         </div>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <input
             id="search"
             name="search"

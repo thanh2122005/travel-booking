@@ -1,4 +1,4 @@
-﻿import { TourStatus } from "@prisma/client";
+import { TourStatus } from "@prisma/client";
 import Link from "next/link";
 import { AdminCreateTourForm } from "@/components/admin/admin-create-tour-form";
 import { AdminTourActions } from "@/components/admin/admin-tour-actions";
@@ -79,13 +79,13 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
-        <h1 className="text-2xl font-bold text-slate-900">Quản lý tour</h1>
+        <h1 className="text-2xl font-bold text-slate-700">Quản lý tour</h1>
         <p className="mt-1 text-sm text-slate-600">
           Theo dõi trạng thái mở bán, hiệu suất đặt tour và đánh giá.
         </p>
       </div>
 
-      <form id="bo-loc-tour-admin" className="iv-card scroll-mt-24 space-y-3 p-4">
+      <form id="bo-loc-tour-admin" className="iv-card scroll-mt-24 space-y-4 border-slate-200/80 bg-gradient-to-b from-white to-slate-50/40 p-4 md:p-5">
         <input type="hidden" name="page" value="1" />
         <label
           htmlFor="search"
@@ -94,7 +94,7 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
           Bộ lọc tour
         </label>
 
-        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <input
             id="search"
             name="search"
@@ -134,7 +134,7 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
           </select>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="mt-1 flex flex-wrap items-center gap-2">
           <button
             type="submit"
             className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"

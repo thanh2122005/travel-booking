@@ -128,7 +128,7 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
-        <h1 className="text-2xl font-bold text-slate-800">Quản lý đánh giá</h1>
+        <h1 className="text-2xl font-bold text-slate-700">Quản lý đánh giá</h1>
         <p className="mt-1 text-sm text-slate-500">
           Theo dõi phản hồi người dùng, lọc theo thời gian và ẩn/hiện nhiều đánh giá cùng lúc.
         </p>
@@ -158,14 +158,14 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
         </div>
       </section>
 
-      <form id="bo-loc-review" className="iv-card scroll-mt-24 p-4 md:p-5">
+      <form id="bo-loc-review" className="iv-card scroll-mt-24 border-slate-200/80 bg-gradient-to-b from-white to-slate-50/40 p-4 md:p-5">
         <label
           htmlFor="search"
           className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"
         >
           Tìm kiếm đánh giá
         </label>
-        <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/80 bg-white/95 p-2">
           <span className="text-xs font-medium text-slate-500">Mốc nhanh:</span>
           {quickDateRanges.map((days) => {
             const quickRange = createQuickDateRange(days);
@@ -202,13 +202,13 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
             </Link>
           ) : null}
         </div>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <input
             id="search"
             name="search"
             defaultValue={search}
             placeholder="Nội dung review, tên người dùng hoặc tên tour..."
-            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm sm:col-span-2 xl:col-span-3 focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm sm:col-span-2 xl:col-span-2 focus:border-teal-500 focus:outline-none"
           />
           <select
             name="isVisible"

@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { AdminCreateLocationForm } from "@/components/admin/admin-create-location-form";
 import { AdminLocationActions } from "@/components/admin/admin-location-actions";
 import { SafeImage } from "@/components/common/safe-image";
@@ -45,30 +45,30 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
-        <h1 className="text-2xl font-bold text-slate-900">Quản lý điểm đến</h1>
+        <h1 className="text-2xl font-bold text-slate-700">Quản lý điểm đến</h1>
         <p className="mt-1 text-sm text-slate-600">Theo dõi mức độ nổi bật và số tour đang gắn với từng địa điểm.</p>
       </div>
 
-      <form id="bo-loc-dia-diem-admin" className="iv-card scroll-mt-24 p-4">
+      <form id="bo-loc-dia-diem-admin" className="iv-card scroll-mt-24 border-slate-200/80 bg-gradient-to-b from-white to-slate-50/40 p-4 md:p-5">
         <input type="hidden" name="page" value="1" />
         <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
           Tìm kiếm điểm đến
         </label>
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto]">
           <input
             id="search"
             name="search"
             defaultValue={search}
             placeholder="Tên, slug hoặc tỉnh/thành..."
-            className="h-10 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
-          <button type="submit" className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold">
+          <button type="submit" className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold md:w-auto">
             Tìm kiếm
           </button>
           {hasActiveFilters ? (
             <Link
               href="/admin/locations"
-              className="iv-btn-soft inline-flex h-10 items-center justify-center px-4 text-sm font-semibold"
+              className="iv-btn-soft inline-flex h-10 w-full items-center justify-center px-4 text-sm font-semibold md:w-auto"
             >
               Xóa bộ lọc
             </Link>
