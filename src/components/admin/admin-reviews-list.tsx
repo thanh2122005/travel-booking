@@ -93,8 +93,8 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="iv-card p-4">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="iv-card border border-teal-100/70 bg-gradient-to-br from-white via-white to-teal-50/40 p-4">
+        <div className="flex flex-wrap items-start gap-2">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               Cập nhật hiển thị hàng loạt
@@ -104,7 +104,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
               đánh giá.
             </p>
           </div>
-          <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+          <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm">
             <input
               type="checkbox"
               checked={isAllSelected}
@@ -117,7 +117,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
             <button
               type="button"
               onClick={() => toggleSelectAll(false)}
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
             >
               Bỏ chọn trong trang
             </button>
@@ -125,7 +125,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
           <select
             value={bulkVisible}
             onChange={(event) => setBulkVisible(event.target.value)}
-            className="h-10 w-full min-w-0 sm:w-[190px] rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm sm:w-[220px] focus:border-teal-500 focus:outline-none"
           >
             <option value="visible">Hiển thị</option>
             <option value="hidden">Ẩn</option>
@@ -134,7 +134,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
             type="button"
             onClick={handleBulkUpdate}
             disabled={isPending}
-            className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
+            className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isPending ? (
               <>

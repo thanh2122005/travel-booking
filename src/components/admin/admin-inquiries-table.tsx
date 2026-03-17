@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
@@ -97,8 +97,8 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="iv-card p-4">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="iv-card border border-teal-100/70 bg-gradient-to-br from-white via-white to-teal-50/40 p-4">
+        <div className="flex flex-wrap items-start gap-2">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               Cập nhật hàng loạt
@@ -108,7 +108,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
               trong trang hiện tại.
             </p>
           </div>
-          <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+          <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm">
             <input
               type="checkbox"
               checked={isAllSelected}
@@ -121,7 +121,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
             <button
               type="button"
               onClick={() => toggleSelectAll(false)}
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
             >
               Bỏ chọn trong trang
             </button>
@@ -129,7 +129,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
           <select
             value={bulkStatus}
             onChange={(event) => setBulkStatus(event.target.value as InquiryStatusValue)}
-            className="h-10 w-full min-w-0 sm:w-[190px] rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm sm:w-[220px] focus:border-teal-500 focus:outline-none"
           >
             {inquiryStatusOptions.map((item) => (
               <option key={item.value} value={item.value}>
@@ -141,7 +141,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
             type="button"
             onClick={handleBulkUpdate}
             disabled={isPending}
-            className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
+            className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isPending ? (
               <>
@@ -156,7 +156,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
       </div>
 
       <div className="iv-card overflow-x-auto p-4">
-        <table className="w-full min-w-[1100px] text-left text-sm">
+        <table className="w-full min-w-[860px] text-left text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-slate-500">
               <th className="px-2 py-3 font-medium">

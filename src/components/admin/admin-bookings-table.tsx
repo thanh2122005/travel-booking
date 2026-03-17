@@ -264,7 +264,7 @@ export function AdminBookingsTable({
 
       <div className="hidden lg:block">
         <div className="iv-card overflow-x-auto p-4">
-          <table className="w-full min-w-[780px] text-sm">
+          <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -275,11 +275,11 @@ export function AdminBookingsTable({
                     className="h-4 w-4 rounded border-slate-300 accent-teal-600"
                   />
                 </th>
-                <th className="px-2 py-3 font-medium min-w-[220px]">Đơn đặt</th>
-                <th className="px-2 py-3 font-medium min-w-[180px]">Tour</th>
-                <th className="px-2 py-3 font-medium min-w-[120px]">Giá trị</th>
-                <th className="px-2 py-3 font-medium min-w-[150px]">Cập nhật</th>
-                <th className="px-2 py-3 font-medium min-w-[148px]">Thao tác</th>
+                <th className="px-2 py-3 font-medium">Đơn đặt</th>
+                <th className="px-2 py-3 font-medium">Tour</th>
+                <th className="px-2 py-3 font-medium">Giá trị</th>
+                <th className="px-2 py-3 font-medium">Cập nhật</th>
+                <th className="px-2 py-3 font-medium">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -321,7 +321,7 @@ export function AdminBookingsTable({
                     </div>
                   </td>
                   <td className="px-2 py-3">
-                    <div className="flex w-[148px] flex-col items-start gap-2">
+                    <div className="flex min-w-0 flex-col items-start gap-2">
                       <AdminBookingActions
                         bookingId={booking.id}
                         status={booking.status}

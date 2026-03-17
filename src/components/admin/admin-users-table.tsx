@@ -231,7 +231,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
       </div>
 
       <div className="iv-card hidden overflow-x-auto p-4 lg:block">
-        <table className="w-full min-w-[780px] text-sm">
+        <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-left text-slate-500">
               <th className="px-2 py-3 font-medium">
@@ -242,11 +242,11 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                   className="h-4 w-4 rounded border-slate-300 accent-teal-600"
                 />
               </th>
-              <th className="px-2 py-3 font-medium min-w-[250px]">Người dùng</th>
-              <th className="px-2 py-3 font-medium min-w-[150px]">Phân quyền</th>
-              <th className="px-2 py-3 font-medium min-w-[145px]">Hoạt động</th>
+              <th className="px-2 py-3 font-medium">Người dùng</th>
+              <th className="px-2 py-3 font-medium">Phân quyền</th>
+              <th className="px-2 py-3 font-medium">Hoạt động</th>
               <th className="px-2 py-3 font-medium">Ngày tạo</th>
-              <th className="px-2 py-3 font-medium min-w-[148px]">Thao tác</th>
+              <th className="px-2 py-3 font-medium">Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -284,7 +284,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                 </td>
                 <td className="px-2 py-3 text-slate-500">{formatDate(new Date(user.createdAt))}</td>
                 <td className="px-2 py-3">
-                  <div className="flex w-[148px] flex-col items-start gap-2">
+                  <div className="flex min-w-0 flex-col items-start gap-2">
                     <AdminUserActions userId={user.id} role={user.role} status={user.status} />
                     <AdminUserDetailDialog user={user} />
                   </div>
