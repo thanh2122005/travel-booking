@@ -147,7 +147,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
 
       <section className="iv-card p-4">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Đi đến nhanh</p>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <a
             href="#bo-loc-booking"
             className="inline-flex h-9 items-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
@@ -169,14 +169,14 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
         </div>
       </section>
 
-      <form id="bo-loc-booking" className="iv-card scroll-mt-24 p-4 md:p-5">
+      <form id="bo-loc-booking" className="iv-card scroll-mt-24 border-slate-200/80 bg-gradient-to-b from-white to-slate-50/40 p-4 md:p-5">
         <label
           htmlFor="search"
           className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"
         >
           Tìm kiếm booking
         </label>
-        <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/80 bg-white/95 p-2">
           <span className="text-xs font-medium text-slate-500">Mốc nhanh:</span>
           {quickDateRanges.map((days) => {
             const quickRange = createQuickDateRange(days);
@@ -213,7 +213,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
             </Link>
           ) : null}
         </div>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <input
             id="search"
             name="search"
@@ -254,7 +254,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
             className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
         </div>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <button
             type="submit"
             className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto"
@@ -266,7 +266,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
               pathname: "/api/admin/bookings/export",
               query: exportQuery,
             }}
-            className="inline-flex h-10 w-full items-center justify-center rounded-md border border-slate-300 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 sm:w-auto"
+            className="inline-flex h-10 w-full items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 sm:w-auto"
           >
             Xuất CSV
           </Link>

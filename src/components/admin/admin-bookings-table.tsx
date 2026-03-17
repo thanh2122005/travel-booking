@@ -135,8 +135,8 @@ export function AdminBookingsTable({
 
   return (
     <div className="space-y-4">
-      <div className="iv-card p-4">
-        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+      <div className="iv-card border border-teal-100/70 bg-gradient-to-br from-white via-white to-teal-50/40 p-4">
+        <div className="space-y-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               Cập nhật hàng loạt
@@ -147,8 +147,8 @@ export function AdminBookingsTable({
               trong trang hiện tại.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2 xl:col-span-2">
               <input
                 type="checkbox"
                 checked={isAllSelected}
@@ -161,7 +161,7 @@ export function AdminBookingsTable({
               <button
                 type="button"
                 onClick={() => toggleSelectAll(false)}
-                className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
               >
                 Bỏ chọn trong trang
               </button>
@@ -169,7 +169,7 @@ export function AdminBookingsTable({
             <select
               value={bulkStatus}
               onChange={(event) => setBulkStatus(event.target.value)}
-              className="h-10 w-full min-w-0 sm:w-[190px] rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+              className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm focus:border-teal-500 focus:outline-none"
             >
               <option value="">Không đổi trạng thái đơn</option>
               {bookingStatusOptions.map((item) => (
@@ -181,7 +181,7 @@ export function AdminBookingsTable({
             <select
               value={bulkPaymentStatus}
               onChange={(event) => setBulkPaymentStatus(event.target.value)}
-              className="h-10 w-full min-w-0 sm:w-[190px] rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+              className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm focus:border-teal-500 focus:outline-none"
             >
               <option value="">Không đổi trạng thái thanh toán</option>
               {paymentStatusOptions.map((item) => (
@@ -194,7 +194,7 @@ export function AdminBookingsTable({
               type="button"
               onClick={handleBulkUpdate}
               disabled={isPending}
-              className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+              className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isPending ? (
                 <>
