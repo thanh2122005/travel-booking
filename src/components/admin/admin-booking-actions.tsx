@@ -12,9 +12,10 @@ type AdminBookingActionsProps = {
   bookingId: string;
   status: BookingStatusValue;
   paymentStatus: PaymentStatusValue;
+  compact?: boolean;
 };
 
-export function AdminBookingActions({ bookingId, status, paymentStatus }: AdminBookingActionsProps) {
+export function AdminBookingActions({ bookingId, status, paymentStatus, compact = false }: AdminBookingActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [selectedStatus, setSelectedStatus] = useState(status);
@@ -43,11 +44,11 @@ export function AdminBookingActions({ bookingId, status, paymentStatus }: AdminB
   }
 
   return (
-    <div className="flex w-[148px] flex-col gap-1.5">
+    <div className={`flex flex-col gap-1.5 ${compact ? "w-full min-w-[126px]" : "w-[148px]"}`}>
       <select
         value={selectedStatus}
         onChange={(event) => setSelectedStatus(event.target.value as BookingStatusValue)}
-        className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs"
+        className="h-8 w-full rounded-md border border-slate-200 bg-white px-2 text-xs"
       >
         <option value="PENDING">Chờ xác nhận</option>
         <option value="CONFIRMED">Đã xác nhận</option>
@@ -57,7 +58,7 @@ export function AdminBookingActions({ bookingId, status, paymentStatus }: AdminB
       <select
         value={selectedPaymentStatus}
         onChange={(event) => setSelectedPaymentStatus(event.target.value as PaymentStatusValue)}
-        className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs"
+        className="h-8 w-full rounded-md border border-slate-200 bg-white px-2 text-xs"
       >
         <option value="UNPAID">Chưa thanh toán</option>
         <option value="PAID">Đã thanh toán</option>
@@ -66,7 +67,7 @@ export function AdminBookingActions({ bookingId, status, paymentStatus }: AdminB
         type="button"
         disabled={isPending}
         onClick={handleSave}
-        className="inline-flex h-8 items-center justify-center rounded-md bg-slate-900 px-3 text-xs font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-8 w-full items-center justify-center rounded-md bg-slate-900 px-3 text-xs font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending ? (
           <>

@@ -12,9 +12,10 @@ type AdminUserActionsProps = {
   userId: string;
   role: UserRoleValue;
   status: UserStatusValue;
+  compact?: boolean;
 };
 
-export function AdminUserActions({ userId, role, status }: AdminUserActionsProps) {
+export function AdminUserActions({ userId, role, status, compact = false }: AdminUserActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -69,7 +70,7 @@ export function AdminUserActions({ userId, role, status }: AdminUserActionsProps
   }
 
   return (
-    <div className="flex w-[148px] flex-col gap-1.5">
+    <div className={`flex flex-col gap-1.5 ${compact ? "w-full min-w-[126px]" : "w-[148px]"}`}>
       <select
         value={selectedRole}
         onChange={(event) => setSelectedRole(event.target.value as UserRoleValue)}
@@ -108,17 +109,20 @@ export function AdminUserActions({ userId, role, status }: AdminUserActionsProps
           type="button"
           onClick={handleDeleteUser}
           disabled={isPending || isDeleting}
-          className="inline-flex h-8 items-center justify-center rounded-md border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+          title="Xoa nguoi dung"
+          className={`inline-flex h-8 items-center justify-center rounded-md border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60 ${
+            compact ? "w-8 shrink-0" : ""
+          }`}
         >
           {isDeleting ? (
             <>
-              <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-              Xóa
+              <Loader2 className={compact ? "h-3.5 w-3.5 animate-spin" : "mr-1 h-3.5 w-3.5 animate-spin"} />
+              {compact ? null : "Xóa"}
             </>
           ) : (
             <>
-              <Trash2 className="mr-1 h-3.5 w-3.5" />
-              Xóa
+              <Trash2 className={compact ? "h-3.5 w-3.5" : "mr-1 h-3.5 w-3.5"} />
+              {compact ? null : "Xóa"}
             </>
           )}
         </button>

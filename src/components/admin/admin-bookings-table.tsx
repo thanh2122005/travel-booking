@@ -326,6 +326,7 @@ export function AdminBookingsTable({
                         bookingId={booking.id}
                         status={booking.status}
                         paymentStatus={booking.paymentStatus}
+                        compact
                       />
                       <AdminBookingDetailDialog booking={booking} />
                     </div>
