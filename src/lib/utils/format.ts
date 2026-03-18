@@ -7,7 +7,7 @@ export function formatPrice(value: number) {
 }
 
 export function formatDuration(days: number, nights: number) {
-  return `${days} ngày ${nights} đêm`;
+  return `${days} \u006E\u0067\u00E0\u0079 ${nights} \u0111\u00EA\u006D`;
 }
 
 export function formatDate(value: Date) {
@@ -15,6 +15,7 @@ export function formatDate(value: Date) {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+    timeZone: "Asia/Ho_Chi_Minh",
   }).format(value);
 }
 
