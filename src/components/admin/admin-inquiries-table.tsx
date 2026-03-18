@@ -89,8 +89,8 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
     <div className="space-y-4">
       <div className="iv-admin-bulk-card">
         <div className="space-y-3">
-          <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
-            <div className="min-w-0 max-w-2xl">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
               <p className="iv-admin-bulk-heading">Cập nhật hàng loạt</p>
               <p className="iv-admin-bulk-meta">
                 Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> yêu cầu trong trang hiện tại.
@@ -147,7 +147,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
         </div>
       </div>
 
-      <div className="space-y-3 2xl:hidden">
+      <div className="space-y-3 min-[1900px]:hidden">
         {items.map((inquiry) => (
           <article key={inquiry.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
@@ -168,7 +168,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                 </div>
                 <p className="text-sm font-semibold text-slate-800">{inquiry.fullName}</p>
                 <p className="text-xs text-slate-500">{inquiry.phone} · {inquiry.email}</p>
-                <p className="text-xs text-slate-600 line-clamp-3">{inquiry.message || "Không có nội dung"}</p>
+                <p className="line-clamp-3 text-xs text-slate-600">{inquiry.message || "Không có nội dung"}</p>
                 <p className="text-xs text-slate-500">Ngày gửi: {formatDate(new Date(inquiry.createdAt))}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-500">{inquiry.numberOfGuests} khách</span>
@@ -180,7 +180,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
         ))}
       </div>
 
-      <div className="iv-card hidden 2xl:block">
+      <div className="iv-card hidden min-[1900px]:block">
         <div className="iv-admin-table-scroll">
           <table className="min-w-[780px] w-full text-left text-sm">
             <thead>
@@ -223,7 +223,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                   <td className="px-2 py-3 min-w-[165px] text-xs text-slate-600">
                     {inquiry.tour?.slug ? (
                       <p>
-                        Tour:{" "}
+                        Tour{" "}
                         <Link href={`/tours/${inquiry.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
                           {inquiry.tour.title}
                         </Link>
@@ -247,7 +247,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                       <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Chờ xử lý</span>
                     )}
                   </td>
-                  <td className="iv-admin-table-sticky-actions-cell px-2 py-3 text-right border-l border-slate-100">
+                  <td className="iv-admin-table-sticky-actions-cell px-2 py-3 border-l border-slate-100 text-right">
                     <div className="ml-auto w-fit">
                       <AdminInquiryActions inquiryId={inquiry.id} status={inquiry.status} />
                     </div>
@@ -261,8 +261,3 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
     </div>
   );
 }
-
-
-
-
-

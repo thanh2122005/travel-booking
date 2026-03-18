@@ -91,8 +91,8 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
     <div className="space-y-4">
       <div className="iv-admin-bulk-card">
         <div className="space-y-3">
-          <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
-            <div className="min-w-0 max-w-2xl">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
               <p className="iv-admin-bulk-heading">Cập nhật hiển thị hàng loạt</p>
               <p className="iv-admin-bulk-meta">
                 Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> đánh giá trong trang hiện tại.
@@ -146,7 +146,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
         </div>
       </div>
 
-      <div className="space-y-3 2xl:hidden">
+      <div className="space-y-3 min-[1900px]:hidden">
         {items.map((review) => (
           <article key={review.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
@@ -167,12 +167,12 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
 
                 <p className="line-clamp-3 text-sm text-slate-700">{review.comment}</p>
                 <p className="text-xs text-slate-500">
-                  Tour:{" "}
+                  Tour{" "}
                   <Link href={`/tours/${review.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
                     {review.tour.title}
                   </Link>
                 </p>
-                <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <Badge variant={review.isVisible ? "default" : "secondary"}>
                     {review.isVisible ? "Đang hiển thị" : "Ẩn"}
                   </Badge>
@@ -188,7 +188,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
         ))}
       </div>
 
-      <div className="iv-card hidden 2xl:block">
+      <div className="iv-card hidden min-[1900px]:block">
         <div className="iv-admin-table-scroll">
           <table className="min-w-[820px] w-full text-sm">
             <thead>
@@ -240,7 +240,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                   <td className="px-2 py-3 min-w-[220px]">
                     <p className="line-clamp-2 text-sm text-slate-700">{review.comment}</p>
                   </td>
-                  <td className="px-2 py-3 text-xs text-slate-500 whitespace-nowrap">{formatDate(new Date(review.createdAt))}</td>
+                  <td className="px-2 py-3 whitespace-nowrap text-xs text-slate-500">{formatDate(new Date(review.createdAt))}</td>
                   <td className="iv-admin-table-sticky-actions-cell px-2 py-3 border-l border-slate-100">
                     <div className="ml-auto flex w-fit min-w-[160px] flex-col items-end gap-2">
                       <AdminReviewActions reviewId={review.id} isVisible={review.isVisible} compact />
@@ -256,8 +256,3 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
     </div>
   );
 }
-
-
-
-
-

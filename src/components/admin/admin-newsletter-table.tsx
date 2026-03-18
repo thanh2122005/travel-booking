@@ -73,8 +73,8 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
     <div className="space-y-4">
       <div className="iv-admin-bulk-card">
         <div className="space-y-3">
-          <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
-            <div>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
               <p className="iv-admin-bulk-heading">Thao tác hàng loạt</p>
               <p className="iv-admin-bulk-meta">
                 Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> email trong trang hiện tại.
@@ -124,7 +124,7 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
         </div>
       </div>
 
-      <div className="space-y-3 2xl:hidden">
+      <div className="space-y-3 min-[1900px]:hidden">
         {items.map((subscriber) => (
           <article key={subscriber.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
@@ -143,9 +143,9 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
         ))}
       </div>
 
-      <div className="iv-card hidden 2xl:block">
+      <div className="iv-card hidden min-[1900px]:block">
         <div className="iv-admin-table-scroll">
-          <table className="w-full min-w-[700px] text-left text-sm">
+          <table className="min-w-[700px] w-full text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -172,7 +172,7 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
                     />
                   </td>
                   <td className="px-2 py-3 font-medium text-slate-800">{subscriber.email}</td>
-                  <td className="px-2 py-3 text-slate-500 whitespace-nowrap">{formatDate(new Date(subscriber.createdAt))}</td>
+                  <td className="px-2 py-3 whitespace-nowrap text-slate-500">{formatDate(new Date(subscriber.createdAt))}</td>
                 </tr>
               ))}
             </tbody>
@@ -182,4 +182,3 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
     </div>
   );
 }
-
