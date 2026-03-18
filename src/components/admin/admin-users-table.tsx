@@ -186,7 +186,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
         </div>
       </div>
 
-      <div className="space-y-3 min-[1900px]:hidden">
+      <div className="space-y-3 2xl:hidden">
         {items.map((user) => (
           <article key={user.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
@@ -222,7 +222,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
         ))}
       </div>
 
-      <div className="iv-card hidden min-[1900px]:block">
+      <div className="iv-card hidden 2xl:block">
         <div className="iv-admin-table-scroll">
           <table className="min-w-[700px] w-full text-sm">
             <thead>
@@ -239,7 +239,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Phân quyền</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Hoạt động</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Ngày tạo</th>
-                <th className="iv-admin-table-sticky-actions-head px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -274,7 +274,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                     </div>
                   </td>
                   <td className="px-2 py-3 whitespace-nowrap text-slate-500">{formatDate(new Date(user.createdAt))}</td>
-                  <td className="iv-admin-table-sticky-actions-cell border-l border-slate-100 px-2 py-3">
+                  <td className="border-l border-slate-100 px-2 py-3">
                     <div className="ml-auto flex min-w-[160px] flex-col items-end gap-2">
                       <AdminUserActions userId={user.id} role={user.role} status={user.status} compact />
                       <AdminUserDetailDialog user={user} />

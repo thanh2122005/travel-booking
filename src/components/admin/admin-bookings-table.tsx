@@ -204,7 +204,7 @@ export function AdminBookingsTable({
         </div>
       </div>
 
-      <div className="space-y-3 min-[1900px]:hidden">
+      <div className="space-y-3 2xl:hidden">
         {items.map((booking) => (
           <article key={booking.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
@@ -257,7 +257,7 @@ export function AdminBookingsTable({
         ))}
       </div>
 
-      <div className="iv-card hidden min-[1900px]:block">
+      <div className="iv-card hidden 2xl:block">
         <div className="iv-admin-table-scroll">
           <table className="min-w-[760px] w-full text-sm">
             <thead>
@@ -274,7 +274,7 @@ export function AdminBookingsTable({
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Tour</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Giá trị</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Cập nhật</th>
-                <th className="iv-admin-table-sticky-actions-head px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -312,7 +312,7 @@ export function AdminBookingsTable({
                       <p className="text-xs text-slate-500">{formatDate(new Date(booking.createdAt))}</p>
                     </div>
                   </td>
-                  <td className="iv-admin-table-sticky-actions-cell border-l border-slate-100 px-2 py-3">
+                  <td className="border-l border-slate-100 px-2 py-3">
                     <div className="ml-auto flex min-w-[160px] flex-col items-end gap-2">
                       <AdminBookingActions
                         bookingId={booking.id}

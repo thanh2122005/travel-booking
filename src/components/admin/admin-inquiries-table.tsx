@@ -147,7 +147,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
         </div>
       </div>
 
-      <div className="space-y-3 min-[1900px]:hidden">
+      <div className="space-y-3 2xl:hidden">
         {items.map((inquiry) => (
           <article key={inquiry.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
@@ -180,7 +180,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
         ))}
       </div>
 
-      <div className="iv-card hidden min-[1900px]:block">
+      <div className="iv-card hidden 2xl:block">
         <div className="iv-admin-table-scroll">
           <table className="min-w-[780px] w-full text-left text-sm">
             <thead>
@@ -200,7 +200,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Nội dung</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Ngày gửi</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Trạng thái</th>
-                <th className="iv-admin-table-sticky-actions-head px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -247,7 +247,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                       <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Chờ xử lý</span>
                     )}
                   </td>
-                  <td className="iv-admin-table-sticky-actions-cell px-2 py-3 border-l border-slate-100 text-right">
+                  <td className="px-2 py-3 border-l border-slate-100 text-right">
                     <div className="ml-auto w-fit">
                       <AdminInquiryActions inquiryId={inquiry.id} status={inquiry.status} />
                     </div>
