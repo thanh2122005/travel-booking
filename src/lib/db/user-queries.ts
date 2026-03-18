@@ -73,3 +73,29 @@ export async function getUserDashboardData(userId: string) {
     throw error;
   }
 }
+
+export async function getUserBookingDetail(userId: string, bookingId: string) {
+  try {
+    return await db.booking.findFirst({
+      where: {
+        id: bookingId,
+        userId,
+      },
+      include: {
+        tour: {
+          select: {
+            title: true,
+            slug: true,
+            departureLocation: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      const dashboard = await demoGetUserDashboardData(userId);
+      return dashboard?.bookings.find((item) => item.id === bookingId) ?? null;
+    }
+    throw error;
+  }
+}
