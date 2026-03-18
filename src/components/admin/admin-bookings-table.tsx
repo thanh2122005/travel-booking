@@ -81,18 +81,14 @@ export function AdminBookingsTable({
 
   function toggleSelectAll(checked: boolean) {
     setSelectedIds((prev) => {
-      if (checked) {
-        return Array.from(new Set([...prev, ...itemIds]));
-      }
+      if (checked) return Array.from(new Set([...prev, ...itemIds]));
       return prev.filter((id) => !itemIds.includes(id));
     });
   }
 
   function toggleItem(id: string, checked: boolean) {
     setSelectedIds((prev) => {
-      if (checked) {
-        return prev.includes(id) ? prev : [...prev, id];
-      }
+      if (checked) return prev.includes(id) ? prev : [...prev, id];
       return prev.filter((item) => item !== id);
     });
   }
@@ -119,7 +115,7 @@ export function AdminBookingsTable({
         }),
       });
 
-      const payload = (await response.json()) as { message?: string; count?: number };
+      const payload = (await response.json()) as { message?: string };
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể cập nhật booking hàng loạt.");
         return;
@@ -137,26 +133,13 @@ export function AdminBookingsTable({
     <div className="space-y-4">
       <div className="iv-card border border-teal-100/70 bg-gradient-to-br from-white via-white to-teal-50/40 p-4">
         <div className="space-y-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Cập nhật hàng loạt
-            </p>
-            <p className="mt-1 text-sm text-slate-600">
-              Đã chọn{" "}
-              <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> booking
-              trong trang hiện tại.
-            </p>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
-            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2 xl:col-span-2">
-              <input
-                type="checkbox"
-                checked={isAllSelected}
-                onChange={(event) => toggleSelectAll(event.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 accent-teal-600"
-              />
-              Chọn tất cả trong trang
-            </label>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Cập nhật hàng loạt</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> booking trong trang hiện tại.
+              </p>
+            </div>
             {selectedIdsInPage.length ? (
               <button
                 type="button"
@@ -166,6 +149,18 @@ export function AdminBookingsTable({
                 Bỏ chọn trong trang
               </button>
             ) : null}
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2">
+              <input
+                type="checkbox"
+                checked={isAllSelected}
+                onChange={(event) => toggleSelectAll(event.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 accent-teal-600"
+              />
+              Chọn tất cả trong trang
+            </label>
             <select
               value={bulkStatus}
               onChange={(event) => setBulkStatus(event.target.value)}
@@ -194,7 +189,7 @@ export function AdminBookingsTable({
               type="button"
               onClick={handleBulkUpdate}
               disabled={isPending}
-              className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70"
+              className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-2 xl:col-span-1"
             >
               {isPending ? (
                 <>
@@ -262,9 +257,9 @@ export function AdminBookingsTable({
         ))}
       </div>
 
-      <div className="hidden lg:block">
-        <div className="iv-card overflow-x-auto p-4">
-          <table className="w-full text-sm">
+      <div className="iv-card hidden lg:block">
+        <div className="overflow-x-auto p-4">
+          <table className="min-w-[980px] w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -275,11 +270,11 @@ export function AdminBookingsTable({
                     className="h-4 w-4 rounded border-slate-300 accent-teal-600"
                   />
                 </th>
-                <th className="px-2 py-3 font-medium">Đơn đặt</th>
-                <th className="px-2 py-3 font-medium">Tour</th>
-                <th className="px-2 py-3 font-medium">Giá trị</th>
-                <th className="px-2 py-3 font-medium">Cập nhật</th>
-                <th className="px-2 py-3 font-medium">Thao tác</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Đơn đặt</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Tour</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Giá trị</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Cập nhật</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap text-right sticky right-0 bg-white">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -293,25 +288,22 @@ export function AdminBookingsTable({
                       className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
                     />
                   </td>
-                  <td className="px-2 py-3">
+                  <td className="px-2 py-3 min-w-[180px]">
                     <p className="font-semibold text-slate-800">{booking.bookingCode}</p>
                     <p className="mt-1 font-medium text-slate-800">{booking.fullName}</p>
                     <p className="text-xs text-slate-500">{booking.email}</p>
                   </td>
-                  <td className="px-2 py-3">
-                    <Link
-                      href={"/tours/" + booking.tour.slug}
-                      className="font-medium text-teal-700 hover:text-teal-800"
-                    >
+                  <td className="px-2 py-3 min-w-[220px]">
+                    <Link href={`/tours/${booking.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
                       {booking.tour.title}
                     </Link>
                     <p className="mt-1 text-xs text-slate-500">{booking.numberOfGuests} khách</p>
                   </td>
-                  <td className="px-2 py-3">
+                  <td className="px-2 py-3 min-w-[150px]">
                     <p className="font-medium text-slate-800">{formatPrice(booking.totalPrice)}</p>
                     <p className="mt-1 text-xs text-slate-500">{booking.paymentMethod || "Thanh toán tiêu chuẩn"}</p>
                   </td>
-                  <td className="px-2 py-3">
+                  <td className="px-2 py-3 min-w-[190px]">
                     <div className="space-y-2">
                       <Badge variant="outline">{statusLabels[booking.status]}</Badge>
                       <div>
@@ -320,8 +312,8 @@ export function AdminBookingsTable({
                       <p className="text-xs text-slate-500">{formatDate(new Date(booking.createdAt))}</p>
                     </div>
                   </td>
-                  <td className="px-2 py-3">
-                    <div className="flex min-w-0 flex-col items-start gap-2">
+                  <td className="px-2 py-3 sticky right-0 bg-white border-l border-slate-100">
+                    <div className="ml-auto flex w-fit min-w-[130px] flex-col items-end gap-2">
                       <AdminBookingActions
                         bookingId={booking.id}
                         status={booking.status}
