@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { Loader2, Trash2 } from "lucide-react";
@@ -29,8 +29,8 @@ export function AdminUserActions({ userId, role, status, compact = false }: Admi
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: selectedRole, status: selectedStatus }),
       });
-      const payload = (await response.json()) as { message?: string };
 
+      const payload = (await response.json()) as { message?: string };
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể cập nhật người dùng.");
         return;
@@ -43,7 +43,7 @@ export function AdminUserActions({ userId, role, status, compact = false }: Admi
 
   async function handleDeleteUser() {
     const confirmed = window.confirm(
-      "Bạn có chắc muốn xóa người dùng này? Hành động sẽ xóa booking, review và favorite của tài khoản.",
+      "Bạn có chắc muốn xóa người dùng này? Hành động sẽ xóa booking, review và yêu thích của tài khoản.",
     );
     if (!confirmed) return;
 
@@ -65,7 +65,7 @@ export function AdminUserActions({ userId, role, status, compact = false }: Admi
   }
 
   return (
-    <div className={`flex flex-col gap-1.5 ${compact ? "w-full min-w-[112px] max-w-[132px]" : "w-[148px]"}`}>
+    <div className={`flex flex-col gap-1.5 ${compact ? "w-full min-w-[150px]" : "w-[170px]"}`}>
       <select
         value={selectedRole}
         onChange={(event) => setSelectedRole(event.target.value as UserRoleValue)}
@@ -89,7 +89,7 @@ export function AdminUserActions({ userId, role, status, compact = false }: Admi
           type="button"
           onClick={handleSave}
           disabled={isPending || isDeleting}
-          className="inline-flex h-8 flex-1 items-center justify-center rounded-md bg-slate-800 px-2.5 text-xs font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-8 flex-1 items-center justify-center rounded-md bg-teal-600 px-2.5 text-xs font-semibold text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending ? (
             <>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
@@ -41,7 +41,7 @@ export function AdminBookingActions({ bookingId, status, paymentStatus, compact 
   }
 
   return (
-    <div className={`flex flex-col gap-1.5 ${compact ? "w-full min-w-[112px] max-w-[132px]" : "w-[148px]"}`}>
+    <div className={`flex flex-col gap-1.5 ${compact ? "w-full min-w-[150px]" : "w-[170px]"}`}>
       <select
         value={selectedStatus}
         onChange={(event) => setSelectedStatus(event.target.value as BookingStatusValue)}
@@ -64,7 +64,7 @@ export function AdminBookingActions({ bookingId, status, paymentStatus, compact 
         type="button"
         disabled={isPending}
         onClick={handleSave}
-        className="inline-flex h-8 w-full items-center justify-center rounded-md bg-slate-900 px-3 text-xs font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-8 w-full items-center justify-center rounded-md bg-teal-600 px-3 text-xs font-semibold text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending ? (
           <>
