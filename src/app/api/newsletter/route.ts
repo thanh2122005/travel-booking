@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db/prisma";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
-import { saveNewsletterSubscriber } from "@/lib/demo/newsletter-subscriber-store";
+import { saveNewsletterSubscriber, demoGetNewsletterSubscribers } from "@/lib/demo/newsletter-subscriber-store";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { newsletterSchema } from "@/lib/validations/newsletter";
 
@@ -95,6 +95,10 @@ export async function GET() {
     });
     return NextResponse.json(subscribers);
   } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      const data = await demoGetNewsletterSubscribers({ pageSize: 500 });
+      return NextResponse.json(data.items);
+    }
     return NextResponse.json(
       { message: "Lỗi khi lấy danh sách đăng ký nhận tin." },
       { status: 500 },

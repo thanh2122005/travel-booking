@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db/prisma";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
-import { saveContactInquiry } from "@/lib/demo/contact-inquiry-store";
+import { saveContactInquiry, demoGetContactInquiries } from "@/lib/demo/contact-inquiry-store";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { contactInquirySchema } from "@/lib/validations/contact";
 
@@ -132,6 +132,10 @@ export async function GET() {
     });
     return NextResponse.json(inquiries);
   } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      const data = await demoGetContactInquiries({ pageSize: 500 });
+      return NextResponse.json(data.items);
+    }
     return NextResponse.json(
       { message: "Lỗi khi lấy danh sách yêu cầu tư vấn." },
       { status: 500 },
