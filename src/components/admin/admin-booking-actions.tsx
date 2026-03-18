@@ -31,11 +31,11 @@ export function AdminBookingActions({ bookingId, status, paymentStatus, compact 
 
       const payload = (await response.json()) as { message?: string };
       if (!response.ok) {
-        toast.error(payload.message ?? "KhÃ´ng thá»ƒ cáº­p nháº­t Ä‘Æ¡n Ä‘áº·t tour.");
+        toast.error(payload.message ?? "Không thể cập nhật đơn đặt tour.");
         return;
       }
 
-      toast.success(payload.message ?? "ÄÃ£ cáº­p nháº­t Ä‘Æ¡n Ä‘áº·t tour.");
+      toast.success(payload.message ?? "Đã cập nhật đơn đặt tour.");
       router.refresh();
     });
   }
@@ -47,18 +47,18 @@ export function AdminBookingActions({ bookingId, status, paymentStatus, compact 
         onChange={(event) => setSelectedStatus(event.target.value as BookingStatusValue)}
         className="h-8 w-full rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700"
       >
-        <option value="PENDING">Chá» xÃ¡c nháº­n</option>
-        <option value="CONFIRMED">ÄÃ£ xÃ¡c nháº­n</option>
-        <option value="CANCELLED">ÄÃ£ há»§y</option>
-        <option value="COMPLETED">HoÃ n thÃ nh</option>
+        <option value="PENDING">Chờ xác nhận</option>
+        <option value="CONFIRMED">Đã xác nhận</option>
+        <option value="CANCELLED">Đã hủy</option>
+        <option value="COMPLETED">Hoàn thành</option>
       </select>
       <select
         value={selectedPaymentStatus}
         onChange={(event) => setSelectedPaymentStatus(event.target.value as PaymentStatusValue)}
         className="h-8 w-full rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700"
       >
-        <option value="UNPAID">ChÆ°a thanh toÃ¡n</option>
-        <option value="PAID">ÄÃ£ thanh toÃ¡n</option>
+        <option value="UNPAID">Chưa thanh toán</option>
+        <option value="PAID">Đã thanh toán</option>
       </select>
       <button
         type="button"
@@ -69,10 +69,10 @@ export function AdminBookingActions({ bookingId, status, paymentStatus, compact 
         {isPending ? (
           <>
             <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-            Äang lÆ°u
+            Đang lưu
           </>
         ) : (
-          "LÆ°u"
+          "Lưu"
         )}
       </button>
     </div>
