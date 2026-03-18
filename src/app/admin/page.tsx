@@ -76,10 +76,10 @@ function formatRate(value: number) {
 function formatCompactCurrency(value: number) {
   const abs = Math.abs(value);
 
-  if (abs >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)} ty`;
-  if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1)} trieu`;
-  if (abs >= 1_000) return `${(value / 1_000).toFixed(1)} nghin`;
-  return `${Math.round(value)} d`;
+  if (abs >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)} \u1ef7`;
+  if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1)} tri\u1ec7u`;
+  if (abs >= 1_000) return `${(value / 1_000).toFixed(1)} ngh\u00ecn`;
+  return `${Math.round(value)} \u0111`;
 }
 
 function formatCurrencyDelta(value: number) {
@@ -209,7 +209,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       key: "revenue",
       label: "Doanh thu",
       value: formatCompactCurrency(data.timeRangeStats.confirmedRevenue),
-      hint: `Thuc thu: ${formatPrice(data.timeRangeStats.confirmedRevenue)}`,
+      hint: `Th\u1ef1c thu: ${formatPrice(data.timeRangeStats.confirmedRevenue)}`,
       deltaText: revenueDelta.text,
       deltaTone: revenueDelta.tone,
       icon: CircleDollarSign,

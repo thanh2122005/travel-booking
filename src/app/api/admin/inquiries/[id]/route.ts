@@ -22,10 +22,10 @@ export async function PATCH(request: Request, context: RouteContext) {
     const normalizedId = id?.trim();
 
     if (!normalizedId) {
-      return NextResponse.json({ message: "Thieu ma yeu cau tu van." }, { status: 400 });
+      return NextResponse.json({ message: "Thiếu mã yêu cầu tư vấn." }, { status: 400 });
     }
 
-    const json = await parseJsonBody(request, "Du lieu cap nhat tu van khong hop le.");
+    const json = await parseJsonBody(request, "Dữ liệu cập nhật tư vấn không hợp lệ.");
     if (!json.ok) {
       return json.response;
     }
@@ -34,7 +34,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (!parsed.success) {
       const firstIssue = parsed.error.issues[0];
       return NextResponse.json(
-        { message: firstIssue?.message ?? "Trang thai xu ly khong hop le." },
+        { message: firstIssue?.message ?? "Trạng thái xử lý không hợp lệ." },
         { status: 400 },
       );
     }
@@ -42,13 +42,13 @@ export async function PATCH(request: Request, context: RouteContext) {
     const updated = await updateAdminInquiryStatus(normalizedId, parsed.data.status).catch(() => null);
 
     if (!updated) {
-      return NextResponse.json({ message: "Khong the cap nhat yeu cau tu van." }, { status: 500 });
+      return NextResponse.json({ message: "Không thể cập nhật yêu cầu tư vấn." }, { status: 500 });
     }
 
     return NextResponse.json({
-      message: parsed.data.status === "RESOLVED" ? "Da danh dau da xu ly." : "Da chuyen ve cho xu ly.",
+      message: parsed.data.status === "RESOLVED" ? "Đã đánh dấu đã xử lý." : "Đã chuyển về chờ xử lý.",
     });
   } catch {
-    return NextResponse.json({ message: "Khong the xu ly yeu cau luc nay." }, { status: 500 });
+    return NextResponse.json({ message: "Không thể xử lý yêu cầu lúc này." }, { status: 500 });
   }
 }
