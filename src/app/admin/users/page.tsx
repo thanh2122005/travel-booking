@@ -130,12 +130,12 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
         <p className="mt-1 text-sm text-slate-500">Theo dõi tài khoản, vai trò, trạng thái và mức độ hoạt động.</p>
       </div>
 
-      <form id="bo-loc-nguoi-dung" className="iv-card scroll-mt-24 border-slate-200/80 bg-gradient-to-b from-white to-slate-50/40 p-4 md:p-5">
+      <form id="bo-loc-nguoi-dung" className="iv-admin-filter-form">
         <input type="hidden" name="page" value="1" />
         <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
           Tìm kiếm người dùng
         </label>
-        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/80 bg-white/95 p-2">
+        <div className="iv-admin-filter-quick">
           <span className="text-xs font-medium text-slate-500">Mốc nhanh:</span>
           {quickDateRanges.map((days) => {
             const quickRange = createQuickDateRange(days);
@@ -172,7 +172,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             </Link>
           ) : null}
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="iv-admin-filter-grid">
           <input
             id="search"
             name="search"
@@ -211,7 +211,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="iv-admin-filter-actions">
           <button type="submit" className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto">
             Tìm kiếm
           </button>

@@ -129,3 +129,21 @@
     @apply font-sans scroll-smooth;
   }
 }
+
+@layer components {
+  .iv-admin-filter-form {
+    @apply iv-card scroll-mt-24 border-slate-200/80 bg-gradient-to-b from-white to-slate-50/40 p-4 md:p-5;
+  }
+
+  .iv-admin-filter-quick {
+    @apply mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/80 bg-white/95 p-2;
+  }
+
+  .iv-admin-filter-grid {
+    @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  .iv-admin-filter-actions {
+    @apply mt-4 flex flex-wrap items-center gap-2;
+  }
+}
