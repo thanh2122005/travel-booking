@@ -24,7 +24,9 @@ export function StatsCards({ items }: StatsCardsProps) {
               </span>
             </div>
 
-            <p className="mt-2 text-3xl font-semibold leading-none text-slate-700">{item.value}</p>
+            <p className="mt-2 max-w-full truncate text-[clamp(1.9rem,1.8vw,2.25rem)] font-semibold leading-tight tracking-tight text-slate-700" title={item.value}>
+              {item.value}
+            </p>
 
             {item.deltaText ? (
               <p className={`mt-2 inline-flex items-center gap-1 text-xs font-medium ${deltaToneClass(item.deltaTone ?? "flat")}`}>
