@@ -8,9 +8,10 @@ type StatsCardsProps = {
 
 export function StatsCards({ items }: StatsCardsProps) {
   return (
-    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       {items.map((item) => {
         const Icon = item.icon;
+        const isLongValue = item.value.length >= 11;
 
         return (
           <article
@@ -24,7 +25,12 @@ export function StatsCards({ items }: StatsCardsProps) {
               </span>
             </div>
 
-            <p className="mt-2 max-w-full truncate text-[clamp(1.9rem,1.8vw,2.25rem)] font-semibold leading-tight tracking-tight text-slate-700" title={item.value}>
+            <p
+              className={`mt-2 max-w-full overflow-hidden text-ellipsis whitespace-nowrap font-semibold leading-tight tracking-tight text-slate-700 ${
+                isLongValue ? "text-[clamp(1.35rem,1.2vw,1.75rem)]" : "text-[clamp(1.7rem,1.5vw,2rem)]"
+              }`}
+              title={item.value}
+            >
               {item.value}
             </p>
 
@@ -43,6 +49,3 @@ export function StatsCards({ items }: StatsCardsProps) {
     </section>
   );
 }
-
-
-

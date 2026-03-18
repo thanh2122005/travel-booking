@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { CheckCircle2, Loader2, MoreHorizontal, RotateCcw } from "lucide-react";
@@ -23,24 +23,29 @@ export function AdminInquiryActions({ inquiryId, status }: AdminInquiryActionsPr
 
   function handleSetStatus(nextStatus: "PENDING" | "RESOLVED") {
     startTransition(async () => {
-      const response = await fetch("/api/admin/inquiries/" + inquiryId, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nextStatus }),
-      });
+      try {
+        const response = await fetch(`/api/admin/inquiries/${inquiryId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: nextStatus }),
+        });
 
-      const payload = (await response.json().catch(() => ({}))) as { message?: string };
+        const payload = (await response.json().catch(() => ({}))) as { message?: string };
 
-      if (!response.ok) {
-        toast.error(payload.message ?? "Không thể cập nhật trạng thái tư vấn.");
-        return;
+        if (!response.ok) {
+          toast.error(payload.message ?? "Không thể cập nhật trạng thái tư vấn.");
+          return;
+        }
+
+        toast.success(
+          payload.message ??
+            (nextStatus === "RESOLVED" ? "Đã đánh dấu đã xử lý." : "Đã chuyển về chờ xử lý."),
+        );
+        setOpen(false);
+        router.refresh();
+      } catch {
+        toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
       }
-
-      toast.success(
-        payload.message ?? (nextStatus === "RESOLVED" ? "Đã đánh dấu đã xử lý." : "Đã chuyển về chờ xử lý."),
-      );
-      setOpen(false);
-      router.refresh();
     });
   }
 
@@ -59,7 +64,7 @@ export function AdminInquiryActions({ inquiryId, status }: AdminInquiryActionsPr
           className="gap-2"
         >
           <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-          <span>{"Đánh dấu đã xử lý"}</span>
+          <span>Đánh dấu đã xử lý</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handleSetStatus("PENDING")}
@@ -67,7 +72,7 @@ export function AdminInquiryActions({ inquiryId, status }: AdminInquiryActionsPr
           className="gap-2"
         >
           <RotateCcw className="h-4 w-4 text-amber-600" />
-          <span>{"Chuyển về chờ xử lý"}</span>
+          <span>Chuyển về chờ xử lý</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
