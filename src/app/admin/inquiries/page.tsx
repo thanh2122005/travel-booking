@@ -207,13 +207,13 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
             defaultValue={createdTo}
             className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
-          <button type="submit" className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto">
+          <button type="submit" className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:col-span-2 xl:col-span-1">
             Lọc dữ liệu
           </button>
           {hasActiveFilters ? (
             <Link
               href="/admin/inquiries"
-              className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
+              className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:col-span-2 xl:col-span-1"
             >
               Xóa lọc
             </Link>
@@ -231,13 +231,13 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
             ))}
           </div>
         ) : null}
-        <div className="mt-3 flex justify-end">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <Link
             href={{
               pathname: "/api/admin/inquiries/export",
               query: exportQuery,
             }}
-            className="inline-flex h-9 items-center rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            className="iv-btn-soft inline-flex h-10 w-full items-center justify-center px-4 text-sm font-semibold shadow-sm sm:w-auto"
           >
             Xuất CSV
           </Link>

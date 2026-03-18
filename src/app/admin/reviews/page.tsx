@@ -233,7 +233,7 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
           />
           <button
             type="submit"
-            className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto"
+            className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:col-span-2 xl:col-span-1"
           >
             Lọc dữ liệu
           </button>
@@ -250,13 +250,13 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
             ))}
           </div>
         ) : null}
-        <div className="mt-3 flex justify-end">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <Link
             href={{
               pathname: "/api/admin/reviews/export",
               query: exportQuery,
             }}
-            className="inline-flex h-9 items-center rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            className="iv-btn-soft inline-flex h-10 w-full items-center justify-center px-4 text-sm font-semibold shadow-sm sm:w-auto"
           >
             Xuất CSV
           </Link>
