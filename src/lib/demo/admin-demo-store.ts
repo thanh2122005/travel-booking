@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
@@ -217,8 +217,8 @@ function buildDemoItineraries(tours: DemoTour[]) {
       dayNumber: index + 1,
       title:
         catalogTour?.itineraryTitles[index] ??
-        `NgÃ y ${index + 1}: Tráº£i nghiá»‡m táº¡i ${tour.departureLocation}`,
-      description: "Lá»‹ch trÃ¬nh chi tiáº¿t sáº½ Ä‘Æ°á»£c cáº­p nháº­t theo thá»i tiáº¿t vÃ  nhu cáº§u Ä‘oÃ n khÃ¡ch.",
+        `Ngày ${index + 1}: Trải nghiệm tại ${tour.departureLocation}`,
+      description: "Lịch trình chi tiết sẽ được cập nhật theo thời tiết và nhu cầu đoàn khách.",
     }));
   });
 }
@@ -229,7 +229,7 @@ function createInitialDemoState(): DemoState {
   const users: DemoUser[] = [
     {
       id: "usr_admin",
-      fullName: "Quáº£n trá»‹ viÃªn há»‡ thá»‘ng",
+      fullName: "Quản trị viên hệ thống",
       email: "admin@example.com",
       phone: "0909000000",
       avatarUrl: localAvatarPool[0] ?? null,
@@ -330,10 +330,10 @@ function createInitialDemoState(): DemoState {
       email: user.email,
       phone: catalogTravelerProfiles[index % catalogTravelerProfiles.length]?.phone ?? "0909009999",
       numberOfGuests: guests,
-      note: "Æ¯u tiÃªn vá»‹ trÃ­ ngá»“i gáº§n nhau vÃ  há»— trá»£ check-in nhanh.",
+      note: "Ưu tiên vị trí ngồi gần nhau và hỗ trợ check-in nhanh.",
       totalPrice: (tour.discountPrice ?? tour.price) * guests,
       status,
-      paymentMethod: "Chuyá»ƒn khoáº£n ngÃ¢n hÃ ng",
+      paymentMethod: "Chuyển khoản ngân hàng",
       paymentStatus,
       departureDate: new Date(2026, index % 12, 8 + (index % 18)).toISOString(),
       createdAt,
@@ -457,7 +457,7 @@ async function readDemo(): Promise<DemoState> {
     : fallbackItineraries;
   state.bookings = state.bookings.map((booking) => ({
     ...booking,
-    paymentMethod: booking.paymentMethod ?? "Chuyá»ƒn khoáº£n ngÃ¢n hÃ ng",
+    paymentMethod: booking.paymentMethod ?? "Chuyển khoản ngân hàng",
     note: booking.note ?? null,
     departureDate: booking.departureDate ?? null,
   }));
@@ -561,7 +561,7 @@ function formatTimelineLabel(date: Date, granularity: TimelineGranularity) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const year = date.getFullYear();
   if (granularity === "day") return `${day}/${month}`;
-  if (granularity === "week") return `Tuáº§n ${day}/${month}`;
+  if (granularity === "week") return `Tuần ${day}/${month}`;
   return `${month}/${year}`;
 }
 
@@ -890,7 +890,7 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
       createdAt: toDate(review.createdAt),
       user: {
         id: review.userId,
-        fullName: userMap.get(review.userId)?.fullName ?? "NgÆ°á»i dÃ¹ng",
+        fullName: userMap.get(review.userId)?.fullName ?? "Người dùng",
       },
       tour: {
         id: review.tourId,
@@ -1012,7 +1012,7 @@ export async function demoGetUserDashboardData(userId?: string) {
           price: tour?.price ?? 0,
           discountPrice: tour?.discountPrice ?? null,
           location: {
-            name: location?.name ?? "Äiá»ƒm Ä‘áº¿n",
+            name: location?.name ?? "Điểm đến",
           },
         },
       };
@@ -1080,7 +1080,7 @@ export async function demoGetTours(filter: TourListFilter = {}) {
       updatedAt: toDate(tour.updatedAt),
       location: {
         id: tour.locationId,
-        name: locationMap.get(tour.locationId)?.name ?? "Äiá»ƒm Ä‘áº¿n",
+        name: locationMap.get(tour.locationId)?.name ?? "Điểm đến",
         slug: locationMap.get(tour.locationId)?.slug ?? "",
       },
       _count: {
@@ -1264,7 +1264,7 @@ export async function demoGetReviews(filter: ReviewListFilter = {}) {
       createdAt: toDate(review.createdAt),
       user: {
         id: review.userId,
-        fullName: userMap.get(review.userId)?.fullName ?? "NgÆ°á»i dÃ¹ng",
+        fullName: userMap.get(review.userId)?.fullName ?? "Người dùng",
         email: userMap.get(review.userId)?.email ?? "",
       },
       tour: {
@@ -1304,7 +1304,7 @@ export async function demoExportReviews(filter: ReviewListFilter = {}) {
       createdAt: toDate(review.createdAt),
       user: {
         id: review.userId,
-        fullName: userMap.get(review.userId)?.fullName ?? "NgÆ°á»i dÃ¹ng",
+        fullName: userMap.get(review.userId)?.fullName ?? "Người dùng",
         email: userMap.get(review.userId)?.email ?? "",
       },
       tour: {
@@ -2082,8 +2082,8 @@ export async function demoCreateTour(input: {
       id: `${tour.id}_it_${index + 1}`,
       tourId: tour.id,
       dayNumber: index + 1,
-      title: `NgÃ y ${index + 1}: Hoáº¡t Ä‘á»™ng táº¡i Ä‘iá»ƒm Ä‘áº¿n`,
-      description: "Lá»‹ch trÃ¬nh cÃ³ thá»ƒ Ä‘iá»u chá»‰nh theo Ä‘iá»u kiá»‡n thá»±c táº¿ vÃ  nhu cáº§u Ä‘oÃ n.",
+      title: `Ngày ${index + 1}: Hoạt động tại điểm đến`,
+      description: "Lịch trình có thể điều chỉnh theo điều kiện thực tế và nhu cầu đoàn.",
     })),
   );
   await writeDemo(state);
@@ -2125,7 +2125,7 @@ export async function demoGetHomePublicData() {
     itineraries: Array.from({ length: Math.min(3, tour.durationDays) }).map((_, index) => ({
       id: `${tour.id}_it_${index + 1}`,
       dayNumber: index + 1,
-      title: `NgÃ y ${index + 1}: Tráº£i nghiá»‡m táº¡i ${tour.location.name}`,
+      title: `Ngày ${index + 1}: Trải nghiệm tại ${tour.location.name}`,
     })),
   }));
 
@@ -2141,7 +2141,7 @@ export async function demoGetHomePublicData() {
         ...review,
         createdAt: toDate(review.createdAt),
         user: {
-          fullName: user?.fullName ?? "NgÆ°á»i dÃ¹ng",
+          fullName: user?.fullName ?? "Người dùng",
           avatarUrl: localAvatarPool[index % localAvatarPool.length],
         },
         tour: {
@@ -2245,7 +2245,7 @@ export async function demoGetPublicTourBySlug(slug: string, userId?: string) {
       ...review,
       createdAt: toDate(review.createdAt),
       user: {
-        fullName: userMap.get(review.userId)?.fullName ?? "NgÆ°á»i dÃ¹ng",
+        fullName: userMap.get(review.userId)?.fullName ?? "Người dùng",
       },
     }));
 
@@ -2289,8 +2289,8 @@ export async function demoGetPublicTourBySlug(slug: string, userId?: string) {
         id: `${tour.id}_it_${index + 1}`,
         tourId: tour.id,
         dayNumber: index + 1,
-        title: `NgÃ y ${index + 1}: Hoáº¡t Ä‘á»™ng táº¡i ${tour.location.name}`,
-        description: "Lá»‹ch trÃ¬nh chi tiáº¿t sáº½ Ä‘Æ°á»£c Ä‘iá»u phá»‘i theo thá»i tiáº¿t vÃ  nhÃ³m khÃ¡ch.",
+        title: `Ngày ${index + 1}: Hoạt động tại ${tour.location.name}`,
+        description: "Lịch trình chi tiết sẽ được điều phối theo thời tiết và nhóm khách.",
       }));
 
   return {
@@ -2353,7 +2353,7 @@ export async function demoGetPublicReviews(limit = 24) {
         ...review,
         createdAt: toDate(review.createdAt),
         user: {
-          fullName: userMap.get(review.userId)?.fullName ?? "NgÆ°á»i dÃ¹ng",
+          fullName: userMap.get(review.userId)?.fullName ?? "Người dùng",
           avatarUrl: localAvatarPool[index % localAvatarPool.length],
         },
         tour: {
@@ -2388,7 +2388,7 @@ async function ensureDemoUser(state: DemoState, userId: string, profile?: { full
     const createdAt = nowIso();
     user = {
       id: userId,
-      fullName: profile?.fullName ?? "NgÆ°á»i dÃ¹ng",
+      fullName: profile?.fullName ?? "Người dùng",
       email: profile?.email ?? `${userId}@local.dev`,
       phone: null,
       avatarUrl: null,
@@ -2432,7 +2432,7 @@ export async function demoCreatePublicBooking(input: {
     note: input.note ?? null,
     totalPrice: (tour.discountPrice ?? tour.price) * input.numberOfGuests,
     status: BookingStatus.PENDING,
-    paymentMethod: "Thanh toÃ¡n khi xÃ¡c nháº­n",
+    paymentMethod: "Thanh toán khi xác nhận",
     paymentStatus: PaymentStatus.UNPAID,
     departureDate:
       departureDateObj && !Number.isNaN(departureDateObj.getTime())
@@ -2539,4 +2539,5 @@ export async function demoDeletePublicReview(input: { userId: string; tourId: st
   await writeDemo(state);
   return existing;
 }
+
 
