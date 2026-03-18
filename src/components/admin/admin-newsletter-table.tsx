@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState, useTransition } from "react";
 import { Loader2, Trash2 } from "lucide-react";
@@ -44,11 +44,11 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
 
   function handleBulkDelete() {
     if (!selectedIdsInPage.length) {
-      toast.error("Vui lÃ²ng chá»n Ã­t nháº¥t má»™t email Ä‘á»ƒ xÃ³a.");
+      toast.error("Vui lòng chọn ít nhất một email để xóa.");
       return;
     }
 
-    if (!window.confirm(`XÃ³a ${selectedIdsInPage.length} email Ä‘Ã£ chá»n khá»i danh sÃ¡ch nháº­n tin?`)) return;
+    if (!window.confirm(`Xóa ${selectedIdsInPage.length} email đã chọn khỏi danh sách nhận tin?`)) return;
 
     startTransition(async () => {
       const response = await fetch("/api/admin/newsletter/bulk", {
@@ -59,12 +59,12 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
 
       const payload = (await response.json()) as { message?: string };
       if (!response.ok) {
-        toast.error(payload.message ?? "KhÃ´ng thá»ƒ xÃ³a Ä‘Äƒng kÃ½ nháº­n tin hÃ ng loáº¡t.");
+        toast.error(payload.message ?? "Không thể xóa đăng ký nhận tin hàng loạt.");
         return;
       }
 
       setSelectedIds([]);
-      toast.success(payload.message ?? "ÄÃ£ xÃ³a email Ä‘Äƒng kÃ½ nháº­n tin.");
+      toast.success(payload.message ?? "Đã xóa email đăng ký nhận tin.");
       router.refresh();
     });
   }
@@ -75,9 +75,9 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
         <div className="space-y-3">
           <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
             <div>
-              <p className="iv-admin-bulk-heading">Thao tÃ¡c hÃ ng loáº¡t</p>
+              <p className="iv-admin-bulk-heading">Thao tác hàng loạt</p>
               <p className="iv-admin-bulk-meta">
-                ÄÃ£ chá»n <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> email trong trang hiá»‡n táº¡i.
+                Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> email trong trang hiện tại.
               </p>
             </div>
             {selectedIdsInPage.length ? (
@@ -86,7 +86,7 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
                 onClick={() => toggleSelectAll(false)}
                 className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
               >
-                Bá» chá»n trong trang
+                Bỏ chọn trong trang
               </button>
             ) : null}
           </div>
@@ -99,7 +99,7 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
                 onChange={(event) => toggleSelectAll(event.target.checked)}
                 className="h-4 w-4 rounded border-slate-300 accent-teal-600"
               />
-              Chá»n táº¥t cáº£ trong trang
+              Chọn tất cả trong trang
             </label>
 
             <button
@@ -111,12 +111,12 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Äang xÃ³a...
+                  Đang xóa...
                 </>
               ) : (
                 <>
                   <Trash2 className="mr-1.5 h-4 w-4" />
-                  XÃ³a cÃ¡c email Ä‘Ã£ chá»n
+                  Xóa các email đã chọn
                 </>
               )}
             </button>
@@ -136,7 +136,7 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
               />
               <div>
                 <p className="text-sm font-semibold text-slate-800">{subscriber.email}</p>
-                <p className="mt-1 text-xs text-slate-500">ÄÄƒng kÃ½: {formatDate(new Date(subscriber.createdAt))}</p>
+                <p className="mt-1 text-xs text-slate-500">Đăng ký: {formatDate(new Date(subscriber.createdAt))}</p>
               </div>
             </div>
           </article>
@@ -157,7 +157,7 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
                   />
                 </th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Email</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">NgÃ y Ä‘Äƒng kÃ½</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Ngày đăng ký</th>
               </tr>
             </thead>
             <tbody>

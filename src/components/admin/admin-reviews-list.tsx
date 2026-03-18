@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
@@ -61,7 +61,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
 
   function handleBulkUpdate() {
     if (!selectedIdsInPage.length) {
-      toast.error("Vui lÃ²ng chá»n Ã­t nháº¥t má»™t Ä‘Ã¡nh giÃ¡ Ä‘á»ƒ cáº­p nháº­t.");
+      toast.error("Vui lòng chọn ít nhất một đánh giá để cập nhật.");
       return;
     }
 
@@ -77,12 +77,12 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
 
       const payload = (await response.json()) as { message?: string };
       if (!response.ok) {
-        toast.error(payload.message ?? "KhÃ´ng thá»ƒ cáº­p nháº­t Ä‘Ã¡nh giÃ¡ hÃ ng loáº¡t.");
+        toast.error(payload.message ?? "Không thể cập nhật đánh giá hàng loạt.");
         return;
       }
 
       setSelectedIds([]);
-      toast.success(payload.message ?? "ÄÃ£ cáº­p nháº­t Ä‘Ã¡nh giÃ¡ hÃ ng loáº¡t.");
+      toast.success(payload.message ?? "Đã cập nhật đánh giá hàng loạt.");
       router.refresh();
     });
   }
@@ -93,9 +93,9 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
         <div className="space-y-3">
           <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
             <div className="min-w-0 max-w-2xl">
-              <p className="iv-admin-bulk-heading">Cáº­p nháº­t hiá»ƒn thá»‹ hÃ ng loáº¡t</p>
+              <p className="iv-admin-bulk-heading">Cập nhật hiển thị hàng loạt</p>
               <p className="iv-admin-bulk-meta">
-                ÄÃ£ chá»n <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> Ä‘Ã¡nh giÃ¡ trong trang hiá»‡n táº¡i.
+                Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> đánh giá trong trang hiện tại.
               </p>
             </div>
             {selectedIdsInPage.length ? (
@@ -104,7 +104,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                 onClick={() => toggleSelectAll(false)}
                 className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
               >
-                Bá» chá»n trong trang
+                Bỏ chọn trong trang
               </button>
             ) : null}
           </div>
@@ -117,15 +117,15 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                 onChange={(event) => toggleSelectAll(event.target.checked)}
                 className="h-4 w-4 rounded border-slate-300 accent-teal-600"
               />
-              Chá»n táº¥t cáº£ trong trang
+              Chọn tất cả trong trang
             </label>
             <select
               value={bulkVisible}
               onChange={(event) => setBulkVisible(event.target.value)}
               className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm focus:border-teal-500 focus:outline-none"
             >
-              <option value="visible">Hiá»ƒn thá»‹</option>
-              <option value="hidden">áº¨n</option>
+              <option value="visible">Hiển thị</option>
+              <option value="hidden">Ẩn</option>
             </select>
             <button
               type="button"
@@ -136,10 +136,10 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Äang cáº­p nháº­t...
+                  Đang cập nhật...
                 </>
               ) : (
-                "Ãp dá»¥ng cho cÃ¡c dÃ²ng Ä‘Ã£ chá»n"
+                "Áp dụng cho các dòng đã chọn"
               )}
             </button>
           </div>
@@ -174,7 +174,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                 </p>
                 <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
                   <Badge variant={review.isVisible ? "default" : "secondary"}>
-                    {review.isVisible ? "Äang hiá»ƒn thá»‹" : "áº¨n"}
+                    {review.isVisible ? "Đang hiển thị" : "Ẩn"}
                   </Badge>
                   <span className="text-xs text-slate-500">{formatDate(new Date(review.createdAt))}</span>
                 </div>
@@ -201,12 +201,12 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                     className="h-4 w-4 rounded border-slate-300 accent-teal-600"
                   />
                 </th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">NgÆ°á»i dÃ¹ng</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Người dùng</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Tour</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">ÄÃ¡nh giÃ¡</th>
-                <th className="px-2 py-3 font-medium">BÃ¬nh luáº­n</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">NgÃ y táº¡o</th>
-                <th className="iv-admin-table-sticky-actions-head px-2 py-3 font-medium whitespace-nowrap text-right">Thao tÃ¡c</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Đánh giá</th>
+                <th className="px-2 py-3 font-medium">Bình luận</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Ngày tạo</th>
+                <th className="iv-admin-table-sticky-actions-head px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -233,7 +233,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">{review.rating}/5</Badge>
                       <Badge variant={review.isVisible ? "default" : "secondary"}>
-                        {review.isVisible ? "Äang hiá»ƒn thá»‹" : "áº¨n"}
+                        {review.isVisible ? "Đang hiển thị" : "Ẩn"}
                       </Badge>
                     </div>
                   </td>
