@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { CheckCircle2, Loader2, MoreHorizontal, RotateCcw } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -9,7 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { setInquiryStatus } from "@/app/admin/inquiries/actions";
 
 type AdminInquiryActionsProps = {
   inquiryId: string;
@@ -17,22 +17,35 @@ type AdminInquiryActionsProps = {
 };
 
 export function AdminInquiryActions({ inquiryId, status }: AdminInquiryActionsProps) {
-  const [isPending, setIsPending] = useState(false);
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
 
-  async function handleSetStatus(nextStatus: "PENDING" | "RESOLVED") {
-    setIsPending(true);
-    const result = await setInquiryStatus(inquiryId, nextStatus);
-    setIsPending(false);
+  function handleSetStatus(nextStatus: "PENDING" | "RESOLVED") {
+    startTransition(async () => {
+      const response = await fetch("/api/admin/inquiries/" + inquiryId, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus }),
+      });
 
-    if (result.success) {
-      toast.success(nextStatus === "RESOLVED" ? "Đã đánh dấu đã xử lý." : "Đã chuyển về chờ xử lý.");
-    } else {
-      toast.error(result.error);
-    }
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
+
+      if (!response.ok) {
+        toast.error(payload.message ?? "Khong the cap nhat trang thai tu van.");
+        return;
+      }
+
+      toast.success(
+        payload.message ?? (nextStatus === "RESOLVED" ? "Da danh dau da xu ly." : "Da chuyen ve cho xu ly."),
+      );
+      setOpen(false);
+      router.refresh();
+    });
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
         className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 focus:outline-none"
         disabled={isPending}
@@ -46,7 +59,7 @@ export function AdminInquiryActions({ inquiryId, status }: AdminInquiryActionsPr
           className="gap-2"
         >
           <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-          <span>Đánh dấu đã xử lý</span>
+          <span>Danh dau da xu ly</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handleSetStatus("PENDING")}
@@ -54,7 +67,7 @@ export function AdminInquiryActions({ inquiryId, status }: AdminInquiryActionsPr
           className="gap-2"
         >
           <RotateCcw className="h-4 w-4 text-amber-600" />
-          <span>Chuyển về chờ xử lý</span>
+          <span>Chuyen ve cho xu ly</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
