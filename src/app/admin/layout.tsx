@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="min-h-screen bg-slate-50">
       <SiteHeader />
-      <main className="mx-auto grid w-full max-w-[1400px] gap-5 px-4 py-6 md:px-6 lg:grid-cols-[250px_minmax(0,1fr)] lg:py-8">
+      <main className="mx-auto grid w-full max-w-[1400px] gap-5 px-4 py-6 md:px-6 lg:grid-cols-[232px_minmax(0,1fr)] lg:py-8">
         <aside className="iv-card h-fit border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 p-4 lg:sticky lg:top-24">
           <div className="mb-3 rounded-xl border border-teal-100 bg-teal-50 px-3 py-2 text-sm text-teal-800">
             <p className="inline-flex items-center gap-1.5 font-semibold">

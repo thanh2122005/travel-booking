@@ -144,8 +144,8 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
       </div>
 
       <div className="iv-card hidden lg:block">
-        <div className="overflow-x-auto p-4">
-          <table className="w-full min-w-[760px] text-left text-sm">
+        <div className="iv-admin-table-scroll">
+          <table className="w-full min-w-[700px] text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-slate-500">
                 <th className="px-2 py-3 font-medium">

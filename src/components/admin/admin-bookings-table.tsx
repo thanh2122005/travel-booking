@@ -258,8 +258,8 @@ export function AdminBookingsTable({
       </div>
 
       <div className="iv-card hidden lg:block">
-        <div className="overflow-x-auto p-4">
-          <table className="min-w-[820px] w-full text-sm">
+        <div className="iv-admin-table-scroll">
+          <table className="min-w-[760px] w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -288,22 +288,22 @@ export function AdminBookingsTable({
                       className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
                     />
                   </td>
-                  <td className="px-2 py-3 min-w-[180px]">
+                  <td className="px-2 py-3 min-w-[160px]">
                     <p className="font-semibold text-slate-800">{booking.bookingCode}</p>
                     <p className="mt-1 font-medium text-slate-800">{booking.fullName}</p>
                     <p className="text-xs text-slate-500">{booking.email}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[180px]">
+                  <td className="px-2 py-3 min-w-[160px]">
                     <Link href={`/tours/${booking.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
                       {booking.tour.title}
                     </Link>
                     <p className="mt-1 text-xs text-slate-500">{booking.numberOfGuests} khÃ¡ch</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[150px]">
+                  <td className="px-2 py-3 min-w-[140px]">
                     <p className="font-medium text-slate-800">{formatPrice(booking.totalPrice)}</p>
                     <p className="mt-1 text-xs text-slate-500">{booking.paymentMethod || "Thanh toÃ¡n tiÃªu chuáº©n"}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[150px]">
+                  <td className="px-2 py-3 min-w-[140px]">
                     <div className="space-y-2">
                       <Badge variant="outline">{statusLabels[booking.status]}</Badge>
                       <div>

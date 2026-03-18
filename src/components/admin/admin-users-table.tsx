@@ -223,8 +223,8 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
       </div>
 
       <div className="iv-card hidden lg:block">
-        <div className="overflow-x-auto p-4">
-          <table className="min-w-[760px] w-full text-sm">
+        <div className="iv-admin-table-scroll">
+          <table className="min-w-[700px] w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -253,7 +253,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                       className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
                     />
                   </td>
-                  <td className="px-2 py-3 min-w-[230px]">
+                  <td className="px-2 py-3 min-w-[200px]">
                     <p className="font-medium text-slate-800">{user.fullName}</p>
                     <p className="text-xs text-slate-500">{user.email}</p>
                     <p className="mt-1 text-xs text-slate-500">SÄT: {user.phone || "-"}</p>
@@ -266,7 +266,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                       </div>
                     </div>
                   </td>
-                  <td className="px-2 py-3 min-w-[170px]">
+                  <td className="px-2 py-3 min-w-[150px]">
                     <div className="flex flex-wrap gap-1.5">
                       <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">ÄÆ¡n {user._count.bookings}</span>
                       <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">ÄÃ¡nh giÃ¡ {user._count.reviews}</span>

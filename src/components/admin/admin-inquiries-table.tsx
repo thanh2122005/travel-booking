@@ -181,8 +181,8 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
       </div>
 
       <div className="iv-card hidden lg:block">
-        <div className="overflow-x-auto p-4">
-          <table className="min-w-[860px] w-full text-left text-sm">
+        <div className="iv-admin-table-scroll">
+          <table className="min-w-[780px] w-full text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -220,7 +220,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                     <p className="text-slate-800">{inquiry.phone}</p>
                     <p className="text-xs text-slate-500">{inquiry.email}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[180px] text-xs text-slate-600">
+                  <td className="px-2 py-3 min-w-[165px] text-xs text-slate-600">
                     {inquiry.tour?.slug ? (
                       <p>
                         Tour:{" "}
@@ -236,7 +236,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                     <p className="mt-1">{inquiry.numberOfGuests} khÃ¡ch</p>
                     {inquiry.departureDate ? <p className="mt-1">Khá»Ÿi hÃ nh: {formatDate(new Date(inquiry.departureDate))}</p> : null}
                   </td>
-                  <td className="px-2 py-3 min-w-[220px]">
+                  <td className="px-2 py-3 min-w-[190px]">
                     <p className="line-clamp-3 text-xs text-slate-700">{inquiry.message || "KhÃ´ng cÃ³ ná»™i dung"}</p>
                   </td>
                   <td className="px-2 py-3 text-xs text-slate-500 whitespace-nowrap">{formatDate(new Date(inquiry.createdAt))}</td>

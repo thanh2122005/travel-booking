@@ -189,8 +189,8 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
       </div>
 
       <div className="iv-card hidden lg:block">
-        <div className="overflow-x-auto p-4">
-          <table className="min-w-[960px] w-full text-sm">
+        <div className="iv-admin-table-scroll">
+          <table className="min-w-[820px] w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -224,7 +224,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                     <p className="font-medium text-slate-800">{review.user.fullName}</p>
                     <p className="text-xs text-slate-500">{review.user.email}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[200px]">
+                  <td className="px-2 py-3 min-w-[170px]">
                     <Link href={`/tours/${review.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
                       {review.tour.title}
                     </Link>
@@ -237,7 +237,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                       </Badge>
                     </div>
                   </td>
-                  <td className="px-2 py-3 min-w-[260px]">
+                  <td className="px-2 py-3 min-w-[220px]">
                     <p className="line-clamp-2 text-sm text-slate-700">{review.comment}</p>
                   </td>
                   <td className="px-2 py-3 text-xs text-slate-500 whitespace-nowrap">{formatDate(new Date(review.createdAt))}</td>

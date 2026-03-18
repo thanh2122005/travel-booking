@@ -157,3 +157,20 @@
     @apply mt-1 text-sm text-slate-500;
   }
 }
+
+@layer components {
+  .iv-admin-table-scroll {
+    @apply overflow-x-auto p-4 pb-2;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .iv-admin-table-scroll::-webkit-scrollbar {
+    height: 10px;
+  }
+
+  .iv-admin-table-scroll::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.35);
+    border-radius: 9999px;
+  }
+}
