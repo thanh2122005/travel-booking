@@ -1,42 +1,39 @@
-﻿# Travel Booking System
+﻿# Immersive Vietnam - Travel Booking System
 
-Production-like full-stack travel booking project built with Next.js App Router, TypeScript, Prisma, and PostgreSQL.
-Default UI language is Vietnamese.
+Đồ án web du lịch full-stack (production-like) xây dựng bằng **Next.js App Router + TypeScript + Prisma + PostgreSQL**.
+Mặc định giao diện hiển thị bằng **tiếng Việt**.
 
-## 1. Main Features
+## 1) Tính năng chính
 
-### Public area
-- Modern home page and brand pages
-- Tour listing with search/filter/sort
-- Tour detail page with itinerary, reviews, related tours
-- Destination listing/detail pages
-- Gallery, inspiration, about, contact pages
+### Public
+- Trang chủ, tour, điểm đến, thư viện, giới thiệu, liên hệ
+- Tìm kiếm/lọc/sắp xếp danh sách tour
+- Chi tiết tour/điểm đến
 
-### Auth + User area
-- Register/Login with credentials
-- Profile and account dashboard
-- Booking flow with booking history
-- Favorites management
-- Review create/update flow
+### Người dùng
+- Đăng ký/đăng nhập bằng email + mật khẩu
+- Quản lý hồ sơ
+- Đặt tour và xem lịch sử booking
+- Yêu thích tour
+- Đánh giá tour
 
-### Admin area
-- Admin dashboard with KPI cards and revenue/order chart
-- Manage tours, locations, bookings, users, reviews
-- Manage consultation requests and newsletter subscribers
-- Bulk actions and CSV export for admin modules
-- Role/status protections for critical admin actions
+### Quản trị
+- Dashboard KPI + biểu đồ doanh thu/đơn
+- Quản lý tour, điểm đến, đơn đặt, người dùng, đánh giá
+- Quản lý yêu cầu tư vấn và email nhận tin
+- Bulk actions + xuất CSV
 
-## 2. Tech Stack
+## 2) Công nghệ sử dụng
 
 - Next.js 16 (App Router)
 - React 19 + TypeScript
-- Tailwind CSS + shadcn/ui + lucide-react
+- Tailwind CSS + shadcn/ui + lucide-react + framer-motion
 - Prisma ORM + PostgreSQL
-- NextAuth (Credentials)
+- NextAuth Credentials
 - Zod + React Hook Form
 - bcryptjs
 
-## 3. Project Structure
+## 3) Cấu trúc thư mục
 
 ```text
 src/
@@ -51,37 +48,41 @@ src/
     booking/
     common/
     layout/
+    location/
     tour/
     ui/
   lib/
     auth/
     db/
-    validations/
+    demo/
     utils/
+    validations/
 prisma/
 public/
+scripts/
 ```
 
-## 4. Prerequisites
+## 4) Yêu cầu môi trường
 
 - Node.js 20+
 - npm 10+
 - PostgreSQL 14+
 
-## 5. Environment Variables
+## 5) Cấu hình biến môi trường
 
-Copy `.env.example` to `.env` and update values:
+Sao chép file mẫu:
 
 ```bash
 copy .env.example .env
 ```
 
-Required variables:
+Điền các biến bắt buộc:
+
 - `DATABASE_URL`
-- `AUTH_SECRET` or `NEXTAUTH_SECRET`
+- `AUTH_SECRET` (hoặc `NEXTAUTH_SECRET`)
 - `NEXTAUTH_URL`
 
-## 6. Install and Run (Local)
+## 6) Chạy local
 
 ```bash
 npm install
@@ -91,50 +92,77 @@ npm run prisma:seed
 npm run dev
 ```
 
-Open: `http://localhost:3000`
+Mở: [http://localhost:3000](http://localhost:3000)
 
-## 7. Demo Accounts
+## 7) Tài khoản test
 
 - Admin: `admin@example.com` / `Admin@123`
 - User: `user1@example.com` / `12345678`
 
-## 8. Useful Scripts
+## 8) Scripts hữu ích
 
-- `npm run dev` - run local app
-- `npm run build` - build production
-- `npm run start` - run production build
-- `npm run lint` - run ESLint
-- `npx tsc --noEmit` - run TypeScript check
+- `npm run dev`: chạy local
+- `npm run build`: build production
+- `npm run start`: chạy production
+- `npm run lint`: ESLint
+- `npx tsc --noEmit`: Type check
 - `npm run prisma:generate`
 - `npm run prisma:migrate`
 - `npm run prisma:seed`
+- `npm run prisma:deploy`
 
-## 9. Deploy to Vercel
+## 9) Deploy Vercel
 
-1. Create PostgreSQL database (Neon/Supabase/etc.)
-2. Set Vercel environment variables:
+1. Tạo database PostgreSQL (Neon/Supabase)
+2. Set env trên Vercel:
    - `DATABASE_URL`
-   - `AUTH_SECRET` (or `NEXTAUTH_SECRET`)
+   - `AUTH_SECRET` (hoặc `NEXTAUTH_SECRET`)
    - `NEXTAUTH_URL`
-3. Deploy repository to Vercel
-4. Run migration on production:
+3. Deploy từ GitHub repo
+4. Chạy migrate/seed trên môi trường deploy:
 
 ```bash
 npx prisma migrate deploy
 npx prisma db seed
 ```
 
-## 10. Security Notes
+## 10) Kiểm thử nhanh sau khi seed
 
-- Passwords are hashed with bcryptjs
-- Admin APIs are protected by admin guard
-- User-sensitive APIs require authenticated active user
-- Input validation via Zod
-- No real payment gateway integration (student project scope)
+1. Đăng nhập admin vào `/admin`
+2. Kiểm tra dashboard có số liệu và biểu đồ
+3. Vào các module admin:
+   - `/admin/users`
+   - `/admin/bookings`
+   - `/admin/reviews`
+   - `/admin/inquiries`
+4. Thử filter + bulk action + xuất CSV
+5. Đăng nhập user và thử đặt tour, yêu thích, đánh giá
 
-## 11. Future Improvements
+## 11) Lưu ý kỹ thuật
 
-- Integrate payment provider (optional future)
-- Add image upload service (S3/Cloudinary)
-- Add audit logs for admin actions
-- Add e2e tests and CI deployment checks
+- Mật khẩu đã hash bằng bcryptjs
+- API admin có guard phân quyền
+- Validate dữ liệu bằng Zod
+- Không tích hợp cổng thanh toán thật (chỉ mô phỏng trạng thái)
+
+## 12) Troubleshooting
+
+### Lỗi không kết nối DB
+- Kiểm tra `DATABASE_URL`
+- Đảm bảo PostgreSQL đang chạy
+
+### Lỗi không đăng nhập được
+- Kiểm tra `AUTH_SECRET`/`NEXTAUTH_SECRET`
+- Kiểm tra `NEXTAUTH_URL`
+
+### Lỗi build trên môi trường local Windows (`spawn EPERM`)
+- Thường do quyền tiến trình/sandbox trên môi trường hiện tại
+- Thử chạy lại terminal với quyền phù hợp
+- Xác nhận `npm run lint` và `npx tsc --noEmit` đều pass trước khi deploy
+
+## 13) Hướng mở rộng
+
+- Upload ảnh thật (S3/Cloudinary)
+- Dashboard analytics nâng cao
+- Audit logs cho admin
+- e2e tests + CI pipeline
