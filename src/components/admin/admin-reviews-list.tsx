@@ -241,7 +241,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                     <p className="line-clamp-2 text-sm text-slate-700">{review.comment}</p>
                   </td>
                   <td className="px-2 py-3 whitespace-nowrap text-xs text-slate-500">{formatDate(new Date(review.createdAt))}</td>
-                  <td className="px-2 py-3 border-l border-slate-100">
+                  <td className="px-2 py-3 border-l border-slate-100 min-w-[190px]">
                     <div className="ml-auto flex w-fit min-w-[160px] flex-col items-end gap-2">
                       <AdminReviewActions reviewId={review.id} isVisible={review.isVisible} compact />
                       <AdminReviewDetailDialog review={review} />

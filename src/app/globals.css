@@ -193,12 +193,3 @@
   }
 }
 
-@layer components {
-  .iv-admin-table-sticky-actions-head {
-    @apply bg-slate-50/95;
-  }
-
-  .iv-admin-table-sticky-actions-cell {
-    @apply bg-white;
-  }
-}
