@@ -8,9 +8,10 @@ import { toast } from "sonner";
 type AdminReviewActionsProps = {
   reviewId: string;
   isVisible: boolean;
+  compact?: boolean;
 };
 
-export function AdminReviewActions({ reviewId, isVisible }: AdminReviewActionsProps) {
+export function AdminReviewActions({ reviewId, isVisible, compact = false }: AdminReviewActionsProps) {
   const router = useRouter();
   const [visible, setVisible] = useState(isVisible);
   const [isPending, startTransition] = useTransition();
@@ -35,11 +36,11 @@ export function AdminReviewActions({ reviewId, isVisible }: AdminReviewActionsPr
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className={`flex items-center gap-2 ${compact ? "w-full max-w-[168px]" : ""}`}>
       <select
         value={visible ? "1" : "0"}
         onChange={(event) => setVisible(event.target.value === "1")}
-        className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs"
+        className="h-8 flex-1 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700"
       >
         <option value="1">Hiển thị</option>
         <option value="0">Ẩn</option>
