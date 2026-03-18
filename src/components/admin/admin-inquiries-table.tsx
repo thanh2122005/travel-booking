@@ -182,7 +182,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
 
       <div className="iv-card hidden lg:block">
         <div className="overflow-x-auto p-4">
-          <table className="min-w-[980px] w-full text-left text-sm">
+          <table className="min-w-[860px] w-full text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -261,3 +261,4 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
     </div>
   );
 }
+

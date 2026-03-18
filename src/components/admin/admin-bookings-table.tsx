@@ -259,7 +259,7 @@ export function AdminBookingsTable({
 
       <div className="iv-card hidden lg:block">
         <div className="overflow-x-auto p-4">
-          <table className="min-w-[980px] w-full text-sm">
+          <table className="min-w-[820px] w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -293,7 +293,7 @@ export function AdminBookingsTable({
                     <p className="mt-1 font-medium text-slate-800">{booking.fullName}</p>
                     <p className="text-xs text-slate-500">{booking.email}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[220px]">
+                  <td className="px-2 py-3 min-w-[180px]">
                     <Link href={`/tours/${booking.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
                       {booking.tour.title}
                     </Link>
@@ -303,7 +303,7 @@ export function AdminBookingsTable({
                     <p className="font-medium text-slate-800">{formatPrice(booking.totalPrice)}</p>
                     <p className="mt-1 text-xs text-slate-500">{booking.paymentMethod || "Thanh toÃ¡n tiÃªu chuáº©n"}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[190px]">
+                  <td className="px-2 py-3 min-w-[150px]">
                     <div className="space-y-2">
                       <Badge variant="outline">{statusLabels[booking.status]}</Badge>
                       <div>
@@ -313,7 +313,7 @@ export function AdminBookingsTable({
                     </div>
                   </td>
                   <td className="px-2 py-3 border-l border-slate-100">
-                    <div className="ml-auto flex min-w-[180px] flex-col items-end gap-2">
+                    <div className="ml-auto flex min-w-[160px] flex-col items-end gap-2">
                       <AdminBookingActions
                         bookingId={booking.id}
                         status={booking.status}
@@ -332,4 +332,5 @@ export function AdminBookingsTable({
     </div>
   );
 }
+
 

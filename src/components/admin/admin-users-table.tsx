@@ -224,7 +224,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
 
       <div className="iv-card hidden lg:block">
         <div className="overflow-x-auto p-4">
-          <table className="min-w-[880px] w-full text-sm">
+          <table className="min-w-[760px] w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -275,7 +275,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                   </td>
                   <td className="px-2 py-3 text-slate-500 whitespace-nowrap">{formatDate(new Date(user.createdAt))}</td>
                   <td className="px-2 py-3 border-l border-slate-100">
-                    <div className="ml-auto flex min-w-[180px] flex-col items-end gap-2">
+                    <div className="ml-auto flex min-w-[160px] flex-col items-end gap-2">
                       <AdminUserActions userId={user.id} role={user.role} status={user.status} compact />
                       <AdminUserDetailDialog user={user} />
                     </div>
@@ -289,4 +289,5 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
     </div>
   );
 }
+
 

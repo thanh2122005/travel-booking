@@ -242,7 +242,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                   </td>
                   <td className="px-2 py-3 text-xs text-slate-500 whitespace-nowrap">{formatDate(new Date(review.createdAt))}</td>
                   <td className="px-2 py-3 border-l border-slate-100">
-                    <div className="ml-auto flex w-fit min-w-[176px] flex-col items-end gap-2">
+                    <div className="ml-auto flex w-fit min-w-[160px] flex-col items-end gap-2">
                       <AdminReviewActions reviewId={review.id} isVisible={review.isVisible} compact />
                       <AdminReviewDetailDialog review={review} />
                     </div>
@@ -256,3 +256,4 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
     </div>
   );
 }
+
