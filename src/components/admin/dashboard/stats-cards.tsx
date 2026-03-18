@@ -26,8 +26,8 @@ export function StatsCards({ items }: StatsCardsProps) {
             </div>
 
             <p
-              className={`mt-2 min-w-0 max-w-full break-words font-semibold leading-tight tracking-tight text-slate-700 ${
-                isLongValue ? "text-[1.9rem] md:text-[2rem]" : "text-[2rem] md:text-[2.15rem]"
+              className={`mt-2 block w-full overflow-hidden text-ellipsis whitespace-nowrap font-semibold leading-tight tracking-tight text-slate-700 ${
+                isLongValue ? "text-[1.8rem] md:text-[1.95rem]" : "text-[1.95rem] md:text-[2.1rem]"
               }`}
               title={item.value}
             >

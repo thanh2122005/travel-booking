@@ -208,7 +208,7 @@ export async function getAdminInquiries(filter: AdminInquiryListFilter = {}) {
 export async function exportAdminInquiries(filter: AdminInquiryListFilter = {}) {
   try {
     const where = buildInquiryWhere(filter);
-    return db.contactInquiry.findMany({
+    return await db.contactInquiry.findMany({
       where,
       orderBy: { createdAt: "desc" },
       take: 5000,
@@ -232,7 +232,7 @@ export async function exportAdminInquiries(filter: AdminInquiryListFilter = {}) 
 
 export async function updateAdminInquiryStatus(inquiryId: string, status: InquiryStatus) {
   try {
-    return db.contactInquiry.update({
+    return await db.contactInquiry.update({
       where: { id: inquiryId },
       data: { status },
       include: {
@@ -258,7 +258,7 @@ export async function updateAdminInquiriesBulk(input: {
   status: InquiryStatus;
 }) {
   try {
-    return db.contactInquiry.updateMany({
+    return await db.contactInquiry.updateMany({
       where: {
         id: {
           in: input.ids,
@@ -313,7 +313,7 @@ export async function getAdminNewsletterSubscribers(filter: AdminNewsletterListF
 export async function exportAdminNewsletterSubscribers(filter: AdminNewsletterListFilter = {}) {
   try {
     const where = buildNewsletterWhere(filter);
-    return db.newsletterSubscriber.findMany({
+    return await db.newsletterSubscriber.findMany({
       where,
       orderBy: { createdAt: "desc" },
       take: 5000,
@@ -334,7 +334,7 @@ export async function deleteAdminNewsletterSubscribersBulk(input: { ids: string[
   }
 
   try {
-    return db.newsletterSubscriber.deleteMany({
+    return await db.newsletterSubscriber.deleteMany({
       where: {
         id: {
           in: uniqueIds,
@@ -348,6 +348,7 @@ export async function deleteAdminNewsletterSubscribersBulk(input: { ids: string[
     throw error;
   }
 }
+
 
 
 
