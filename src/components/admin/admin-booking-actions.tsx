@@ -46,6 +46,7 @@ export function AdminBookingActions({ bookingId, status, paymentStatus, compact 
         value={selectedStatus}
         onChange={(event) => setSelectedStatus(event.target.value as BookingStatusValue)}
         className="h-8 w-full rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700"
+        disabled={isPending}
       >
         <option value="PENDING">Chờ xác nhận</option>
         <option value="CONFIRMED">Đã xác nhận</option>
@@ -56,6 +57,7 @@ export function AdminBookingActions({ bookingId, status, paymentStatus, compact 
         value={selectedPaymentStatus}
         onChange={(event) => setSelectedPaymentStatus(event.target.value as PaymentStatusValue)}
         className="h-8 w-full rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700"
+        disabled={isPending}
       >
         <option value="UNPAID">Chưa thanh toán</option>
         <option value="PAID">Đã thanh toán</option>

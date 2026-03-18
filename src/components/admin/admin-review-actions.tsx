@@ -41,6 +41,7 @@ export function AdminReviewActions({ reviewId, isVisible, compact = false }: Adm
         value={visible ? "1" : "0"}
         onChange={(event) => setVisible(event.target.value === "1")}
         className="h-8 flex-1 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700"
+        disabled={isPending}
       >
         <option value="1">Hiển thị</option>
         <option value="0">Ẩn</option>
