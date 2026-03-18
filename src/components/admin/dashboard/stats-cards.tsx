@@ -1,4 +1,4 @@
-﻿import { TrendingDown, TrendingUp } from "lucide-react";
+import { TrendingDown, TrendingUp } from "lucide-react";
 import { deltaToneClass } from "@/components/admin/dashboard/formatters";
 import type { DashboardKpiItem } from "@/components/admin/dashboard/types";
 
@@ -16,18 +16,18 @@ export function StatsCards({ items }: StatsCardsProps) {
         return (
           <article
             key={item.key}
-            className="iv-card rounded-2xl border-slate-200 bg-white p-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] transition-transform duration-200 hover:-translate-y-0.5"
+            className="iv-card overflow-hidden rounded-2xl border-slate-200 bg-white p-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] transition-transform duration-200 hover:-translate-y-0.5"
           >
             <div className="flex items-start justify-between gap-2">
               <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">{item.label}</p>
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+              <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
                 <Icon className="h-4 w-4" />
               </span>
             </div>
 
             <p
-              className={`mt-2 max-w-full overflow-hidden text-ellipsis whitespace-nowrap font-semibold leading-tight tracking-tight text-slate-700 ${
-                isLongValue ? "text-[clamp(1.35rem,1.2vw,1.75rem)]" : "text-[clamp(1.7rem,1.5vw,2rem)]"
+              className={`mt-2 min-w-0 max-w-full break-words font-semibold leading-tight tracking-tight text-slate-700 ${
+                isLongValue ? "text-[1.9rem] md:text-[2rem]" : "text-[2rem] md:text-[2.15rem]"
               }`}
               title={item.value}
             >
