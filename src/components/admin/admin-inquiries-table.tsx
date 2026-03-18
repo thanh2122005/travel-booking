@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
@@ -29,8 +29,8 @@ type AdminInquiriesTableProps = {
 };
 
 const inquiryStatusOptions: Array<{ value: InquiryStatusValue; label: string }> = [
-  { value: "PENDING", label: "Chờ xử lý" },
-  { value: "RESOLVED", label: "Đã xử lý" },
+  { value: "PENDING", label: "Chá» xá»­ lÃ½" },
+  { value: "RESOLVED", label: "ÄÃ£ xá»­ lÃ½" },
 ];
 
 export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
@@ -62,7 +62,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
 
   function handleBulkUpdate() {
     if (!selectedIdsInPage.length) {
-      toast.error("Vui lòng chọn ít nhất một yêu cầu để cập nhật.");
+      toast.error("Vui lÃ²ng chá»n Ã­t nháº¥t má»™t yÃªu cáº§u Ä‘á»ƒ cáº­p nháº­t.");
       return;
     }
 
@@ -75,12 +75,12 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
 
       const payload = (await response.json()) as { message?: string };
       if (!response.ok) {
-        toast.error(payload.message ?? "Không thể cập nhật yêu cầu tư vấn hàng loạt.");
+        toast.error(payload.message ?? "KhÃ´ng thá»ƒ cáº­p nháº­t yÃªu cáº§u tÆ° váº¥n hÃ ng loáº¡t.");
         return;
       }
 
       setSelectedIds([]);
-      toast.success(payload.message ?? "Đã cập nhật yêu cầu tư vấn hàng loạt.");
+      toast.success(payload.message ?? "ÄÃ£ cáº­p nháº­t yÃªu cáº§u tÆ° váº¥n hÃ ng loáº¡t.");
       router.refresh();
     });
   }
@@ -91,9 +91,9 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Cập nhật hàng loạt</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Cáº­p nháº­t hÃ ng loáº¡t</p>
               <p className="mt-1 text-sm text-slate-600">
-                Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> yêu cầu trong trang hiện tại.
+                ÄÃ£ chá»n <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> yÃªu cáº§u trong trang hiá»‡n táº¡i.
               </p>
             </div>
             {selectedIdsInPage.length ? (
@@ -102,7 +102,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                 onClick={() => toggleSelectAll(false)}
                 className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
               >
-                Bỏ chọn trong trang
+                Bá» chá»n trong trang
               </button>
             ) : null}
           </div>
@@ -115,7 +115,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                 onChange={(event) => toggleSelectAll(event.target.checked)}
                 className="h-4 w-4 rounded border-slate-300 accent-teal-600"
               />
-              Chọn tất cả trong trang
+              Chá»n táº¥t cáº£ trong trang
             </label>
             <select
               value={bulkStatus}
@@ -137,10 +137,10 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Đang cập nhật...
+                  Äang cáº­p nháº­t...
                 </>
               ) : (
-                "Áp dụng cho các dòng đã chọn"
+                "Ãp dá»¥ng cho cÃ¡c dÃ²ng Ä‘Ã£ chá»n"
               )}
             </button>
           </div>
@@ -161,17 +161,17 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-mono text-xs text-slate-600">{inquiry.referenceCode}</p>
                   {inquiry.status === "RESOLVED" ? (
-                    <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Đã xử lý</span>
+                    <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">ÄÃ£ xá»­ lÃ½</span>
                   ) : (
-                    <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Chờ xử lý</span>
+                    <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Chá» xá»­ lÃ½</span>
                   )}
                 </div>
                 <p className="text-sm font-semibold text-slate-800">{inquiry.fullName}</p>
-                <p className="text-xs text-slate-500">{inquiry.phone} · {inquiry.email}</p>
-                <p className="text-xs text-slate-600 line-clamp-3">{inquiry.message || "Không có nội dung"}</p>
-                <p className="text-xs text-slate-500">Ngày gửi: {formatDate(new Date(inquiry.createdAt))}</p>
+                <p className="text-xs text-slate-500">{inquiry.phone} Â· {inquiry.email}</p>
+                <p className="text-xs text-slate-600 line-clamp-3">{inquiry.message || "KhÃ´ng cÃ³ ná»™i dung"}</p>
+                <p className="text-xs text-slate-500">NgÃ y gá»­i: {formatDate(new Date(inquiry.createdAt))}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">{inquiry.numberOfGuests} khách</span>
+                  <span className="text-xs text-slate-500">{inquiry.numberOfGuests} khÃ¡ch</span>
                   <AdminInquiryActions inquiryId={inquiry.id} status={inquiry.status} />
                 </div>
               </div>
@@ -193,14 +193,14 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                     className="h-4 w-4 rounded border-slate-300 accent-teal-600"
                   />
                 </th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Mã</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Khách hàng</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Liên hệ</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Chi tiết</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Nội dung</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Ngày gửi</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Trạng thái</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap text-right sticky right-0 bg-white">Thao tác</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">MÃ£</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">KhÃ¡ch hÃ ng</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">LiÃªn há»‡</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Chi tiáº¿t</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Ná»™i dung</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">NgÃ y gá»­i</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Tráº¡ng thÃ¡i</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap text-right">Thao tÃ¡c</th>
               </tr>
             </thead>
             <tbody>
@@ -233,21 +233,21 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                     ) : (
                       <p>-</p>
                     )}
-                    <p className="mt-1">{inquiry.numberOfGuests} khách</p>
-                    {inquiry.departureDate ? <p className="mt-1">Khởi hành: {formatDate(new Date(inquiry.departureDate))}</p> : null}
+                    <p className="mt-1">{inquiry.numberOfGuests} khÃ¡ch</p>
+                    {inquiry.departureDate ? <p className="mt-1">Khá»Ÿi hÃ nh: {formatDate(new Date(inquiry.departureDate))}</p> : null}
                   </td>
                   <td className="px-2 py-3 min-w-[220px]">
-                    <p className="line-clamp-3 text-xs text-slate-700">{inquiry.message || "Không có nội dung"}</p>
+                    <p className="line-clamp-3 text-xs text-slate-700">{inquiry.message || "KhÃ´ng cÃ³ ná»™i dung"}</p>
                   </td>
                   <td className="px-2 py-3 text-xs text-slate-500 whitespace-nowrap">{formatDate(new Date(inquiry.createdAt))}</td>
                   <td className="px-2 py-3 whitespace-nowrap">
                     {inquiry.status === "RESOLVED" ? (
-                      <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Đã xử lý</span>
+                      <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">ÄÃ£ xá»­ lÃ½</span>
                     ) : (
-                      <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Chờ xử lý</span>
+                      <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Chá» xá»­ lÃ½</span>
                     )}
                   </td>
-                  <td className="px-2 py-3 text-right sticky right-0 bg-white border-l border-slate-100">
+                  <td className="px-2 py-3 text-right border-l border-slate-100">
                     <div className="ml-auto w-fit">
                       <AdminInquiryActions inquiryId={inquiry.id} status={inquiry.status} />
                     </div>
