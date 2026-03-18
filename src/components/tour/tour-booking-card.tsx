@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,9 +36,9 @@ type TourBookingCardProps = {
 };
 
 const BOOKING_STEPS = [
-  { key: 1, title: "Liên hệ" },
-  { key: 2, title: "Lịch trình" },
-  { key: 3, title: "Xác nhận" },
+  { key: 1, title: "LiÃªn há»‡" },
+  { key: 2, title: "Lá»‹ch trÃ¬nh" },
+  { key: 3, title: "XÃ¡c nháº­n" },
 ] as const;
 
 type BookingStep = (typeof BOOKING_STEPS)[number]["key"];
@@ -61,6 +61,7 @@ export function TourBookingCard({
   initialPhone,
 }: TourBookingCardProps) {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isLoggedIn = Boolean(session?.user);
@@ -151,7 +152,7 @@ export function TourBookingCard({
     if (!valid) return;
 
     if (activeStep === 2 && numberOfGuests > maxGuests) {
-      toast.error(`Tour này chỉ nhận tối đa ${maxGuests} khách cho một đơn.`);
+      toast.error(`Tour nÃ y chá»‰ nháº­n tá»‘i Ä‘a ${maxGuests} khÃ¡ch cho má»™t Ä‘Æ¡n.`);
       return;
     }
 
@@ -179,12 +180,14 @@ export function TourBookingCard({
     };
 
     if (!response.ok) {
-      toast.error(payload.message ?? "Không thể đặt tour, vui lòng thử lại.");
+      toast.error(payload.message ?? "KhÃ´ng thá»ƒ Ä‘áº·t tour, vui lÃ²ng thá»­ láº¡i.");
       return;
     }
 
     toast.success(payload.message ?? "Đặt tour thành công.");
-    setLastBookingCode(payload.booking?.bookingCode ?? null);
+    const createdCode = payload.booking?.bookingCode ?? null;
+    setLastBookingCode(createdCode);
+    router.push(createdCode ? `/booking/thanh-cong?code=${encodeURIComponent(createdCode)}` : "/booking/thanh-cong");
     setActiveStep(1);
     reset({
       ...values,
@@ -197,7 +200,7 @@ export function TourBookingCard({
 
   async function handleToggleFavorite() {
     if (!isLoggedIn) {
-      toast.error("Vui lòng đăng nhập để lưu tour yêu thích.");
+      toast.error("Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ lÆ°u tour yÃªu thÃ­ch.");
       return;
     }
 
@@ -216,12 +219,12 @@ export function TourBookingCard({
       const payload = (await response.json()) as { message?: string; isFavorite?: boolean };
 
       if (!response.ok) {
-        toast.error(payload.message ?? "Không thể cập nhật yêu thích, vui lòng thử lại.");
+        toast.error(payload.message ?? "KhÃ´ng thá»ƒ cáº­p nháº­t yÃªu thÃ­ch, vui lÃ²ng thá»­ láº¡i.");
         return;
       }
 
       setIsFavorite(payload.isFavorite ?? false);
-      toast.success(payload.message ?? "Đã cập nhật danh sách yêu thích.");
+      toast.success(payload.message ?? "ÄÃ£ cáº­p nháº­t danh sÃ¡ch yÃªu thÃ­ch.");
     } finally {
       setIsFavoriteSubmitting(false);
     }
@@ -229,7 +232,7 @@ export function TourBookingCard({
 
   async function handleSubmitReview() {
     if (!isLoggedIn) {
-      toast.error("Vui lòng đăng nhập để đánh giá.");
+      toast.error("Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ Ä‘Ã¡nh giÃ¡.");
       return;
     }
 
@@ -241,7 +244,7 @@ export function TourBookingCard({
 
     if (!parsed.success) {
       const firstIssue = parsed.error.issues[0];
-      toast.error(firstIssue?.message ?? "Dữ liệu đánh giá không hợp lệ.");
+      toast.error(firstIssue?.message ?? "Dá»¯ liá»‡u Ä‘Ã¡nh giÃ¡ khÃ´ng há»£p lá»‡.");
       return;
     }
 
@@ -258,12 +261,12 @@ export function TourBookingCard({
       const payload = (await response.json()) as { message?: string };
 
       if (!response.ok) {
-        toast.error(payload.message ?? "Không thể gửi đánh giá, vui lòng thử lại.");
+        toast.error(payload.message ?? "KhÃ´ng thá»ƒ gá»­i Ä‘Ã¡nh giÃ¡, vui lÃ²ng thá»­ láº¡i.");
         return;
       }
 
       setHasExistingReview(true);
-      toast.success(payload.message ?? "Đánh giá của bạn đã được ghi nhận.");
+      toast.success(payload.message ?? "ÄÃ¡nh giÃ¡ cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c ghi nháº­n.");
     } finally {
       setIsReviewSubmitting(false);
     }
@@ -271,11 +274,11 @@ export function TourBookingCard({
 
   return (
     <div className="space-y-4 rounded-3xl border bg-card p-5 shadow-sm">
-      <h3 className="text-lg font-semibold">Tóm tắt đặt tour</h3>
+      <h3 className="text-lg font-semibold">TÃ³m táº¯t Ä‘áº·t tour</h3>
       <p className="text-sm text-muted-foreground">{shortDescription}</p>
 
       <div>
-        <p className="text-xs text-muted-foreground">Giá từ</p>
+        <p className="text-xs text-muted-foreground">GiÃ¡ tá»«</p>
         <p className="text-2xl font-black text-primary">{formatPrice(unitPrice)}</p>
         {unitPrice !== originalPrice ? (
           <p className="text-sm text-muted-foreground line-through">{formatPrice(originalPrice)}</p>
@@ -284,7 +287,7 @@ export function TourBookingCard({
 
       <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
         <CalendarDays className="h-4 w-4 text-primary" />
-        Có thể chọn ngày khởi hành linh hoạt
+        CÃ³ thá»ƒ chá»n ngÃ y khá»Ÿi hÃ nh linh hoáº¡t
       </p>
 
       {status === "loading" ? <div className="h-10 animate-pulse rounded-xl bg-muted" /> : null}
@@ -294,7 +297,7 @@ export function TourBookingCard({
           href={loginHref}
           className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          Đăng nhập để đặt tour
+          ÄÄƒng nháº­p Ä‘á»ƒ Ä‘áº·t tour
         </Link>
       ) : null}
 
@@ -322,12 +325,12 @@ export function TourBookingCard({
 
           {lastBookingCode ? (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-              <p className="font-semibold">Đặt tour thành công</p>
+              <p className="font-semibold">Äáº·t tour thÃ nh cÃ´ng</p>
               <p className="mt-1 text-xs">
-                Mã đơn của bạn: <span className="font-bold">{lastBookingCode}</span>
+                MÃ£ Ä‘Æ¡n cá»§a báº¡n: <span className="font-bold">{lastBookingCode}</span>
               </p>
               <Link href="/tai-khoan" className="mt-2 inline-flex text-xs font-semibold text-emerald-700 underline">
-                Xem chi tiết trong trang tài khoản
+                Xem chi tiáº¿t trong trang tÃ i khoáº£n
               </Link>
             </div>
           ) : null}
@@ -335,8 +338,8 @@ export function TourBookingCard({
           {activeStep === 1 ? (
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor={`fullName-${tourId}`}>Họ và tên</Label>
-                <Input id={`fullName-${tourId}`} placeholder="Nguyễn Văn A" {...register("fullName")} />
+                <Label htmlFor={`fullName-${tourId}`}>Há» vÃ  tÃªn</Label>
+                <Input id={`fullName-${tourId}`} placeholder="Nguyá»…n VÄƒn A" {...register("fullName")} />
                 {errors.fullName ? <p className="text-xs text-destructive">{errors.fullName.message}</p> : null}
               </div>
 
@@ -347,7 +350,7 @@ export function TourBookingCard({
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor={`phone-${tourId}`}>Số điện thoại</Label>
+                <Label htmlFor={`phone-${tourId}`}>Sá»‘ Ä‘iá»‡n thoáº¡i</Label>
                 <Input id={`phone-${tourId}`} type="tel" placeholder="0909123456" {...register("phone")} />
                 {errors.phone ? <p className="text-xs text-destructive">{errors.phone.message}</p> : null}
               </div>
@@ -358,7 +361,7 @@ export function TourBookingCard({
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor={`guests-${tourId}`}>Số khách</Label>
+                  <Label htmlFor={`guests-${tourId}`}>Sá»‘ khÃ¡ch</Label>
                   <Input
                     id={`guests-${tourId}`}
                     type="number"
@@ -369,12 +372,12 @@ export function TourBookingCard({
                   {errors.numberOfGuests ? (
                     <p className="text-xs text-destructive">{errors.numberOfGuests.message}</p>
                   ) : (
-                    <p className="text-xs text-muted-foreground">Tối đa {maxGuests} khách cho một đơn.</p>
+                    <p className="text-xs text-muted-foreground">Tá»‘i Ä‘a {maxGuests} khÃ¡ch cho má»™t Ä‘Æ¡n.</p>
                   )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor={`departure-${tourId}`}>Ngày đi</Label>
+                  <Label htmlFor={`departure-${tourId}`}>NgÃ y Ä‘i</Label>
                   <Input id={`departure-${tourId}`} type="date" {...register("departureDate")} />
                   {errors.departureDate ? (
                     <p className="text-xs text-destructive">{errors.departureDate.message}</p>
@@ -383,10 +386,10 @@ export function TourBookingCard({
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor={`note-${tourId}`}>Ghi chú</Label>
+                <Label htmlFor={`note-${tourId}`}>Ghi chÃº</Label>
                 <Textarea
                   id={`note-${tourId}`}
-                  placeholder="Ví dụ: cần hỗ trợ suất ăn chay, ghế gần nhau..."
+                  placeholder="VÃ­ dá»¥: cáº§n há»— trá»£ suáº¥t Äƒn chay, gháº¿ gáº§n nhau..."
                   rows={3}
                   {...register("note")}
                 />
@@ -398,48 +401,48 @@ export function TourBookingCard({
           {activeStep === 3 ? (
             <div className="space-y-3">
               <div className="rounded-xl border bg-muted/40 p-3 text-sm">
-                <p className="font-medium">Thông tin xác nhận</p>
+                <p className="font-medium">ThÃ´ng tin xÃ¡c nháº­n</p>
                 <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                  <li>Họ tên: {bookingSummary.fullName || "-"}</li>
+                  <li>Há» tÃªn: {bookingSummary.fullName || "-"}</li>
                   <li>Email: {bookingSummary.email || "-"}</li>
-                  <li>Điện thoại: {bookingSummary.phone || "-"}</li>
-                  <li>Số khách: {numberOfGuests}</li>
-                  <li>Ngày đi: {bookingSummary.departureDate || "Linh hoạt"}</li>
+                  <li>Äiá»‡n thoáº¡i: {bookingSummary.phone || "-"}</li>
+                  <li>Sá»‘ khÃ¡ch: {numberOfGuests}</li>
+                  <li>NgÃ y Ä‘i: {bookingSummary.departureDate || "Linh hoáº¡t"}</li>
                 </ul>
               </div>
 
               <div className="rounded-xl border bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
                 <p className="inline-flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4" />
-                  Sau khi gửi, đơn của bạn sẽ ở trạng thái chờ xác nhận.
+                  Sau khi gá»­i, Ä‘Æ¡n cá»§a báº¡n sáº½ á»Ÿ tráº¡ng thÃ¡i chá» xÃ¡c nháº­n.
                 </p>
               </div>
 
               <div className="rounded-xl border bg-muted/40 p-3 text-sm">
-                <p className="font-medium">Tổng tạm tính: {formatPrice(totalPrice)}</p>
-                <p className="text-xs text-muted-foreground">Số khách tối đa cho đơn này: {maxGuests} người.</p>
+                <p className="font-medium">Tá»•ng táº¡m tÃ­nh: {formatPrice(totalPrice)}</p>
+                <p className="text-xs text-muted-foreground">Sá»‘ khÃ¡ch tá»‘i Ä‘a cho Ä‘Æ¡n nÃ y: {maxGuests} ngÆ°á»i.</p>
               </div>
             </div>
           ) : null}
 
           <div className="flex gap-2">
             <Button type="button" variant="outline" className="h-10 flex-1" onClick={goToPreviousStep} disabled={activeStep === 1 || isSubmitting}>
-              Quay lại
+              Quay láº¡i
             </Button>
 
             {activeStep < 3 ? (
               <Button type="button" className="h-10 flex-1" onClick={goToNextStep} disabled={isSubmitting}>
-                Tiếp tục
+                Tiáº¿p tá»¥c
               </Button>
             ) : (
               <Button type="submit" className="h-10 flex-1" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang gửi yêu cầu...
+                    Äang gá»­i yÃªu cáº§u...
                   </>
                 ) : (
-                  "Xác nhận đặt tour"
+                  "XÃ¡c nháº­n Ä‘áº·t tour"
                 )}
               </Button>
             )}
@@ -458,30 +461,30 @@ export function TourBookingCard({
           {isFavoriteSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Đang cập nhật...
+              Äang cáº­p nháº­t...
             </>
           ) : (
             <>
               <Heart className={cn("mr-2 h-4 w-4", isFavorite ? "fill-current" : "")} />
-              {isFavorite ? "Đã lưu yêu thích" : "Thêm vào yêu thích"}
+              {isFavorite ? "ÄÃ£ lÆ°u yÃªu thÃ­ch" : "ThÃªm vÃ o yÃªu thÃ­ch"}
             </>
           )}
         </Button>
         {!isLoggedIn ? (
           <p className="text-xs text-muted-foreground">
             <Link href={loginHref} className="font-semibold text-primary hover:underline">
-              Đăng nhập
+              ÄÄƒng nháº­p
             </Link>{" "}
-            để lưu tour vào danh sách yêu thích của bạn.
+            Ä‘á»ƒ lÆ°u tour vÃ o danh sÃ¡ch yÃªu thÃ­ch cá»§a báº¡n.
           </p>
         ) : null}
       </div>
 
       <div className="space-y-3 border-t pt-4">
         <div className="space-y-1">
-          <p className="text-sm font-semibold">Đánh giá của bạn</p>
+          <p className="text-sm font-semibold">ÄÃ¡nh giÃ¡ cá»§a báº¡n</p>
           <p className="text-xs text-muted-foreground">
-            Chỉ người dùng có đơn đã xác nhận hoặc đã hoàn thành mới có thể gửi đánh giá.
+            Chá»‰ ngÆ°á»i dÃ¹ng cÃ³ Ä‘Æ¡n Ä‘Ã£ xÃ¡c nháº­n hoáº·c Ä‘Ã£ hoÃ n thÃ nh má»›i cÃ³ thá»ƒ gá»­i Ä‘Ã¡nh giÃ¡.
           </p>
         </div>
 
@@ -495,7 +498,7 @@ export function TourBookingCard({
                 onClick={() => setReviewRating(value)}
                 className="rounded-md p-1 transition-colors hover:bg-muted disabled:cursor-not-allowed"
                 disabled={!isLoggedIn || isReviewSubmitting}
-                aria-label={`Chọn ${value} sao`}
+                aria-label={`Chá»n ${value} sao`}
               >
                 <Star
                   className={cn(
@@ -511,7 +514,7 @@ export function TourBookingCard({
 
         <Textarea
           rows={4}
-          placeholder="Chia sẻ trải nghiệm thực tế của bạn về tour này..."
+          placeholder="Chia sáº» tráº£i nghiá»‡m thá»±c táº¿ cá»§a báº¡n vá» tour nÃ y..."
           value={reviewComment}
           onChange={(event) => setReviewComment(event.target.value)}
           disabled={!isLoggedIn || isReviewSubmitting}
@@ -527,24 +530,26 @@ export function TourBookingCard({
           {isReviewSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Đang gửi đánh giá...
+              Äang gá»­i Ä‘Ã¡nh giÃ¡...
             </>
           ) : hasExistingReview ? (
-            "Cập nhật đánh giá"
+            "Cáº­p nháº­t Ä‘Ã¡nh giÃ¡"
           ) : (
-            "Gửi đánh giá"
+            "Gá»­i Ä‘Ã¡nh giÃ¡"
           )}
         </Button>
 
         {!isLoggedIn ? (
           <p className="text-xs text-muted-foreground">
             <Link href={loginHref} className="font-semibold text-primary hover:underline">
-              Đăng nhập
+              ÄÄƒng nháº­p
             </Link>{" "}
-            để gửi đánh giá cho tour này.
+            Ä‘á»ƒ gá»­i Ä‘Ã¡nh giÃ¡ cho tour nÃ y.
           </p>
         ) : null}
       </div>
     </div>
   );
 }
+
+
