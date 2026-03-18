@@ -81,6 +81,8 @@ copy .env.example .env
 - `DATABASE_URL`
 - `AUTH_SECRET` (hoặc `NEXTAUTH_SECRET`)
 - `NEXTAUTH_URL`
+- `ADMIN_EMAIL` (optional for dev)
+- `ADMIN_PASSWORD` (optional for dev)
 
 ## 6) Chạy local
 
@@ -118,6 +120,8 @@ Mở: [http://localhost:3000](http://localhost:3000)
    - `DATABASE_URL`
    - `AUTH_SECRET` (hoặc `NEXTAUTH_SECRET`)
    - `NEXTAUTH_URL`
+- `ADMIN_EMAIL` (optional for dev)
+- `ADMIN_PASSWORD` (optional for dev)
 3. Deploy từ GitHub repo
 4. Chạy migrate/seed trên môi trường deploy:
 
