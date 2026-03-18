@@ -41,7 +41,7 @@ export function AdminBookingActions({ bookingId, status, paymentStatus, compact 
   }
 
   return (
-    <div className={`flex flex-col gap-1.5 ${compact ? "w-full min-w-[150px]" : "w-[170px]"}`}>
+    <div className={`flex flex-col gap-1.5 ${compact ? "w-full min-w-[132px]" : "w-[170px]"}`}>
       <select
         value={selectedStatus}
         onChange={(event) => setSelectedStatus(event.target.value as BookingStatusValue)}
@@ -78,3 +78,4 @@ export function AdminBookingActions({ bookingId, status, paymentStatus, compact 
     </div>
   );
 }
+

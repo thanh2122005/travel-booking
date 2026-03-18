@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "../styles/immerse-theme.css";
@@ -186,5 +186,15 @@
 
   .iv-admin-bulk-meta {
     @apply mt-1 text-sm text-slate-600;
+  }
+}
+
+@layer components {
+  .iv-admin-table-sticky-actions-head {
+    @apply sticky right-0 z-20 bg-slate-50/95 backdrop-blur;
+  }
+
+  .iv-admin-table-sticky-actions-cell {
+    @apply sticky right-0 z-10 bg-white;
   }
 }

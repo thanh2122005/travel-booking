@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
@@ -50,15 +50,15 @@ type AdminBookingsTableProps = {
 };
 
 const bookingStatusOptions: Array<{ value: BookingStatusValue; label: string }> = [
-  { value: "PENDING", label: "Chờ xác nhận" },
-  { value: "CONFIRMED", label: "Đã xác nhận" },
-  { value: "CANCELLED", label: "Đã hủy" },
-  { value: "COMPLETED", label: "Hoàn thành" },
+  { value: "PENDING", label: "Chá» xÃ¡c nháº­n" },
+  { value: "CONFIRMED", label: "ÄÃ£ xÃ¡c nháº­n" },
+  { value: "CANCELLED", label: "ÄÃ£ há»§y" },
+  { value: "COMPLETED", label: "HoÃ n thÃ nh" },
 ];
 
 const paymentStatusOptions: Array<{ value: PaymentStatusValue; label: string }> = [
-  { value: "UNPAID", label: "Chưa thanh toán" },
-  { value: "PAID", label: "Đã thanh toán" },
+  { value: "UNPAID", label: "ChÆ°a thanh toÃ¡n" },
+  { value: "PAID", label: "ÄÃ£ thanh toÃ¡n" },
 ];
 
 export function AdminBookingsTable({
@@ -95,12 +95,12 @@ export function AdminBookingsTable({
 
   function handleBulkUpdate() {
     if (!selectedIdsInPage.length) {
-      toast.error("Vui lòng chọn ít nhất một booking để cập nhật.");
+      toast.error("Vui lÃ²ng chá»n Ã­t nháº¥t má»™t booking Ä‘á»ƒ cáº­p nháº­t.");
       return;
     }
 
     if (!bulkStatus && !bulkPaymentStatus) {
-      toast.error("Vui lòng chọn ít nhất một trường cần cập nhật hàng loạt.");
+      toast.error("Vui lÃ²ng chá»n Ã­t nháº¥t má»™t trÆ°á»ng cáº§n cáº­p nháº­t hÃ ng loáº¡t.");
       return;
     }
 
@@ -117,14 +117,14 @@ export function AdminBookingsTable({
 
       const payload = (await response.json()) as { message?: string };
       if (!response.ok) {
-        toast.error(payload.message ?? "Không thể cập nhật booking hàng loạt.");
+        toast.error(payload.message ?? "KhÃ´ng thá»ƒ cáº­p nháº­t booking hÃ ng loáº¡t.");
         return;
       }
 
       setSelectedIds([]);
       setBulkStatus("");
       setBulkPaymentStatus("");
-      toast.success(payload.message ?? "Đã cập nhật booking hàng loạt.");
+      toast.success(payload.message ?? "ÄÃ£ cáº­p nháº­t booking hÃ ng loáº¡t.");
       router.refresh();
     });
   }
@@ -133,11 +133,11 @@ export function AdminBookingsTable({
     <div className="space-y-4">
       <div className="iv-admin-bulk-card">
         <div className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="iv-admin-bulk-heading">Cập nhật hàng loạt</p>
+          <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+            <div className="min-w-0 max-w-2xl">
+              <p className="iv-admin-bulk-heading">Cáº­p nháº­t hÃ ng loáº¡t</p>
               <p className="iv-admin-bulk-meta">
-                Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> booking trong trang hiện tại.
+                ÄÃ£ chá»n <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> booking trong trang hiá»‡n táº¡i.
               </p>
             </div>
             {selectedIdsInPage.length ? (
@@ -146,7 +146,7 @@ export function AdminBookingsTable({
                 onClick={() => toggleSelectAll(false)}
                 className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
               >
-                Bỏ chọn trong trang
+                Bá» chá»n trong trang
               </button>
             ) : null}
           </div>
@@ -159,14 +159,14 @@ export function AdminBookingsTable({
                 onChange={(event) => toggleSelectAll(event.target.checked)}
                 className="h-4 w-4 rounded border-slate-300 accent-teal-600"
               />
-              Chọn tất cả trong trang
+              Chá»n táº¥t cáº£ trong trang
             </label>
             <select
               value={bulkStatus}
               onChange={(event) => setBulkStatus(event.target.value)}
               className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm focus:border-teal-500 focus:outline-none"
             >
-              <option value="">Không đổi trạng thái đơn</option>
+              <option value="">KhÃ´ng Ä‘á»•i tráº¡ng thÃ¡i Ä‘Æ¡n</option>
               {bookingStatusOptions.map((item) => (
                 <option key={item.value} value={item.value}>
                   {item.label}
@@ -178,7 +178,7 @@ export function AdminBookingsTable({
               onChange={(event) => setBulkPaymentStatus(event.target.value)}
               className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm focus:border-teal-500 focus:outline-none"
             >
-              <option value="">Không đổi trạng thái thanh toán</option>
+              <option value="">KhÃ´ng Ä‘á»•i tráº¡ng thÃ¡i thanh toÃ¡n</option>
               {paymentStatusOptions.map((item) => (
                 <option key={item.value} value={item.value}>
                   {item.label}
@@ -194,10 +194,10 @@ export function AdminBookingsTable({
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Đang cập nhật...
+                  Äang cáº­p nháº­t...
                 </>
               ) : (
-                "Áp dụng cho các dòng đã chọn"
+                "Ãp dá»¥ng cho cÃ¡c dÃ²ng Ä‘Ã£ chá»n"
               )}
             </button>
           </div>
@@ -222,7 +222,7 @@ export function AdminBookingsTable({
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-semibold text-slate-800">{formatPrice(booking.totalPrice)}</p>
-                    <p className="text-xs text-slate-500">{booking.numberOfGuests} khách</p>
+                    <p className="text-xs text-slate-500">{booking.numberOfGuests} khÃ¡ch</p>
                   </div>
                 </div>
 
@@ -270,11 +270,11 @@ export function AdminBookingsTable({
                     className="h-4 w-4 rounded border-slate-300 accent-teal-600"
                   />
                 </th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Đơn đặt</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">ÄÆ¡n Ä‘áº·t</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Tour</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Giá trị</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Cập nhật</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">GiÃ¡ trá»‹</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Cáº­p nháº­t</th>
+                <th className="iv-admin-table-sticky-actions-head px-2 py-3 font-medium whitespace-nowrap text-right">Thao tÃ¡c</th>
               </tr>
             </thead>
             <tbody>
@@ -297,11 +297,11 @@ export function AdminBookingsTable({
                     <Link href={`/tours/${booking.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
                       {booking.tour.title}
                     </Link>
-                    <p className="mt-1 text-xs text-slate-500">{booking.numberOfGuests} khách</p>
+                    <p className="mt-1 text-xs text-slate-500">{booking.numberOfGuests} khÃ¡ch</p>
                   </td>
                   <td className="px-2 py-3 min-w-[140px]">
                     <p className="font-medium text-slate-800">{formatPrice(booking.totalPrice)}</p>
-                    <p className="mt-1 text-xs text-slate-500">{booking.paymentMethod || "Thanh toán tiêu chuẩn"}</p>
+                    <p className="mt-1 text-xs text-slate-500">{booking.paymentMethod || "Thanh toÃ¡n tiÃªu chuáº©n"}</p>
                   </td>
                   <td className="px-2 py-3 min-w-[140px]">
                     <div className="space-y-2">
@@ -312,7 +312,7 @@ export function AdminBookingsTable({
                       <p className="text-xs text-slate-500">{formatDate(new Date(booking.createdAt))}</p>
                     </div>
                   </td>
-                  <td className="px-2 py-3 border-l border-slate-100">
+                  <td className="iv-admin-table-sticky-actions-cell px-2 py-3 border-l border-slate-100">
                     <div className="ml-auto flex min-w-[160px] flex-col items-end gap-2">
                       <AdminBookingActions
                         bookingId={booking.id}
@@ -332,6 +332,8 @@ export function AdminBookingsTable({
     </div>
   );
 }
+
+
 
 
 
