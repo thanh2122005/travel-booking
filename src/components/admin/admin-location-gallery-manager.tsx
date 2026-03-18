@@ -141,11 +141,11 @@ export function AdminLocationGalleryManager({
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border bg-white p-5">
+    <section className="iv-card space-y-4 rounded-2xl border-slate-200/80 bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">Gallery điểm đến</h3>
-          <p className="text-sm text-slate-600">
+          <h3 className="text-lg font-semibold text-slate-700">Gallery điểm đến</h3>
+          <p className="text-sm text-slate-500">
             Kéo thả để đổi thứ tự ảnh. Ảnh đầu tiên sẽ dùng làm ảnh đại diện của điểm đến.
           </p>
         </div>
@@ -174,7 +174,7 @@ export function AdminLocationGalleryManager({
           value={newImageUrl}
           onChange={(event) => setNewImageUrl(event.target.value)}
           placeholder="Thêm URL ảnh mới vào gallery"
-          className="h-10 rounded-lg border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
         />
         <button
           type="button"
@@ -231,7 +231,7 @@ export function AdminLocationGalleryManager({
                 <input
                   value={item.url}
                   onChange={(event) => handleUpdateImage(item.id, event.target.value)}
-                  className="h-10 rounded-lg border border-slate-200 px-3 text-sm"
+                  className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
                 />
                 <button
                   type="button"

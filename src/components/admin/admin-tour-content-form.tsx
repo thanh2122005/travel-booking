@@ -151,10 +151,10 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border bg-white p-5">
+    <section className="iv-card space-y-4 rounded-2xl border-slate-200/80 bg-white p-5">
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">Nội dung tour tổng thể</h2>
-        <p className="text-sm text-slate-600">
+        <h2 className="text-lg font-semibold text-slate-700">Nội dung tour tổng thể</h2>
+        <p className="text-sm text-slate-500">
           Cập nhật thông tin hiển thị ở trang công khai: tiêu đề, mô tả, giá bán, điểm đến và trạng thái.
         </p>
       </div>
@@ -175,7 +175,7 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
             value={slug}
             onChange={(event) => setSlug(event.target.value)}
             placeholder="Slug tour"
-            className="h-10 flex-1 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
           />
           <button
             type="button"
@@ -189,7 +189,7 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
         <select
           name="locationId"
           defaultValue={tour.locationId}
-          className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
         >
           {locations.map((location) => (
             <option key={location.id} value={location.id}>
@@ -203,7 +203,7 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
           list="departure-options-edit"
           defaultValue={tour.departureLocation}
           placeholder="Điểm khởi hành"
-          className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
         />
         <input
           name="transportation"
@@ -211,7 +211,7 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
           list="transportation-options-edit"
           defaultValue={tour.transportation}
           placeholder="Phương tiện"
-          className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
         />
         <datalist id="departure-options-edit">
           {departureSuggestions.map((departure) => (
@@ -247,7 +247,7 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
             value={featuredImage}
             onChange={(event) => setFeaturedImage(event.target.value)}
             placeholder="Ảnh đại diện tour"
-            className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
           />
           <datalist id="tour-image-options-edit">
             {imageSuggestions.map((imagePath) => (
@@ -272,7 +272,7 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
           min={1}
           defaultValue={tour.price}
           placeholder="Giá gốc"
-          className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
         />
         <input
           name="discountPrice"
@@ -280,7 +280,7 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
           min={1}
           defaultValue={tour.discountPrice ?? ""}
           placeholder="Giá khuyến mãi (tuỳ chọn)"
-          className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
         />
         <input
           name="maxGuests"
@@ -289,7 +289,7 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
           min={1}
           defaultValue={tour.maxGuests}
           placeholder="Số khách tối đa"
-          className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
         />
         <input
           name="durationDays"
@@ -298,7 +298,7 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
           min={1}
           defaultValue={tour.durationDays}
           placeholder="Số ngày"
-          className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
         />
         <input
           name="durationNights"
@@ -307,12 +307,12 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
           min={0}
           defaultValue={tour.durationNights}
           placeholder="Số đêm"
-          className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
         />
         <select
           value={status}
           onChange={(event) => setStatus(event.target.value as TourStatusValue)}
-          className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
         >
           <option value="ACTIVE">Đang hoạt động</option>
           <option value="INACTIVE">Ngừng hoạt động</option>

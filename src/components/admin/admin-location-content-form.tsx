@@ -96,10 +96,10 @@ export function AdminLocationContentForm({ location }: AdminLocationContentFormP
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border bg-white p-5">
+    <section className="iv-card space-y-4 rounded-2xl border-slate-200/80 bg-white p-5">
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">Nội dung điểm đến</h2>
-        <p className="text-sm text-slate-600">
+        <h2 className="text-lg font-semibold text-slate-700">Nội dung điểm đến</h2>
+        <p className="text-sm text-slate-500">
           Chỉnh sửa thông tin hiển thị trên trang điểm đến: tiêu đề, mô tả, tỉnh/thành và ảnh đại diện.
         </p>
       </div>
@@ -120,7 +120,7 @@ export function AdminLocationContentForm({ location }: AdminLocationContentFormP
             value={slug}
             onChange={(event) => setSlug(event.target.value)}
             placeholder="Slug"
-            className="h-10 flex-1 rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
           />
           <button
             type="button"
@@ -135,14 +135,14 @@ export function AdminLocationContentForm({ location }: AdminLocationContentFormP
           required
           defaultValue={location.provinceOrCity}
           placeholder="Tỉnh/Thành phố"
-          className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
         />
         <input
           name="country"
           required
           defaultValue={location.country}
           placeholder="Quốc gia"
-          className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
         />
         <label className="inline-flex items-center gap-2 text-sm text-slate-700">
           <input
@@ -174,7 +174,7 @@ export function AdminLocationContentForm({ location }: AdminLocationContentFormP
             value={imageUrl}
             onChange={(event) => setImageUrl(event.target.value)}
             placeholder="Ảnh đại diện điểm đến"
-            className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm"
+            className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
           />
           <datalist id="location-image-options-edit">
             {imageSuggestions.map((imagePath) => (

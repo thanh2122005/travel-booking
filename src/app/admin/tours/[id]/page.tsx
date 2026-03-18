@@ -27,7 +27,7 @@ export default async function AdminTourDetailPage({ params }: AdminTourDetailPag
   }
 
   return (
-    <div className="space-y-5 pb-24 lg:pb-0">
+    <div className="space-y-5 pb-24 lg:pb-6">
       <Link
         href="/admin/tours"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 transition hover:text-slate-900"
@@ -36,20 +36,20 @@ export default async function AdminTourDetailPage({ params }: AdminTourDetailPag
         Quay lại danh sách tour
       </Link>
 
-      <section className="rounded-2xl border bg-white p-5">
+      <section className="iv-card rounded-2xl border-slate-200/80 bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
               Quản lý chi tiết tour
             </p>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{tour.title}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-700">{tour.title}</h1>
             <p className="inline-flex items-center gap-1.5 text-sm text-slate-600">
               <MapPin className="h-4 w-4 text-teal-600" />
               {tour.location.name}
             </p>
           </div>
           <div className="space-y-2 text-right">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-500">
               Giá hiện tại:{" "}
               <span className="font-semibold text-slate-900">
                 {formatPrice(tour.discountPrice ?? tour.price)}

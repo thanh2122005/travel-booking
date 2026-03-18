@@ -180,11 +180,11 @@ export function AdminTourImagesManager({ tourId, images }: AdminTourImagesManage
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border bg-white p-5">
+    <section className="iv-card space-y-4 rounded-2xl border-slate-200/80 bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">Ảnh tour</h3>
-          <p className="text-sm text-slate-600">
+          <h3 className="text-lg font-semibold text-slate-700">Ảnh tour</h3>
+          <p className="text-sm text-slate-500">
             Kéo thả để đổi thứ tự hiển thị. Ảnh đầu tiên sẽ là ảnh đại diện trên trang công khai.
           </p>
         </div>
@@ -216,7 +216,7 @@ export function AdminTourImagesManager({ tourId, images }: AdminTourImagesManage
           value={newImageUrl}
           onChange={(event) => setNewImageUrl(event.target.value)}
           placeholder="URL ảnh mới"
-          className="h-10 rounded-lg border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
         />
         <input
           type="number"
@@ -224,7 +224,7 @@ export function AdminTourImagesManager({ tourId, images }: AdminTourImagesManage
           value={newSortOrder}
           onChange={(event) => setNewSortOrder(event.target.value)}
           placeholder="Thứ tự"
-          className="h-10 rounded-lg border border-slate-200 px-3 text-sm"
+          className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
         />
         <button
           type="submit"
@@ -303,14 +303,14 @@ export function AdminTourImagesManager({ tourId, images }: AdminTourImagesManage
                   <input
                     name="imageUrl"
                     defaultValue={image.imageUrl}
-                    className="h-10 rounded-lg border border-slate-200 px-3 text-sm"
+                    className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
                   />
                   <input
                     name="sortOrder"
                     type="number"
                     min={1}
                     defaultValue={index + 1}
-                    className="h-10 rounded-lg border border-slate-200 px-3 text-sm"
+                    className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
                   />
                   <button
                     type="submit"

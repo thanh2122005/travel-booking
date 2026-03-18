@@ -96,10 +96,10 @@ export function AdminItineraryManager({ tourId, itineraries }: AdminItineraryMan
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border bg-white p-5">
+    <section className="iv-card space-y-4 rounded-2xl border-slate-200/80 bg-white p-5">
       <div>
-        <h3 className="text-lg font-semibold text-slate-900">Lịch trình tour</h3>
-        <p className="text-sm text-slate-600">
+        <h3 className="text-lg font-semibold text-slate-700">Lịch trình tour</h3>
+        <p className="text-sm text-slate-500">
           Quản lý itinerary chi tiết theo từng ngày để hiển thị trên trang tour detail.
         </p>
       </div>
@@ -112,20 +112,20 @@ export function AdminItineraryManager({ tourId, itineraries }: AdminItineraryMan
             value={newDayNumber}
             onChange={(event) => setNewDayNumber(event.target.value)}
             placeholder="Ngày"
-            className="h-10 rounded-lg border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
           />
           <input
             value={newTitle}
             onChange={(event) => setNewTitle(event.target.value)}
             placeholder="Tiêu đề ngày"
-            className="h-10 rounded-lg border border-slate-200 px-3 text-sm"
+            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
           />
         </div>
         <textarea
           value={newDescription}
           onChange={(event) => setNewDescription(event.target.value)}
           placeholder="Mô tả chi tiết cho ngày này..."
-          className="min-h-24 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+          className="min-h-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
         />
         <button
           type="submit"
@@ -160,18 +160,18 @@ export function AdminItineraryManager({ tourId, itineraries }: AdminItineraryMan
                   type="number"
                   min={1}
                   defaultValue={item.dayNumber}
-                  className="h-10 rounded-lg border border-slate-200 px-3 text-sm"
+                  className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
                 />
                 <input
                   name="title"
                   defaultValue={item.title}
-                  className="h-10 rounded-lg border border-slate-200 px-3 text-sm"
+                  className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"
                 />
               </div>
               <textarea
                 name="description"
                 defaultValue={item.description}
-                className="min-h-24 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="min-h-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
               />
               <div className="flex flex-wrap gap-2">
                 <button
