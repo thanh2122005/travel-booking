@@ -36,7 +36,7 @@ export function AdminReviewActions({ reviewId, isVisible, compact = false }: Adm
   }
 
   return (
-    <div className={`flex items-center gap-2 ${compact ? "w-full max-w-[170px]" : ""}`}>
+    <div className={`flex items-center gap-2 ${compact ? "w-full max-w-[172px]" : "w-full sm:w-[170px]"}`}>
       <select
         value={visible ? "1" : "0"}
         onChange={(event) => setVisible(event.target.value === "1")}
