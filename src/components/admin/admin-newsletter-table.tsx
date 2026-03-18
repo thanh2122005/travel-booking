@@ -30,18 +30,14 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
 
   function toggleSelectAll(checked: boolean) {
     setSelectedIds((prev) => {
-      if (checked) {
-        return Array.from(new Set([...prev, ...itemIds]));
-      }
+      if (checked) return Array.from(new Set([...prev, ...itemIds]));
       return prev.filter((id) => !itemIds.includes(id));
     });
   }
 
   function toggleItem(id: string, checked: boolean) {
     setSelectedIds((prev) => {
-      if (checked) {
-        return prev.includes(id) ? prev : [...prev, id];
-      }
+      if (checked) return prev.includes(id) ? prev : [...prev, id];
       return prev.filter((item) => item !== id);
     });
   }
@@ -52,9 +48,7 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
       return;
     }
 
-    if (!window.confirm(`Xóa ${selectedIdsInPage.length} email đã chọn khỏi danh sách nhận tin?`)) {
-      return;
-    }
+    if (!window.confirm(`Xóa ${selectedIdsInPage.length} email đã chọn khỏi danh sách nhận tin?`)) return;
 
     startTransition(async () => {
       const response = await fetch("/api/admin/newsletter/bulk", {
@@ -63,7 +57,7 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
         body: JSON.stringify({ ids: selectedIdsInPage }),
       });
 
-      const payload = (await response.json()) as { message?: string; count?: number };
+      const payload = (await response.json()) as { message?: string };
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể xóa đăng ký nhận tin hàng loạt.");
         return;
@@ -78,53 +72,55 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
   return (
     <div className="space-y-4">
       <div className="iv-card border border-teal-100/70 bg-gradient-to-br from-white via-white to-teal-50/40 p-4">
-        <div className="flex flex-wrap items-start gap-2">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Thao tác hàng loạt</p>
-            <p className="mt-1 text-sm text-slate-600">
-              Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> email
-              trong trang hiện tại.
-            </p>
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Thao tác hàng loạt</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> email trong trang hiện tại.
+              </p>
+            </div>
+            {selectedIdsInPage.length ? (
+              <button
+                type="button"
+                onClick={() => toggleSelectAll(false)}
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
+              >
+                Bỏ chọn trong trang
+              </button>
+            ) : null}
           </div>
 
-          <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm">
-            <input
-              type="checkbox"
-              checked={isAllSelected}
-              onChange={(event) => toggleSelectAll(event.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 accent-teal-600"
-            />
-            Chọn tất cả trong trang
-          </label>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm">
+              <input
+                type="checkbox"
+                checked={isAllSelected}
+                onChange={(event) => toggleSelectAll(event.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 accent-teal-600"
+              />
+              Chọn tất cả trong trang
+            </label>
 
-          {selectedIdsInPage.length ? (
             <button
               type="button"
-              onClick={() => toggleSelectAll(false)}
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
+              onClick={handleBulkDelete}
+              disabled={isPending}
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 bg-white px-4 text-sm font-semibold text-rose-700 shadow-sm transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Bỏ chọn trong trang
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang xóa...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-1.5 h-4 w-4" />
+                  Xóa các email đã chọn
+                </>
+              )}
             </button>
-          ) : null}
-
-          <button
-            type="button"
-            onClick={handleBulkDelete}
-            disabled={isPending}
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 bg-white px-4 text-sm font-semibold text-rose-700 shadow-sm transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Đang xóa...
-              </>
-            ) : (
-              <>
-                <Trash2 className="mr-1.5 h-4 w-4" />
-                Xóa các email đã chọn
-              </>
-            )}
-          </button>
+          </div>
         </div>
       </div>
 
@@ -147,39 +143,41 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
         ))}
       </div>
 
-      <div className="iv-card hidden overflow-x-auto p-4 lg:block">
-        <table className="w-full min-w-[760px] text-left text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-slate-500">
-              <th className="px-2 py-3 font-medium">
-                <input
-                  type="checkbox"
-                  checked={isAllSelected}
-                  onChange={(event) => toggleSelectAll(event.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 accent-teal-600"
-                />
-              </th>
-              <th className="px-2 py-3 font-medium">Email</th>
-              <th className="px-2 py-3 font-medium">Ngày đăng ký</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((subscriber) => (
-              <tr key={subscriber.id} className="border-b border-slate-100 last:border-0">
-                <td className="px-2 py-3 align-top">
+      <div className="iv-card hidden lg:block">
+        <div className="overflow-x-auto p-4">
+          <table className="w-full min-w-[760px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-slate-500">
+                <th className="px-2 py-3 font-medium">
                   <input
                     type="checkbox"
-                    checked={selectedIdsInPage.includes(subscriber.id)}
-                    onChange={(event) => toggleItem(subscriber.id, event.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
+                    checked={isAllSelected}
+                    onChange={(event) => toggleSelectAll(event.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 accent-teal-600"
                   />
-                </td>
-                <td className="px-2 py-3 font-medium text-slate-800">{subscriber.email}</td>
-                <td className="px-2 py-3 text-slate-500">{formatDate(new Date(subscriber.createdAt))}</td>
+                </th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Email</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Ngày đăng ký</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {items.map((subscriber) => (
+                <tr key={subscriber.id} className="border-b border-slate-100 last:border-0">
+                  <td className="px-2 py-3 align-top">
+                    <input
+                      type="checkbox"
+                      checked={selectedIdsInPage.includes(subscriber.id)}
+                      onChange={(event) => toggleItem(subscriber.id, event.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
+                    />
+                  </td>
+                  <td className="px-2 py-3 font-medium text-slate-800">{subscriber.email}</td>
+                  <td className="px-2 py-3 text-slate-500 whitespace-nowrap">{formatDate(new Date(subscriber.createdAt))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
