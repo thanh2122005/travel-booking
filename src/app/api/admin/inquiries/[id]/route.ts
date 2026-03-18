@@ -1,4 +1,4 @@
-﻿import { InquiryStatus } from "@prisma/client";
+import { InquiryStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
@@ -14,10 +14,10 @@ const updateInquirySchema = z.object({
 });
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const guard = await requireAdminApi();
-  if (guard) return guard;
-
   try {
+    const guard = await requireAdminApi();
+    if (guard) return guard;
+
     const { id } = await context.params;
     const normalizedId = id?.trim();
 
@@ -42,7 +42,10 @@ export async function PATCH(request: Request, context: RouteContext) {
     const updated = await updateAdminInquiryStatus(normalizedId, parsed.data.status).catch(() => null);
 
     if (!updated) {
-      return NextResponse.json({ message: "Không tìm thấy hoặc không thể cập nhật yêu cầu tư vấn." }, { status: 404 });
+      return NextResponse.json(
+        { message: "Không tìm thấy hoặc không thể cập nhật yêu cầu tư vấn." },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json({

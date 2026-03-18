@@ -245,7 +245,7 @@ export async function updateAdminInquiryStatus(inquiryId: string, status: Inquir
       },
     });
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
+    if (isDatabaseUnavailableError(error) || process.env.NODE_ENV !== "production") {
       const updated = await demoUpdateContactInquiryStatus(inquiryId, status);
       return updated ? mapDemoInquiry(updated) : null;
     }
@@ -269,7 +269,7 @@ export async function updateAdminInquiriesBulk(input: {
       },
     });
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
+    if (isDatabaseUnavailableError(error) || process.env.NODE_ENV !== "production") {
       return demoUpdateContactInquiriesBulk(input);
     }
     throw error;
@@ -348,3 +348,6 @@ export async function deleteAdminNewsletterSubscribersBulk(input: { ids: string[
     throw error;
   }
 }
+
+
+
