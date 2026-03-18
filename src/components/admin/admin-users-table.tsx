@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
@@ -186,7 +186,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
         </div>
       </div>
 
-      <div className="space-y-3 lg:hidden">
+      <div className="space-y-3 2xl:hidden">
         {items.map((user) => (
           <article key={user.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
@@ -222,7 +222,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
         ))}
       </div>
 
-      <div className="iv-card hidden lg:block">
+      <div className="iv-card hidden 2xl:block">
         <div className="iv-admin-table-scroll">
           <table className="min-w-[700px] w-full text-sm">
             <thead>
@@ -289,6 +289,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
     </div>
   );
 }
+
 
 
 
