@@ -534,6 +534,12 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                   </dl>
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                     <Link
+                      href={`/booking/${booking.id}`}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-teal-200 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-50"
+                    >
+                      Chi ết đơn
+                    </Link>
+                    <Link
                       href={`/tours/${booking.tour.slug}`}
                       className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
                     >
@@ -587,6 +593,12 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                         <td className="px-2 py-3 text-slate-500">{formatDate(booking.createdAt)}</td>
                         <td className="px-2 py-3">
                           <div className="flex flex-wrap items-center gap-2">
+                            <Link
+                              href={`/booking/${booking.id}`}
+                              className="inline-flex h-8 items-center justify-center rounded-lg border border-teal-200 px-2.5 text-xs font-semibold text-teal-700 transition hover:bg-teal-50"
+                            >
+                              Chi ết
+                            </Link>
                             <Link
                               href={`/tours/${booking.tour.slug}`}
                               className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-300 px-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"

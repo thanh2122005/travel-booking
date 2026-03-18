@@ -856,15 +856,21 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                     </Badge>
                     <span className="text-xs text-slate-500">{booking.numberOfGuests} khách</span>
                   </div>
-                  {canCancelBooking(booking.status, booking.paymentStatus) ? (
-                    <div className="mt-3">
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Link
+                      href={`/booking/${booking.id}`}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-teal-200 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-50"
+                    >
+                      Chi ết đơn
+                    </Link>
+                    {canCancelBooking(booking.status, booking.paymentStatus) ? (
                       <BookingCancelButton
                         bookingId={booking.id}
                         bookingCode={booking.bookingCode}
                         className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
                       />
-                    </div>
-                  ) : null}
+                    ) : null}
+                  </div>
                 </article>
               ))}
             </div>
@@ -907,15 +913,23 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                       </td>
                       <td className="px-2 py-3 text-muted-foreground">{formatDate(booking.createdAt)}</td>
                       <td className="px-2 py-3">
-                        {canCancelBooking(booking.status, booking.paymentStatus) ? (
-                          <BookingCancelButton
-                            bookingId={booking.id}
-                            bookingCode={booking.bookingCode}
-                            className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
-                          />
-                        ) : (
-                          <span className="text-xs text-slate-400">-</span>
-                        )}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Link
+                            href={`/booking/${booking.id}`}
+                            className="inline-flex h-8 items-center justify-center rounded-lg border border-teal-200 px-2.5 text-xs font-semibold text-teal-700 transition hover:bg-teal-50"
+                          >
+                            Chi ết
+                          </Link>
+                          {canCancelBooking(booking.status, booking.paymentStatus) ? (
+                            <BookingCancelButton
+                              bookingId={booking.id}
+                              bookingCode={booking.bookingCode}
+                              className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
+                            />
+                          ) : (
+                            <span className="text-xs text-slate-400">-</span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
