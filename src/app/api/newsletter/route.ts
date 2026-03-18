@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db/prisma";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
@@ -83,6 +83,20 @@ export async function POST(request: Request) {
     console.error("Failed to save newsletter subscriber", error);
     return NextResponse.json(
       { message: "Không thể đăng ký nhận tin lúc này, vui lòng thử lại sau." },
+      { status: 500 },
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const subscribers = await db.newsletterSubscriber.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json(subscribers);
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Lỗi khi lấy danh sách đăng ký nhận tin." },
       { status: 500 },
     );
   }

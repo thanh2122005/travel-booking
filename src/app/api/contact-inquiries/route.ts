@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db/prisma";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
@@ -119,6 +119,21 @@ export async function POST(request: Request) {
     console.error("Failed to save contact inquiry", error);
     return NextResponse.json(
       { message: "Không thể gửi yêu cầu lúc này, vui lòng thử lại sau." },
+      { status: 500 },
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const inquiries = await db.contactInquiry.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { tour: { select: { title: true } } },
+    });
+    return NextResponse.json(inquiries);
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Lỗi khi lấy danh sách yêu cầu tư vấn." },
       { status: 500 },
     );
   }
