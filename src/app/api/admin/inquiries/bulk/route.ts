@@ -11,10 +11,10 @@ const bulkInquirySchema = z.object({
 });
 
 export async function PATCH(request: Request) {
-  const guard = await requireAdminApi();
-  if (guard) return guard;
-
   try {
+    const guard = await requireAdminApi();
+    if (guard) return guard;
+
     const json = await parseJsonBody(request, "Dữ liệu cập nhật tư vấn hàng loạt không hợp lệ.");
     if (!json.ok) {
       return json.response;

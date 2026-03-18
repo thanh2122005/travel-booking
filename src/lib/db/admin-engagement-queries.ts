@@ -246,8 +246,12 @@ export async function updateAdminInquiryStatus(inquiryId: string, status: Inquir
     });
   } catch (error) {
     if (isDatabaseUnavailableError(error) || process.env.NODE_ENV !== "production") {
-      const updated = await demoUpdateContactInquiryStatus(inquiryId, status);
-      return updated ? mapDemoInquiry(updated) : null;
+      try {
+        const updated = await demoUpdateContactInquiryStatus(inquiryId, status);
+        return updated ? mapDemoInquiry(updated) : null;
+      } catch {
+        return null;
+      }
     }
     throw error;
   }
@@ -270,7 +274,11 @@ export async function updateAdminInquiriesBulk(input: {
     });
   } catch (error) {
     if (isDatabaseUnavailableError(error) || process.env.NODE_ENV !== "production") {
-      return demoUpdateContactInquiriesBulk(input);
+      try {
+        return await demoUpdateContactInquiriesBulk(input);
+      } catch {
+        return { count: 0 };
+      }
     }
     throw error;
   }
