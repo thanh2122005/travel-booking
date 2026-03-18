@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -29,7 +29,7 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-2 overflow-x-auto pb-1 lg:grid lg:gap-1 lg:overflow-visible lg:pb-0">
+    <nav className="flex flex-wrap gap-2 overflow-x-auto pb-1 lg:grid lg:gap-1.5 lg:overflow-visible lg:pb-0">
       {adminNavItems.map((item) => {
         const isActive =
           item.href === "/admin"
@@ -41,12 +41,17 @@ export function AdminNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              "inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-100 hover:text-slate-600 lg:border-transparent lg:bg-transparent",
+              "group inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 lg:border-transparent lg:bg-transparent",
               isActive &&
-                "border-slate-300 bg-slate-100 text-slate-600 lg:border-transparent lg:bg-slate-100",
+                "border-teal-200 bg-teal-50 text-teal-700 shadow-sm lg:border-slate-200 lg:bg-white",
             )}
           >
-            <item.icon className="h-4 w-4" />
+            <item.icon
+              className={cn(
+                "h-4 w-4 text-slate-400 transition-colors group-hover:text-slate-600",
+                isActive && "text-teal-600",
+              )}
+            />
             {item.label}
           </Link>
         );
@@ -54,4 +59,3 @@ export function AdminNav() {
     </nav>
   );
 }
-
