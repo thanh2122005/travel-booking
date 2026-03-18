@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
@@ -35,13 +35,13 @@ type AdminUsersTableProps = {
 };
 
 const roleOptions: Array<{ value: UserRoleValue; label: string }> = [
-  { value: "USER", label: "Người dùng" },
-  { value: "ADMIN", label: "Quản trị viên" },
+  { value: "USER", label: "NgÆ°á»i dÃ¹ng" },
+  { value: "ADMIN", label: "Quáº£n trá»‹ viÃªn" },
 ];
 
 const statusOptions: Array<{ value: UserStatusValue; label: string }> = [
-  { value: "ACTIVE", label: "Hoạt động" },
-  { value: "BLOCKED", label: "Bị khóa" },
+  { value: "ACTIVE", label: "Hoáº¡t Ä‘á»™ng" },
+  { value: "BLOCKED", label: "Bá»‹ khÃ³a" },
 ];
 
 export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersTableProps) {
@@ -74,12 +74,12 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
 
   function handleBulkUpdate() {
     if (!selectedIdsInPage.length) {
-      toast.error("Vui lòng chọn ít nhất một người dùng để cập nhật.");
+      toast.error("Vui lÃ²ng chá»n Ã­t nháº¥t má»™t ngÆ°á»i dÃ¹ng Ä‘á»ƒ cáº­p nháº­t.");
       return;
     }
 
     if (!bulkRole && !bulkStatus) {
-      toast.error("Vui lòng chọn ít nhất một trường cần cập nhật hàng loạt.");
+      toast.error("Vui lÃ²ng chá»n Ã­t nháº¥t má»™t trÆ°á»ng cáº§n cáº­p nháº­t hÃ ng loáº¡t.");
       return;
     }
 
@@ -96,14 +96,14 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
 
       const payload = (await response.json()) as { message?: string };
       if (!response.ok) {
-        toast.error(payload.message ?? "Không thể cập nhật người dùng hàng loạt.");
+        toast.error(payload.message ?? "KhÃ´ng thá»ƒ cáº­p nháº­t ngÆ°á»i dÃ¹ng hÃ ng loáº¡t.");
         return;
       }
 
       setSelectedIds([]);
       setBulkRole("");
       setBulkStatus("");
-      toast.success(payload.message ?? "Đã cập nhật người dùng hàng loạt.");
+      toast.success(payload.message ?? "ÄÃ£ cáº­p nháº­t ngÆ°á»i dÃ¹ng hÃ ng loáº¡t.");
       router.refresh();
     });
   }
@@ -114,9 +114,9 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Cập nhật hàng loạt</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Cáº­p nháº­t hÃ ng loáº¡t</p>
               <p className="mt-1 text-sm text-slate-600">
-                Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> người dùng trong trang hiện tại.
+                ÄÃ£ chá»n <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> ngÆ°á»i dÃ¹ng trong trang hiá»‡n táº¡i.
               </p>
             </div>
             {selectedIdsInPage.length ? (
@@ -125,7 +125,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                 onClick={() => toggleSelectAll(false)}
                 className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
               >
-                Bỏ chọn trong trang
+                Bá» chá»n trong trang
               </button>
             ) : null}
           </div>
@@ -138,7 +138,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                 onChange={(event) => toggleSelectAll(event.target.checked)}
                 className="h-4 w-4 rounded border-slate-300 accent-teal-600"
               />
-              Chọn tất cả trong trang
+              Chá»n táº¥t cáº£ trong trang
             </label>
 
             <select
@@ -146,7 +146,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
               onChange={(event) => setBulkRole(event.target.value)}
               className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm focus:border-teal-500 focus:outline-none"
             >
-              <option value="">Không đổi vai trò</option>
+              <option value="">KhÃ´ng Ä‘á»•i vai trÃ²</option>
               {roleOptions.map((item) => (
                 <option key={item.value} value={item.value}>
                   {item.label}
@@ -159,7 +159,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
               onChange={(event) => setBulkStatus(event.target.value)}
               className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm focus:border-teal-500 focus:outline-none"
             >
-              <option value="">Không đổi trạng thái</option>
+              <option value="">KhÃ´ng Ä‘á»•i tráº¡ng thÃ¡i</option>
               {statusOptions.map((item) => (
                 <option key={item.value} value={item.value}>
                   {item.label}
@@ -176,10 +176,10 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Đang cập nhật...
+                  Äang cáº­p nháº­t...
                 </>
               ) : (
-                "Áp dụng cho các dòng đã chọn"
+                "Ãp dá»¥ng cho cÃ¡c dÃ²ng Ä‘Ã£ chá»n"
               )}
             </button>
           </div>
@@ -204,14 +204,14 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                   </div>
                   <Badge variant={user.status === "ACTIVE" ? "default" : "destructive"}>{statusLabels[user.status]}</Badge>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">SĐT: {user.phone || "-"}</p>
+                <p className="mt-2 text-xs text-slate-500">SÄT: {user.phone || "-"}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Badge variant="outline">{roleLabels[user.role]}</Badge>
-                  <Badge variant="outline">Đơn: {user._count.bookings}</Badge>
-                  <Badge variant="outline">Đánh giá: {user._count.reviews}</Badge>
-                  <Badge variant="outline">Yêu thích: {user._count.favorites}</Badge>
+                  <Badge variant="outline">ÄÆ¡n: {user._count.bookings}</Badge>
+                  <Badge variant="outline">ÄÃ¡nh giÃ¡: {user._count.reviews}</Badge>
+                  <Badge variant="outline">YÃªu thÃ­ch: {user._count.favorites}</Badge>
                 </div>
-                <p className="mt-3 text-xs text-slate-500">Ngày tạo: {formatDate(new Date(user.createdAt))}</p>
+                <p className="mt-3 text-xs text-slate-500">NgÃ y táº¡o: {formatDate(new Date(user.createdAt))}</p>
                 <div className="mt-3 space-y-2">
                   <AdminUserActions userId={user.id} role={user.role} status={user.status} />
                   <AdminUserDetailDialog user={user} />
@@ -235,11 +235,11 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                     className="h-4 w-4 rounded border-slate-300 accent-teal-600"
                   />
                 </th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Người dùng</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Phân quyền</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Hoạt động</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap">Ngày tạo</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap text-right sticky right-0 bg-white">Thao tác</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">NgÆ°á»i dÃ¹ng</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">PhÃ¢n quyá»n</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">Hoáº¡t Ä‘á»™ng</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap">NgÃ y táº¡o</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap text-right">Thao tÃ¡c</th>
               </tr>
             </thead>
             <tbody>
@@ -256,7 +256,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                   <td className="px-2 py-3 min-w-[230px]">
                     <p className="font-medium text-slate-800">{user.fullName}</p>
                     <p className="text-xs text-slate-500">{user.email}</p>
-                    <p className="mt-1 text-xs text-slate-500">SĐT: {user.phone || "-"}</p>
+                    <p className="mt-1 text-xs text-slate-500">SÄT: {user.phone || "-"}</p>
                   </td>
                   <td className="px-2 py-3 min-w-[150px]">
                     <div className="space-y-2">
@@ -268,14 +268,14 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                   </td>
                   <td className="px-2 py-3 min-w-[170px]">
                     <div className="flex flex-wrap gap-1.5">
-                      <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">Đơn {user._count.bookings}</span>
-                      <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">Đánh giá {user._count.reviews}</span>
-                      <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">Yêu thích {user._count.favorites}</span>
+                      <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">ÄÆ¡n {user._count.bookings}</span>
+                      <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">ÄÃ¡nh giÃ¡ {user._count.reviews}</span>
+                      <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">YÃªu thÃ­ch {user._count.favorites}</span>
                     </div>
                   </td>
                   <td className="px-2 py-3 text-slate-500 whitespace-nowrap">{formatDate(new Date(user.createdAt))}</td>
-                  <td className="px-2 py-3 sticky right-0 bg-white border-l border-slate-100">
-                    <div className="ml-auto flex w-fit min-w-[130px] flex-col items-end gap-2">
+                  <td className="px-2 py-3 border-l border-slate-100">
+                    <div className="ml-auto flex min-w-[180px] flex-col items-end gap-2">
                       <AdminUserActions userId={user.id} role={user.role} status={user.status} compact />
                       <AdminUserDetailDialog user={user} />
                     </div>
@@ -289,3 +289,4 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
     </div>
   );
 }
+
