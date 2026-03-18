@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# local debug artifacts
+/gitlog.txt
+/ts_err*.txt
+/tsc-errors.txt
+/prisma_gen.txt
+/immerse-vietnam-master/
