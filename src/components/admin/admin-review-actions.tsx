@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
@@ -36,7 +36,7 @@ export function AdminReviewActions({ reviewId, isVisible, compact = false }: Adm
   }
 
   return (
-    <div className={`flex items-center gap-2 ${compact ? "w-full max-w-[168px]" : ""}`}>
+    <div className={`flex items-center gap-2 ${compact ? "w-full max-w-[170px]" : ""}`}>
       <select
         value={visible ? "1" : "0"}
         onChange={(event) => setVisible(event.target.value === "1")}
@@ -49,7 +49,7 @@ export function AdminReviewActions({ reviewId, isVisible, compact = false }: Adm
         type="button"
         onClick={handleSubmit}
         disabled={isPending}
-        className="inline-flex h-8 items-center justify-center rounded-md bg-slate-900 px-3 text-xs font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-8 items-center justify-center rounded-md bg-teal-600 px-3 text-xs font-semibold text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending ? (
           <>
