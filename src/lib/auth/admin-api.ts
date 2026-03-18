@@ -1,4 +1,4 @@
-﻿import { UserRole, UserStatus } from "@prisma/client";
+import { UserRole, UserStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { resolveAccessState } from "@/lib/auth/access-state";
@@ -41,6 +41,10 @@ export async function requireAdminApiAuth(): Promise<AdminApiAuthResult> {
 }
 
 export async function requireAdminApi() {
-  const auth = await requireAdminApiAuth();
-  return auth.response;
+  try {
+    const auth = await requireAdminApiAuth();
+    return auth.response;
+  } catch {
+    return NextResponse.json({ message: "Hệ thống tạm thời gián đoạn, vui lòng thử lại." }, { status: 503 });
+  }
 }
