@@ -174,3 +174,17 @@
     border-radius: 9999px;
   }
 }
+
+@layer components {
+  .iv-admin-bulk-card {
+    @apply iv-card border border-teal-100/70 bg-gradient-to-br from-white via-white to-teal-50/40 p-4;
+  }
+
+  .iv-admin-bulk-heading {
+    @apply text-xs font-semibold uppercase tracking-[0.16em] text-slate-500;
+  }
+
+  .iv-admin-bulk-meta {
+    @apply mt-1 text-sm text-slate-600;
+  }
+}

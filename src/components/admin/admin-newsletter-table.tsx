@@ -71,12 +71,12 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="iv-card border border-teal-100/70 bg-gradient-to-br from-white via-white to-teal-50/40 p-4">
+      <div className="iv-admin-bulk-card">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Thao tác hàng loạt</p>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="iv-admin-bulk-heading">Thao tác hàng loạt</p>
+              <p className="iv-admin-bulk-meta">
                 Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> email trong trang hiện tại.
               </p>
             </div>
