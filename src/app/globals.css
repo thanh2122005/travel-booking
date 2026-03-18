@@ -136,15 +136,19 @@
   }
 
   .iv-admin-filter-quick {
-    @apply mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/80 bg-white/95 p-2;
+    @apply mb-4 flex flex-nowrap items-center gap-2 overflow-x-auto rounded-xl border border-slate-200/80 bg-white/95 p-2;
   }
 
   .iv-admin-filter-grid {
-    @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+    @apply grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4;
   }
 
   .iv-admin-filter-actions {
     @apply mt-4 flex flex-wrap items-center gap-2;
+  }
+
+  .iv-admin-filter-actions > * {
+    @apply w-full sm:w-auto;
   }
 }
 
