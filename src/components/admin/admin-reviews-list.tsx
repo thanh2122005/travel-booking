@@ -146,7 +146,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
         </div>
       </div>
 
-      <div className="space-y-3 lg:hidden">
+      <div className="space-y-3 2xl:hidden">
         {items.map((review) => (
           <article key={review.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
@@ -188,7 +188,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
         ))}
       </div>
 
-      <div className="iv-card hidden lg:block">
+      <div className="iv-card hidden 2xl:block">
         <div className="iv-admin-table-scroll">
           <table className="min-w-[820px] w-full text-sm">
             <thead>
@@ -256,6 +256,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
     </div>
   );
 }
+
 
 
 
