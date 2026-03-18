@@ -195,10 +195,10 @@
 
 @layer components {
   .iv-admin-table-sticky-actions-head {
-    @apply sticky right-0 z-20 bg-slate-50/95 backdrop-blur;
+    @apply bg-slate-50/95;
   }
 
   .iv-admin-table-sticky-actions-cell {
-    @apply sticky right-0 z-10 bg-white;
+    @apply bg-white;
   }
 }
