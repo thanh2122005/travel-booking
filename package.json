@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "travel-booking",
   "version": "0.1.0",
   "private": true,
@@ -13,7 +13,8 @@
     "prisma:push": "prisma db push",
     "prisma:seed": "prisma db seed",
     "admin:ensure": "node scripts/ensure-admin.js",
-    "admin:check": "node scripts/check-admin.js"
+    "admin:check": "node scripts/check-admin.js",
+    "verify": "npm run lint && npx tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
