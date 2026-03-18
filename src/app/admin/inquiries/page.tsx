@@ -130,8 +130,8 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
-        <h1 className="text-2xl font-bold text-slate-700">Yêu cầu tư vấn</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="iv-admin-page-title">Yêu cầu tư vấn</h1>
+        <p className="iv-admin-page-subtitle">
           Theo dõi yêu cầu liên hệ từ người dùng và cập nhật trạng thái xử lý.
         </p>
       </div>

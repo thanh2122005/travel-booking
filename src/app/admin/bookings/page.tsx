@@ -139,8 +139,8 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
-        <h1 className="text-2xl font-bold text-slate-800">Quản lý booking</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="iv-admin-page-title">Quản lý booking</h1>
+        <p className="iv-admin-page-subtitle">
           Theo dõi đơn đặt tour, trạng thái xử lý, thanh toán và cập nhật hàng loạt theo bộ lọc.
         </p>
       </div>

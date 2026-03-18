@@ -147,3 +147,13 @@
     @apply mt-4 flex flex-wrap items-center gap-2;
   }
 }
+
+@layer components {
+  .iv-admin-page-title {
+    @apply text-2xl font-semibold tracking-tight text-slate-700;
+  }
+
+  .iv-admin-page-subtitle {
+    @apply mt-1 text-sm text-slate-500;
+  }
+}

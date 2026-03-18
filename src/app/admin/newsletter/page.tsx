@@ -120,8 +120,8 @@ export default async function AdminNewsletterPage({ searchParams }: AdminNewslet
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
-        <h1 className="text-2xl font-bold text-slate-700">Đăng ký nhận tin</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="iv-admin-page-title">Đăng ký nhận tin</h1>
+        <p className="iv-admin-page-subtitle">
           Theo dõi danh sách email đã đăng ký nhận bản tin khuyến mãi.
         </p>
       </div>
