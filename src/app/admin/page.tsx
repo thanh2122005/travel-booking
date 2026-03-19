@@ -1,4 +1,5 @@
 ﻿import Link from "next/link";
+import nextDynamic from "next/dynamic";
 import {
   BookOpen,
   CircleDollarSign,
@@ -12,7 +13,6 @@ import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { EmptyState } from "@/components/common/empty-state";
 import { DashboardHeader } from "@/components/admin/dashboard/dashboard-header";
 import { StatsCards } from "@/components/admin/dashboard/stats-cards";
-import { RevenueChart } from "@/components/admin/dashboard/revenue-chart";
 import { TopToursTable } from "@/components/admin/dashboard/top-tours-table";
 import { RecentOrders } from "@/components/admin/dashboard/recent-orders";
 import { LatestReviews } from "@/components/admin/dashboard/latest-reviews";
@@ -36,6 +36,11 @@ type TimelineGranularity = "day" | "week" | "month";
 type AdminPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
+
+const RevenueChart = nextDynamic(
+  () => import("@/components/admin/dashboard/revenue-chart").then((mod) => mod.RevenueChart),
+  { ssr: false },
+);
 
 const rangeOptions = [
   { label: "7 ngày", value: 7 },
