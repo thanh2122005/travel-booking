@@ -247,7 +247,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                       <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Chờ xử lý</span>
                     )}
                   </td>
-                  <td className="px-2 py-3 border-l border-slate-100 text-right min-w-[120px]">
+                  <td className="px-2 py-3 border-l border-slate-100 text-right min-w-[148px]">
                     <div className="ml-auto w-fit">
                       <AdminInquiryActions inquiryId={inquiry.id} status={inquiry.status} />
                     </div>

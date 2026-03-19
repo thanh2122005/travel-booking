@@ -65,7 +65,7 @@ export function AdminUserActions({ userId, role, status, compact = false }: Admi
   }
 
   return (
-    <div className={`flex flex-col gap-1.5 ${compact ? "w-full max-w-[148px]" : "w-full sm:w-[164px]"}`}>
+    <div className={`flex flex-col gap-1.5 ${compact ? "w-full max-w-[184px]" : "w-full sm:w-[184px]"}`}>
       <select
         value={selectedRole}
         onChange={(event) => setSelectedRole(event.target.value as UserRoleValue)}
