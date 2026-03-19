@@ -116,7 +116,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
     <div className="space-y-4">
       <div className="iv-admin-bulk-card">
         <div className="space-y-3">
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
               <p className="iv-admin-bulk-heading">Cập nhật hàng loạt</p>
               <p className="iv-admin-bulk-meta">
