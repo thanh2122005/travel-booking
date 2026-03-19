@@ -51,21 +51,25 @@ export function AdminNewsletterTable({ items }: AdminNewsletterTableProps) {
     if (!window.confirm(`Xóa ${selectedIdsInPage.length} email đã chọn khỏi danh sách nhận tin?`)) return;
 
     startTransition(async () => {
-      const response = await fetch("/api/admin/newsletter/bulk", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: selectedIdsInPage }),
-      });
+      try {
+        const response = await fetch("/api/admin/newsletter/bulk", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: selectedIdsInPage }),
+        });
 
-      const payload = (await response.json()) as { message?: string };
-      if (!response.ok) {
-        toast.error(payload.message ?? "Không thể xóa đăng ký nhận tin hàng loạt.");
-        return;
+        const payload = (await response.json().catch(() => ({}))) as { message?: string };
+        if (!response.ok) {
+          toast.error(payload.message ?? "Không thể xóa đăng ký nhận tin hàng loạt.");
+          return;
+        }
+
+        setSelectedIds([]);
+        toast.success(payload.message ?? "Đã xóa email đăng ký nhận tin.");
+        router.refresh();
+      } catch {
+        toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
       }
-
-      setSelectedIds([]);
-      toast.success(payload.message ?? "Đã xóa email đăng ký nhận tin.");
-      router.refresh();
     });
   }
 

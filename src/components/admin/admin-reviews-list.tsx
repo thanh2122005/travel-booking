@@ -66,24 +66,28 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
     }
 
     startTransition(async () => {
-      const response = await fetch("/api/admin/reviews/bulk", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ids: selectedIdsInPage,
-          isVisible: bulkVisible === "visible",
-        }),
-      });
+      try {
+        const response = await fetch("/api/admin/reviews/bulk", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: selectedIdsInPage,
+            isVisible: bulkVisible === "visible",
+          }),
+        });
 
-      const payload = (await response.json()) as { message?: string };
-      if (!response.ok) {
-        toast.error(payload.message ?? "Không thể cập nhật đánh giá hàng loạt.");
-        return;
+        const payload = (await response.json().catch(() => ({}))) as { message?: string };
+        if (!response.ok) {
+          toast.error(payload.message ?? "Không thể cập nhật đánh giá hàng loạt.");
+          return;
+        }
+
+        setSelectedIds([]);
+        toast.success(payload.message ?? "Đã cập nhật đánh giá hàng loạt.");
+        router.refresh();
+      } catch {
+        toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
       }
-
-      setSelectedIds([]);
-      toast.success(payload.message ?? "Đã cập nhật đánh giá hàng loạt.");
-      router.refresh();
     });
   }
 
