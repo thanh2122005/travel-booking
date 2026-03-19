@@ -105,27 +105,31 @@ export function AdminBookingsTable({
     }
 
     startTransition(async () => {
-      const response = await fetch("/api/admin/bookings/bulk", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ids: selectedIdsInPage,
-          ...(bulkStatus ? { status: bulkStatus } : {}),
-          ...(bulkPaymentStatus ? { paymentStatus: bulkPaymentStatus } : {}),
-        }),
-      });
+      try {
+        const response = await fetch("/api/admin/bookings/bulk", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: selectedIdsInPage,
+            ...(bulkStatus ? { status: bulkStatus } : {}),
+            ...(bulkPaymentStatus ? { paymentStatus: bulkPaymentStatus } : {}),
+          }),
+        });
 
-      const payload = (await response.json()) as { message?: string };
-      if (!response.ok) {
-        toast.error(payload.message ?? "Không thể cập nhật booking hàng loạt.");
-        return;
+        const payload = (await response.json().catch(() => ({}))) as { message?: string };
+        if (!response.ok) {
+          toast.error(payload.message ?? "Không thể cập nhật booking hàng loạt.");
+          return;
+        }
+
+        setSelectedIds([]);
+        setBulkStatus("");
+        setBulkPaymentStatus("");
+        toast.success(payload.message ?? "Đã cập nhật booking hàng loạt.");
+        router.refresh();
+      } catch {
+        toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
       }
-
-      setSelectedIds([]);
-      setBulkStatus("");
-      setBulkPaymentStatus("");
-      toast.success(payload.message ?? "Đã cập nhật booking hàng loạt.");
-      router.refresh();
     });
   }
 
@@ -259,7 +263,7 @@ export function AdminBookingsTable({
 
       <div className="iv-card hidden xl:block">
         <div className="iv-admin-table-scroll">
-          <table className="min-w-[680px] w-full text-sm">
+          <table className="min-w-[860px] w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -274,7 +278,7 @@ export function AdminBookingsTable({
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Tour</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Giá trị</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Cập nhật</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
+                <th className="sticky right-0 z-10 border-l border-slate-100 bg-white px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -312,7 +316,7 @@ export function AdminBookingsTable({
                       <p className="text-xs text-slate-500">{formatDate(new Date(booking.createdAt))}</p>
                     </div>
                   </td>
-                  <td className="border-l border-slate-100 px-2 py-3 min-w-[184px]">
+                  <td className="sticky right-0 border-l border-slate-100 bg-white/95 px-2 py-3 min-w-[184px]">
                     <div className="ml-auto flex min-w-[170px] flex-col items-end gap-2">
                       <AdminBookingActions
                         bookingId={booking.id}
