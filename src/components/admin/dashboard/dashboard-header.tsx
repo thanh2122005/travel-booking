@@ -1,4 +1,4 @@
-﻿import type { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { CalendarRange } from "lucide-react";
 
 type DashboardHeaderProps = {
@@ -30,7 +30,7 @@ export function DashboardHeader({ periodLabel, actions, quickStats }: DashboardH
         {quickStats.map((item) => (
           <article key={item.label} className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
             <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">{item.label}</p>
-            <p className="mt-1 break-words text-lg font-semibold leading-tight text-slate-700 md:text-xl">{item.value}</p>
+            <p className="mt-1 overflow-hidden break-all text-lg font-semibold leading-tight text-slate-700 md:text-xl">{item.value}</p>
           </article>
         ))}
       </div>
