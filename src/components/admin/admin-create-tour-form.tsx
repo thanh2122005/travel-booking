@@ -81,7 +81,7 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = (await response.json()) as { message?: string };
+      const data = (await response.json().catch(() => ({}))) as { message?: string };
       if (!response.ok) {
         toast.error(data.message ?? "Không thể tạo tour.");
         return;

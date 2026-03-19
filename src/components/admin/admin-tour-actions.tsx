@@ -30,7 +30,7 @@ export function AdminTourActions({ tourId, status, featured }: AdminTourActionsP
           featured: selectedFeatured,
         }),
       });
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
 
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể cập nhật tour.");
@@ -53,7 +53,7 @@ export function AdminTourActions({ tourId, status, featured }: AdminTourActionsP
       const response = await fetch(`/api/admin/tours/${tourId}`, {
         method: "DELETE",
       });
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
 
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể xóa tour.");

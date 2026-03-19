@@ -23,7 +23,7 @@ export function AdminLocationActions({ locationId, featured }: AdminLocationActi
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ featured: selectedFeatured }),
       });
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
 
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể cập nhật điểm đến.");
@@ -46,7 +46,7 @@ export function AdminLocationActions({ locationId, featured }: AdminLocationActi
       const response = await fetch(`/api/admin/locations/${locationId}`, {
         method: "DELETE",
       });
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
 
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể xóa điểm đến.");

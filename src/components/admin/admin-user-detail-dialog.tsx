@@ -71,7 +71,7 @@ export function AdminUserDetailDialog({ user }: AdminUserDetailDialogProps) {
         }),
       });
 
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể cập nhật người dùng.");
         return;

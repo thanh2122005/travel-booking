@@ -81,7 +81,7 @@ export function AdminTourImagesManager({ tourId, images }: AdminTourImagesManage
           sortOrder: Number(newSortOrder) || undefined,
         }),
       });
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể thêm ảnh.");
         return;
@@ -110,7 +110,7 @@ export function AdminTourImagesManager({ tourId, images }: AdminTourImagesManage
           })),
         }),
       });
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể cập nhật thứ tự ảnh.");
         return;
@@ -136,7 +136,7 @@ export function AdminTourImagesManager({ tourId, images }: AdminTourImagesManage
           sortOrder: Number.isFinite(sortOrder) && sortOrder > 0 ? sortOrder : undefined,
         }),
       });
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể cập nhật ảnh.");
         return;
@@ -151,7 +151,7 @@ export function AdminTourImagesManager({ tourId, images }: AdminTourImagesManage
       const response = await fetch(`/api/admin/tour-images/${imageId}`, {
         method: "DELETE",
       });
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể xóa ảnh.");
         return;

@@ -41,7 +41,7 @@ export function AdminItineraryManager({ tourId, itineraries }: AdminItineraryMan
           description: newDescription.trim(),
         }),
       });
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể thêm lịch trình.");
         return;
@@ -70,7 +70,7 @@ export function AdminItineraryManager({ tourId, itineraries }: AdminItineraryMan
           description,
         }),
       });
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể cập nhật lịch trình.");
         return;
@@ -85,7 +85,7 @@ export function AdminItineraryManager({ tourId, itineraries }: AdminItineraryMan
       const response = await fetch(`/api/admin/itineraries/${itineraryId}`, {
         method: "DELETE",
       });
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể xóa lịch trình.");
         return;
