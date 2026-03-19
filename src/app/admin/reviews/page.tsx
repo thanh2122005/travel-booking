@@ -161,12 +161,12 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
       <form id="bo-loc-review" className="iv-admin-filter-form">
         <label
           htmlFor="search"
-          className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"
+          className="iv-admin-filter-title"
         >
           Tìm kiếm đánh giá
         </label>
         <div className="iv-admin-filter-quick">
-          <span className="text-xs font-medium text-slate-500">Mốc nhanh:</span>
+          <span className="iv-admin-filter-hint">Mốc nhanh:</span>
           {quickDateRanges.map((days) => {
             const quickRange = createQuickDateRange(days);
             const isActive =
@@ -243,7 +243,7 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
             {activeFilterLabels.map((label) => (
               <span
                 key={label}
-                className="inline-flex h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700"
+                className="iv-admin-filter-chip"
               >
                 {label}
               </span>
