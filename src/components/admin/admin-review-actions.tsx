@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
@@ -18,20 +18,24 @@ export function AdminReviewActions({ reviewId, isVisible, compact = false }: Adm
 
   function handleSubmit() {
     startTransition(async () => {
-      const response = await fetch(`/api/admin/reviews/${reviewId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isVisible: visible }),
-      });
+      try {
+        const response = await fetch(`/api/admin/reviews/${reviewId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isVisible: visible }),
+        });
 
-      const payload = (await response.json()) as { message?: string };
-      if (!response.ok) {
-        toast.error(payload.message ?? "Không thể cập nhật đánh giá.");
-        return;
+        const payload = (await response.json().catch(() => ({}))) as { message?: string };
+        if (!response.ok) {
+          toast.error(payload.message ?? "Không thể cập nhật đánh giá.");
+          return;
+        }
+
+        toast.success(payload.message ?? "Đã cập nhật đánh giá.");
+        router.refresh();
+      } catch {
+        toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
       }
-
-      toast.success(payload.message ?? "Đã cập nhật đánh giá.");
-      router.refresh();
     });
   }
 

@@ -24,20 +24,24 @@ export function AdminUserActions({ userId, role, status, compact = false }: Admi
 
   function handleSave() {
     startTransition(async () => {
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: selectedRole, status: selectedStatus }),
-      });
+      try {
+        const response = await fetch(`/api/admin/users/${userId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role: selectedRole, status: selectedStatus }),
+        });
 
-      const payload = (await response.json()) as { message?: string };
-      if (!response.ok) {
-        toast.error(payload.message ?? "Không thể cập nhật người dùng.");
-        return;
+        const payload = (await response.json().catch(() => ({}))) as { message?: string };
+        if (!response.ok) {
+          toast.error(payload.message ?? "Không thể cập nhật người dùng.");
+          return;
+        }
+
+        toast.success(payload.message ?? "Đã cập nhật người dùng.");
+        router.refresh();
+      } catch {
+        toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
       }
-
-      toast.success(payload.message ?? "Đã cập nhật người dùng.");
-      router.refresh();
     });
   }
 
@@ -50,7 +54,7 @@ export function AdminUserActions({ userId, role, status, compact = false }: Admi
     setIsDeleting(true);
     try {
       const response = await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
 
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể xóa người dùng.");
@@ -59,6 +63,8 @@ export function AdminUserActions({ userId, role, status, compact = false }: Admi
 
       toast.success(payload.message ?? "Đã xóa người dùng thành công.");
       router.refresh();
+    } catch {
+      toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
     } finally {
       setIsDeleting(false);
     }
@@ -125,4 +131,3 @@ export function AdminUserActions({ userId, role, status, compact = false }: Admi
     </div>
   );
 }
-

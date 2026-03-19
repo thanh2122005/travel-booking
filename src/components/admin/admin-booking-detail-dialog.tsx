@@ -80,38 +80,41 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
     }
 
     startTransition(async () => {
-      const response = await fetch(`/api/admin/bookings/${booking.id}/detail`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullName: fullName.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
-          numberOfGuests: Math.trunc(guests),
-          note: note.trim().length ? note.trim() : null,
-          paymentMethod: paymentMethod.trim(),
-          departureDate: departureDate || null,
-          status,
-          paymentStatus,
-        }),
-      });
-      const payload = (await response.json()) as { message?: string };
-      if (!response.ok) {
-        toast.error(payload.message ?? "Không thể cập nhật booking.");
-        return;
-      }
+      try {
+        const response = await fetch(`/api/admin/bookings/${booking.id}/detail`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fullName: fullName.trim(),
+            email: email.trim(),
+            phone: phone.trim(),
+            numberOfGuests: Math.trunc(guests),
+            note: note.trim().length ? note.trim() : null,
+            paymentMethod: paymentMethod.trim(),
+            departureDate: departureDate || null,
+            status,
+            paymentStatus,
+          }),
+        });
 
-      toast.success(payload.message ?? "Đã cập nhật booking.");
-      setOpen(false);
-      router.refresh();
+        const payload = (await response.json().catch(() => ({}))) as { message?: string };
+        if (!response.ok) {
+          toast.error(payload.message ?? "Không thể cập nhật booking.");
+          return;
+        }
+
+        toast.success(payload.message ?? "Đã cập nhật booking.");
+        setOpen(false);
+        router.refresh();
+      } catch {
+        toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
+      }
     });
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        className="inline-flex h-8 w-full items-center justify-center rounded-md border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
-      >
+      <DialogTrigger className="inline-flex h-8 w-full items-center justify-center rounded-md border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100">
         <PencilLine className="mr-1.5 h-3.5 w-3.5" />
         Sửa chi tiết
       </DialogTrigger>

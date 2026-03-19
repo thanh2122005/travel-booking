@@ -23,20 +23,24 @@ export function AdminBookingActions({ bookingId, status, paymentStatus, compact 
 
   function handleSave() {
     startTransition(async () => {
-      const response = await fetch(`/api/admin/bookings/${bookingId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: selectedStatus, paymentStatus: selectedPaymentStatus }),
-      });
+      try {
+        const response = await fetch(`/api/admin/bookings/${bookingId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: selectedStatus, paymentStatus: selectedPaymentStatus }),
+        });
 
-      const payload = (await response.json()) as { message?: string };
-      if (!response.ok) {
-        toast.error(payload.message ?? "Không thể cập nhật đơn đặt tour.");
-        return;
+        const payload = (await response.json().catch(() => ({}))) as { message?: string };
+        if (!response.ok) {
+          toast.error(payload.message ?? "Không thể cập nhật đơn đặt tour.");
+          return;
+        }
+
+        toast.success(payload.message ?? "Đã cập nhật đơn đặt tour.");
+        router.refresh();
+      } catch {
+        toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
       }
-
-      toast.success(payload.message ?? "Đã cập nhật đơn đặt tour.");
-      router.refresh();
     });
   }
 
@@ -80,4 +84,3 @@ export function AdminBookingActions({ bookingId, status, paymentStatus, compact 
     </div>
   );
 }
-
