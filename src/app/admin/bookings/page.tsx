@@ -266,7 +266,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
               pathname: "/api/admin/bookings/export",
               query: exportQuery,
             }}
-            className="inline-flex h-10 w-full items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 sm:w-auto"
+            className="iv-btn-soft inline-flex h-10 w-full items-center justify-center px-4 text-sm font-semibold shadow-sm sm:w-auto"
           >
             Xuất CSV
           </Link>
