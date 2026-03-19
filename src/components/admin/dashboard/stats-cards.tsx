@@ -11,7 +11,7 @@ export function StatsCards({ items }: StatsCardsProps) {
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       {items.map((item) => {
         const Icon = item.icon;
-        const isLongValue = item.value.length >= 11;
+        const isLongValue = item.value.length >= 9;
 
         return (
           <article
