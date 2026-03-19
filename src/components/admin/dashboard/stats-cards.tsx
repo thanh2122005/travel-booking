@@ -1,4 +1,4 @@
-import { TrendingDown, TrendingUp } from "lucide-react";
+﻿import { TrendingDown, TrendingUp } from "lucide-react";
 import { deltaToneClass } from "@/components/admin/dashboard/formatters";
 import type { DashboardKpiItem } from "@/components/admin/dashboard/types";
 
@@ -8,7 +8,7 @@ type StatsCardsProps = {
 
 export function StatsCards({ items }: StatsCardsProps) {
   return (
-    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {items.map((item) => {
         const Icon = item.icon;
         const isLongValue = item.value.length >= 9;
@@ -27,12 +27,12 @@ export function StatsCards({ items }: StatsCardsProps) {
             </div>
 
             <p
-              className={`mt-2 block w-full min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap font-semibold leading-[1.1] tracking-[-0.01em] text-slate-700 ${
+              className={`mt-2 block w-full min-w-0 max-w-full break-words font-semibold leading-[1.15] tracking-[-0.01em] text-slate-700 ${
                 isVeryLongValue
-                  ? "text-[1.35rem] md:text-[1.55rem]"
+                  ? "text-[1.2rem] md:text-[1.35rem]"
                   : isLongValue
-                    ? "text-[1.55rem] md:text-[1.75rem]"
-                    : "text-[1.8rem] md:text-[2rem]"
+                    ? "text-[1.35rem] md:text-[1.55rem]"
+                    : "text-[1.55rem] md:text-[1.75rem]"
               }`}
               title={item.value}
             >
@@ -40,7 +40,9 @@ export function StatsCards({ items }: StatsCardsProps) {
             </p>
 
             {item.deltaText ? (
-              <p className={`mt-2 inline-flex items-center gap-1 text-xs font-medium ${deltaToneClass(item.deltaTone ?? "flat")}`}>
+              <p
+                className={`mt-2 inline-flex items-center gap-1 text-xs font-medium ${deltaToneClass(item.deltaTone ?? "flat")}`}
+              >
                 {item.deltaTone === "up" ? <TrendingUp className="h-3.5 w-3.5" /> : null}
                 {item.deltaTone === "down" ? <TrendingDown className="h-3.5 w-3.5" /> : null}
                 {item.deltaText}

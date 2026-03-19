@@ -1,4 +1,4 @@
-import { InquiryStatus, Prisma } from "@prisma/client";
+﻿import { InquiryStatus, Prisma } from "@prisma/client";
 import {
   demoExportContactInquiries,
   demoGetContactInquiries,
@@ -31,6 +31,13 @@ type AdminNewsletterListFilter = AdminListFilter & {
 };
 
 const MAX_ADMIN_DATE_RANGE_DAYS = 366;
+let forceDemoEngagementStore = false;
+
+function markDemoFallback(error?: unknown) {
+  if (error && isDatabaseUnavailableError(error)) {
+    forceDemoEngagementStore = true;
+  }
+}
 
 function startOfDay(value: Date) {
   const next = new Date(value);
@@ -164,6 +171,14 @@ function mapDemoNewsletter(
 }
 
 export async function getAdminInquiries(filter: AdminInquiryListFilter = {}) {
+  if (forceDemoEngagementStore) {
+    const demoData = await demoGetContactInquiries(filter);
+    return {
+      ...demoData,
+      items: demoData.items.map(mapDemoInquiry),
+    };
+  }
+
   try {
     const { page, pageSize, skip } = getPagination(filter, 15);
     const where = buildInquiryWhere(filter);
@@ -195,6 +210,7 @@ export async function getAdminInquiries(filter: AdminInquiryListFilter = {}) {
     };
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
+      markDemoFallback(error);
       const demoData = await demoGetContactInquiries(filter);
       return {
         ...demoData,
@@ -206,6 +222,11 @@ export async function getAdminInquiries(filter: AdminInquiryListFilter = {}) {
 }
 
 export async function exportAdminInquiries(filter: AdminInquiryListFilter = {}) {
+  if (forceDemoEngagementStore) {
+    const demoData = await demoExportContactInquiries(filter);
+    return demoData.map(mapDemoInquiry);
+  }
+
   try {
     const where = buildInquiryWhere(filter);
     return await db.contactInquiry.findMany({
@@ -223,6 +244,7 @@ export async function exportAdminInquiries(filter: AdminInquiryListFilter = {}) 
     });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
+      markDemoFallback(error);
       const demoData = await demoExportContactInquiries(filter);
       return demoData.map(mapDemoInquiry);
     }
@@ -231,6 +253,11 @@ export async function exportAdminInquiries(filter: AdminInquiryListFilter = {}) 
 }
 
 export async function updateAdminInquiryStatus(inquiryId: string, status: InquiryStatus) {
+  if (forceDemoEngagementStore) {
+    const updated = await demoUpdateContactInquiryStatus(inquiryId, status).catch(() => null);
+    return updated ? mapDemoInquiry(updated) : null;
+  }
+
   try {
     return await db.contactInquiry.update({
       where: { id: inquiryId },
@@ -244,13 +271,10 @@ export async function updateAdminInquiryStatus(inquiryId: string, status: Inquir
         },
       },
     });
-  } catch {
-    try {
-      const updated = await demoUpdateContactInquiryStatus(inquiryId, status);
-      return updated ? mapDemoInquiry(updated) : null;
-    } catch {
-      return null;
-    }
+  } catch (error) {
+    markDemoFallback(error);
+    const updated = await demoUpdateContactInquiryStatus(inquiryId, status).catch(() => null);
+    return updated ? mapDemoInquiry(updated) : null;
   }
 }
 
@@ -258,6 +282,10 @@ export async function updateAdminInquiriesBulk(input: {
   ids: string[];
   status: InquiryStatus;
 }) {
+  if (forceDemoEngagementStore) {
+    return demoUpdateContactInquiriesBulk(input).catch(() => ({ count: 0 }));
+  }
+
   try {
     return await db.contactInquiry.updateMany({
       where: {
@@ -269,16 +297,21 @@ export async function updateAdminInquiriesBulk(input: {
         status: input.status,
       },
     });
-  } catch {
-    try {
-      return await demoUpdateContactInquiriesBulk(input);
-    } catch {
-      return { count: 0 };
-    }
+  } catch (error) {
+    markDemoFallback(error);
+    return demoUpdateContactInquiriesBulk(input).catch(() => ({ count: 0 }));
   }
 }
 
 export async function getAdminNewsletterSubscribers(filter: AdminNewsletterListFilter = {}) {
+  if (forceDemoEngagementStore) {
+    const demoData = await demoGetNewsletterSubscribers(filter);
+    return {
+      ...demoData,
+      items: demoData.items.map(mapDemoNewsletter),
+    };
+  }
+
   try {
     const { page, pageSize, skip } = getPagination(filter, 15);
     const where = buildNewsletterWhere(filter);
@@ -302,6 +335,7 @@ export async function getAdminNewsletterSubscribers(filter: AdminNewsletterListF
     };
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
+      markDemoFallback(error);
       const demoData = await demoGetNewsletterSubscribers(filter);
       return {
         ...demoData,
@@ -313,6 +347,11 @@ export async function getAdminNewsletterSubscribers(filter: AdminNewsletterListF
 }
 
 export async function exportAdminNewsletterSubscribers(filter: AdminNewsletterListFilter = {}) {
+  if (forceDemoEngagementStore) {
+    const demoData = await demoExportNewsletterSubscribers(filter);
+    return demoData.map(mapDemoNewsletter);
+  }
+
   try {
     const where = buildNewsletterWhere(filter);
     return await db.newsletterSubscriber.findMany({
@@ -322,6 +361,7 @@ export async function exportAdminNewsletterSubscribers(filter: AdminNewsletterLi
     });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
+      markDemoFallback(error);
       const demoData = await demoExportNewsletterSubscribers(filter);
       return demoData.map(mapDemoNewsletter);
     }
@@ -335,6 +375,10 @@ export async function deleteAdminNewsletterSubscribersBulk(input: { ids: string[
     return { count: 0 };
   }
 
+  if (forceDemoEngagementStore) {
+    return demoDeleteNewsletterSubscribersBulk({ ids: uniqueIds });
+  }
+
   try {
     return await db.newsletterSubscriber.deleteMany({
       where: {
@@ -345,12 +389,9 @@ export async function deleteAdminNewsletterSubscribersBulk(input: { ids: string[
     });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
+      markDemoFallback(error);
       return demoDeleteNewsletterSubscribersBulk({ ids: uniqueIds });
     }
     throw error;
   }
 }
-
-
-
-
