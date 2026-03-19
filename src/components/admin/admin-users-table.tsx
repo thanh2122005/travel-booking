@@ -186,7 +186,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
         </div>
       </div>
 
-      <div className="space-y-3 2xl:hidden">
+      <div className="space-y-3 xl:hidden">
         {items.map((user) => (
           <article key={user.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
@@ -222,7 +222,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
         ))}
       </div>
 
-      <div className="iv-card hidden 2xl:block">
+      <div className="iv-card hidden xl:block">
         <div className="iv-admin-table-scroll">
           <table className="min-w-[700px] w-full text-sm">
             <thead>

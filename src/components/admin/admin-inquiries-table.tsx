@@ -147,7 +147,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
         </div>
       </div>
 
-      <div className="space-y-3 2xl:hidden">
+      <div className="space-y-3 xl:hidden">
         {items.map((inquiry) => (
           <article key={inquiry.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
@@ -180,7 +180,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
         ))}
       </div>
 
-      <div className="iv-card hidden 2xl:block">
+      <div className="iv-card hidden xl:block">
         <div className="iv-admin-table-scroll">
           <table className="min-w-[780px] w-full text-left text-sm">
             <thead>

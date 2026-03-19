@@ -204,7 +204,7 @@ export function AdminBookingsTable({
         </div>
       </div>
 
-      <div className="space-y-3 2xl:hidden">
+      <div className="space-y-3 xl:hidden">
         {items.map((booking) => (
           <article key={booking.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
@@ -257,7 +257,7 @@ export function AdminBookingsTable({
         ))}
       </div>
 
-      <div className="iv-card hidden 2xl:block">
+      <div className="iv-card hidden xl:block">
         <div className="iv-admin-table-scroll">
           <table className="min-w-[760px] w-full text-sm">
             <thead>
