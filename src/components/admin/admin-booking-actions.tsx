@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
@@ -45,7 +45,7 @@ export function AdminBookingActions({ bookingId, status, paymentStatus, compact 
   }
 
   return (
-    <div className={`flex flex-col gap-1.5 ${compact ? "w-full max-w-[184px]" : "w-full sm:w-[184px]"}`}>
+    <div className={`flex flex-col gap-1.5 ${compact ? "w-full max-w-[208px]" : "w-full sm:w-[208px]"}`}>
       <select
         value={selectedStatus}
         onChange={(event) => setSelectedStatus(event.target.value as BookingStatusValue)}

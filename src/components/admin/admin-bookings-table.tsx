@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
@@ -61,11 +61,7 @@ const paymentStatusOptions: Array<{ value: PaymentStatusValue; label: string }> 
   { value: "PAID", label: "Đã thanh toán" },
 ];
 
-export function AdminBookingsTable({
-  items,
-  statusLabels,
-  paymentLabels,
-}: AdminBookingsTableProps) {
+export function AdminBookingsTable({ items, statusLabels, paymentLabels }: AdminBookingsTableProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkStatus, setBulkStatus] = useState("");
@@ -263,7 +259,7 @@ export function AdminBookingsTable({
 
       <div className="iv-card hidden xl:block">
         <div className="iv-admin-table-scroll">
-          <table className="min-w-[860px] w-full text-sm">
+          <table className="w-full min-w-[1100px] text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -278,7 +274,7 @@ export function AdminBookingsTable({
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Tour</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Giá trị</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Cập nhật</th>
-                <th className="sticky right-0 z-10 border-l border-slate-100 bg-white px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -292,22 +288,22 @@ export function AdminBookingsTable({
                       className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
                     />
                   </td>
-                  <td className="px-2 py-3 min-w-[145px]">
+                  <td className="min-w-[170px] px-2 py-3">
                     <p className="font-semibold text-slate-800">{booking.bookingCode}</p>
                     <p className="mt-1 font-medium text-slate-800">{booking.fullName}</p>
                     <p className="text-xs text-slate-500">{booking.email}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[145px]">
+                  <td className="min-w-[180px] px-2 py-3">
                     <Link href={`/tours/${booking.tour.slug}`} className="line-clamp-2 font-medium text-teal-700 hover:text-teal-800">
                       {booking.tour.title}
                     </Link>
                     <p className="mt-1 text-xs text-slate-500">{booking.numberOfGuests} khách</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[128px]">
+                  <td className="min-w-[150px] px-2 py-3">
                     <p className="font-medium text-slate-800">{formatPrice(booking.totalPrice)}</p>
                     <p className="mt-1 text-xs text-slate-500">{booking.paymentMethod || "Thanh toán tiêu chuẩn"}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[128px]">
+                  <td className="min-w-[150px] px-2 py-3">
                     <div className="space-y-2">
                       <Badge variant="outline">{statusLabels[booking.status]}</Badge>
                       <div>
@@ -316,8 +312,8 @@ export function AdminBookingsTable({
                       <p className="text-xs text-slate-500">{formatDate(new Date(booking.createdAt))}</p>
                     </div>
                   </td>
-                  <td className="sticky right-0 border-l border-slate-100 bg-white/95 px-2 py-3 min-w-[184px]">
-                    <div className="ml-auto flex min-w-[170px] flex-col items-end gap-2">
+                  <td className="min-w-[232px] px-2 py-3">
+                    <div className="ml-auto flex w-full max-w-[216px] flex-col items-end gap-2">
                       <AdminBookingActions
                         bookingId={booking.id}
                         status={booking.status}

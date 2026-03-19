@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { Loader2, Trash2 } from "lucide-react";
@@ -71,7 +71,7 @@ export function AdminUserActions({ userId, role, status, compact = false }: Admi
   }
 
   return (
-    <div className={`flex flex-col gap-1.5 ${compact ? "w-full max-w-[184px]" : "w-full sm:w-[184px]"}`}>
+    <div className={`flex flex-col gap-1.5 ${compact ? "w-full max-w-[208px]" : "w-full sm:w-[208px]"}`}>
       <select
         value={selectedRole}
         onChange={(event) => setSelectedRole(event.target.value as UserRoleValue)}
