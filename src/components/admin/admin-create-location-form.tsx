@@ -40,21 +40,25 @@ export function AdminCreateLocationForm() {
     };
 
     startTransition(async () => {
-      const response = await fetch("/api/admin/locations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = (await response.json().catch(() => ({}))) as { message?: string };
-      if (!response.ok) {
-        toast.error(data.message ?? "Không thể tạo điểm đến.");
-        return;
-      }
+      try {
+        const response = await fetch("/api/admin/locations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = (await response.json().catch(() => ({}))) as { message?: string };
+        if (!response.ok) {
+          toast.error(data.message ?? "\u004b\u0068\u00f4\u006e\u0067 \u0074\u0068\u1ec3 \u0074\u1ea1\u006f \u0111\u0069\u1ec3\u006d \u0111\u1ebf\u006e\u002e");
+          return;
+        }
 
-      toast.success(data.message ?? "Tạo điểm đến thành công.");
-      (event.currentTarget as HTMLFormElement).reset();
-      setFeatured(false);
-      router.refresh();
+        toast.success(data.message ?? "\u0054\u1ea1\u006f \u0111\u0069\u1ec3\u006d \u0111\u1ebf\u006e \u0074\u0068\u00e0\u006e\u0068 \u0063\u00f4\u006e\u0067\u002e");
+        (event.currentTarget as HTMLFormElement).reset();
+        setFeatured(false);
+        router.refresh();
+      } catch {
+        toast.error("\u004b\u1ebf\u0074 \u006e\u1ed1\u0069 \u0074\u1ea1\u006d \u0074\u0068\u1eddi \u0067\u0069\u00e1\u006e \u0111\u006f\u1ea1\u006e\u002e \u0056\u0075\u0069 \u006c\u00f2\u006e\u0067 \u0074\u0068\u1eed \u006c\u1ea1\u0069\u002e");
+      }
     });
   }
 
