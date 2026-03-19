@@ -37,34 +37,41 @@ export default async function AdminTourDetailPage({ params }: AdminTourDetailPag
       </Link>
 
       <section className="iv-card rounded-2xl border-slate-200/80 bg-white p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
               Quản lý chi tiết tour
             </p>
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-700">{tour.title}</h1>
+            <h1 className="iv-admin-page-title">{tour.title}</h1>
             <p className="inline-flex items-center gap-1.5 text-sm text-slate-600">
               <MapPin className="h-4 w-4 text-teal-600" />
               {tour.location.name}
             </p>
           </div>
-          <div className="space-y-2 text-right">
+          <div className="space-y-2">
             <p className="text-sm text-slate-500">
               Giá hiện tại:{" "}
               <span className="font-semibold text-slate-900">
                 {formatPrice(tour.discountPrice ?? tour.price)}
               </span>
             </p>
-            <div className="flex flex-wrap justify-end gap-2">
+            <div className="flex flex-wrap gap-2 lg:justify-end">
               <Badge variant={tour.status === "ACTIVE" ? "default" : "destructive"}>
                 {tour.status === "ACTIVE" ? "Đang hoạt động" : "Ngừng hoạt động"}
               </Badge>
               {tour.featured ? <Badge variant="outline">Nổi bật</Badge> : null}
             </div>
-            <p className="text-xs text-slate-500">
-              Đơn: {tour._count.bookings} · Đánh giá: {tour._count.reviews} · Yêu thích:{" "}
-              {tour._count.favorites}
-            </p>
+            <div className="flex flex-wrap gap-1.5 lg:justify-end">
+              <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                Don {tour._count.bookings}
+              </span>
+              <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                Danh gia {tour._count.reviews}
+              </span>
+              <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                Yeu thich {tour._count.favorites}
+              </span>
+            </div>
           </div>
         </div>
       </section>

@@ -33,26 +33,33 @@ export default async function AdminLocationDetailPage({ params }: AdminLocationD
       </Link>
 
       <section className="iv-card rounded-2xl border-slate-200/80 bg-white p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
               Quản lý chi tiết điểm đến
             </p>
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-700">{location.name}</h1>
+            <h1 className="iv-admin-page-title">{location.name}</h1>
             <p className="inline-flex items-center gap-1.5 text-sm text-slate-600">
               <MapPin className="h-4 w-4 text-teal-600" />
               {location.provinceOrCity}, {location.country}
             </p>
           </div>
-          <div className="space-y-2 text-right">
-            <div className="flex flex-wrap justify-end gap-2">
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2 lg:justify-end">
               {location.featured ? <Badge variant="default">Nổi bật</Badge> : <Badge variant="outline">Tiêu chuẩn</Badge>}
               <Badge variant="outline">{location._count.tours} tour</Badge>
             </div>
-            <p className="text-xs text-slate-500">
-              Đơn: {location._count.bookings} · Đánh giá: {location._count.reviews} · Yêu thích:{" "}
-              {location._count.favorites}
-            </p>
+            <div className="flex flex-wrap gap-1.5 lg:justify-end">
+              <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                Don {location._count.bookings}
+              </span>
+              <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                Danh gia {location._count.reviews}
+              </span>
+              <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                Yeu thich {location._count.favorites}
+              </span>
+            </div>
             <p className="text-xs text-slate-500">Cập nhật: {formatDate(location.updatedAt)}</p>
           </div>
         </div>
