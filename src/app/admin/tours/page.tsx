@@ -79,33 +79,33 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div className="iv-card p-5">
-        <h1 className="text-2xl font-bold text-slate-700">Quản lý tour</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="iv-admin-page-title">Quản lý tour</h1>
+        <p className="iv-admin-page-subtitle">
           Theo dõi trạng thái mở bán, hiệu suất đặt tour và đánh giá.
         </p>
       </div>
 
-      <form id="bo-loc-tour-admin" className="iv-card scroll-mt-24 space-y-4 border-slate-200/80 bg-gradient-to-b from-white to-slate-50/40 p-4 md:p-5">
+      <form id="bo-loc-tour-admin" className="iv-admin-filter-form space-y-4">
         <input type="hidden" name="page" value="1" />
         <label
           htmlFor="search"
-          className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"
+          className="iv-admin-filter-title"
         >
           Bộ lọc tour
         </label>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="iv-admin-filter-grid">
           <input
             id="search"
             name="search"
             defaultValue={search}
             placeholder="Tên tour, slug hoặc điểm đến..."
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm sm:col-span-2 xl:col-span-2 focus:border-teal-500 focus:outline-none"
           />
           <select
             name="status"
             defaultValue={statusParam}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="">Tất cả trạng thái</option>
             <option value={TourStatus.ACTIVE}>{adminLabels.tourStatus.ACTIVE}</option>
@@ -114,7 +114,7 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
           <select
             name="featured"
             defaultValue={featuredParam}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="">Tất cả mức độ nổi bật</option>
             <option value="true">Chỉ tour nổi bật</option>
@@ -123,7 +123,7 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
           <select
             name="locationId"
             defaultValue={locationId}
-            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           >
             <option value="">Tất cả điểm đến</option>
             {locationOptions.map((location) => (
@@ -134,17 +134,17 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
           </select>
         </div>
 
-        <div className="mt-1 flex flex-wrap items-center gap-2">
+        <div className="iv-admin-filter-actions">
           <button
             type="submit"
-            className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
+            className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto"
           >
             Lọc tour
           </button>
           {hasActiveFilters ? (
             <Link
               href="/admin/tours"
-              className="iv-btn-soft inline-flex h-10 items-center justify-center px-4 text-sm font-semibold"
+              className="iv-btn-soft inline-flex h-10 w-full items-center justify-center px-4 text-sm font-semibold sm:w-auto"
             >
               Xóa bộ lọc
             </Link>
