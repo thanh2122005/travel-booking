@@ -186,7 +186,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
 
       <div className="iv-card hidden xl:block">
         <div className="iv-admin-table-scroll">
-          <table className="min-w-[700px] w-full text-left text-sm">
+          <table className="min-w-[820px] w-full text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -204,7 +204,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Nội dung</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Ngày gửi</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Trạng thái</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
+                <th className="sticky right-0 z-10 border-l border-slate-100 bg-white px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -251,7 +251,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                       <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Chờ xử lý</span>
                     )}
                   </td>
-                  <td className="px-2 py-3 border-l border-slate-100 text-right min-w-[148px]">
+                  <td className="sticky right-0 border-l border-slate-100 bg-white/95 px-2 py-3 text-right min-w-[148px]">
                     <div className="ml-auto w-fit">
                       <AdminInquiryActions inquiryId={inquiry.id} status={inquiry.status} />
                     </div>

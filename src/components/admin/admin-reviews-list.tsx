@@ -190,7 +190,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
 
       <div className="iv-card hidden xl:block">
         <div className="iv-admin-table-scroll">
-          <table className="min-w-[700px] w-full text-sm">
+          <table className="min-w-[820px] w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -206,7 +206,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Đánh giá</th>
                 <th className="px-2 py-3 font-medium">Bình luận</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Ngày tạo</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
+                <th className="sticky right-0 z-10 border-l border-slate-100 bg-white px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -241,7 +241,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                     <p className="line-clamp-2 text-sm text-slate-700">{review.comment}</p>
                   </td>
                   <td className="px-2 py-3 whitespace-nowrap text-xs text-slate-500">{formatDate(new Date(review.createdAt))}</td>
-                  <td className="px-2 py-3 border-l border-slate-100 min-w-[188px]">
+                  <td className="sticky right-0 border-l border-slate-100 bg-white/95 px-2 py-3 min-w-[188px]">
                     <div className="ml-auto flex w-fit min-w-[170px] flex-col items-end gap-2">
                       <AdminReviewActions reviewId={review.id} isVisible={review.isVisible} compact />
                       <AdminReviewDetailDialog review={review} />
