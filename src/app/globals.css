@@ -140,7 +140,7 @@
   }
 
   .iv-admin-filter-grid {
-    @apply grid grid-cols-1 items-start gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 [&>*]:min-w-0;
+    @apply grid grid-cols-1 items-start gap-3 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4 [&>*]:min-w-0;
   }
 
   .iv-admin-filter-actions {
