@@ -207,17 +207,6 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
             defaultValue={createdTo}
             className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
           />
-          <button type="submit" className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:col-span-2 xl:col-span-1">
-            Lọc dữ liệu
-          </button>
-          {hasActiveFilters ? (
-            <Link
-              href="/admin/inquiries"
-              className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:col-span-2 xl:col-span-1"
-            >
-              Xóa lọc
-            </Link>
-          ) : null}
         </div>
         {activeFilterLabels.length ? (
           <div className="mt-3 flex flex-wrap gap-2">
@@ -232,6 +221,12 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
           </div>
         ) : null}
         <div className="iv-admin-filter-actions">
+          <button
+            type="submit"
+            className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto"
+          >
+            Lọc dữ liệu
+          </button>
           <Link
             href={{
               pathname: "/api/admin/inquiries/export",
@@ -241,6 +236,14 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
           >
             Xuất CSV
           </Link>
+          {hasActiveFilters ? (
+            <Link
+              href="/admin/inquiries"
+              className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
+            >
+              Xóa lọc
+            </Link>
+          ) : null}
         </div>
       </form>
 
