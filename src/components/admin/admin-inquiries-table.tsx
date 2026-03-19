@@ -107,8 +107,8 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
             ) : null}
           </div>
 
-          <div className="grid gap-2 md:grid-cols-2 2xl:grid-cols-3">
-            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2 xl:col-span-1">
+          <div className="grid gap-2 md:grid-cols-2 2xl:grid-cols-4">
+            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2 xl:col-span-1 2xl:col-span-2">
               <input
                 type="checkbox"
                 checked={isAllSelected}
