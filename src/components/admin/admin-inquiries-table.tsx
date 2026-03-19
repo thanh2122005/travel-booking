@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
@@ -186,7 +186,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
 
       <div className="iv-card hidden xl:block">
         <div className="iv-admin-table-scroll">
-          <table className="min-w-[820px] w-full text-left text-sm">
+          <table className="w-full min-w-[1040px] text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -204,7 +204,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Nội dung</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Ngày gửi</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Trạng thái</th>
-                <th className="sticky right-0 z-10 border-l border-slate-100 bg-white px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
+                <th className="px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -219,12 +219,12 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                     />
                   </td>
                   <td className="px-2 py-3 font-mono text-xs text-slate-700">{inquiry.referenceCode}</td>
-                  <td className="px-2 py-3 min-w-[150px] font-medium text-slate-800">{inquiry.fullName}</td>
-                  <td className="px-2 py-3 min-w-[150px]">
+                  <td className="min-w-[150px] px-2 py-3 font-medium text-slate-800">{inquiry.fullName}</td>
+                  <td className="min-w-[150px] px-2 py-3">
                     <p className="text-slate-800">{inquiry.phone}</p>
                     <p className="text-xs text-slate-500">{inquiry.email}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[145px] text-xs text-slate-600">
+                  <td className="min-w-[145px] px-2 py-3 text-xs text-slate-600">
                     {inquiry.tour?.slug ? (
                       <p>
                         Tour{" "}
@@ -240,10 +240,10 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                     <p className="mt-1">{inquiry.numberOfGuests} khách</p>
                     {inquiry.departureDate ? <p className="mt-1">Khởi hành: {formatDate(new Date(inquiry.departureDate))}</p> : null}
                   </td>
-                  <td className="px-2 py-3 min-w-[170px]">
+                  <td className="min-w-[180px] px-2 py-3">
                     <p className="line-clamp-3 text-xs text-slate-700">{inquiry.message || "Không có nội dung"}</p>
                   </td>
-                  <td className="px-2 py-3 text-xs text-slate-500 whitespace-nowrap">{formatDate(new Date(inquiry.createdAt))}</td>
+                  <td className="px-2 py-3 whitespace-nowrap text-xs text-slate-500">{formatDate(new Date(inquiry.createdAt))}</td>
                   <td className="px-2 py-3 whitespace-nowrap">
                     {inquiry.status === "RESOLVED" ? (
                       <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Đã xử lý</span>
@@ -251,7 +251,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                       <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Chờ xử lý</span>
                     )}
                   </td>
-                  <td className="sticky right-0 border-l border-slate-100 bg-white/95 px-2 py-3 text-right min-w-[148px]">
+                  <td className="min-w-[168px] px-2 py-3 text-right">
                     <div className="ml-auto w-fit">
                       <AdminInquiryActions inquiryId={inquiry.id} status={inquiry.status} />
                     </div>
