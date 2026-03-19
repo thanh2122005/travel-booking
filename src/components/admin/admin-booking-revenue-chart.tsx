@@ -1,4 +1,4 @@
-import { formatPrice } from "@/lib/utils/format";
+﻿import { formatPrice } from "@/lib/utils/format";
 
 type TimelineGranularity = "day" | "week" | "month";
 
@@ -32,9 +32,7 @@ export function AdminBookingRevenueChart({
     return (
       <article className="iv-card p-5">
         <h2 className="text-xl font-bold text-slate-900">Xu hướng đặt tour và doanh thu</h2>
-        <p className="mt-3 text-sm text-slate-600">
-          Chưa có dữ liệu trong khoảng thời gian đang chọn.
-        </p>
+        <p className="mt-3 text-sm text-slate-600">Chưa có dữ liệu trong khoảng thời gian đang chọn.</p>
       </article>
     );
   }
@@ -109,9 +107,7 @@ export function AdminBookingRevenueChart({
                     style={{ width: `${Math.max((item.confirmedRevenue / maxRevenue) * 100, 4)}%` }}
                   />
                 </div>
-                <span className="text-xs font-semibold text-slate-700">
-                  {formatPrice(item.confirmedRevenue)}
-                </span>
+                <span className="text-xs font-semibold text-slate-700">{formatPrice(item.confirmedRevenue)}</span>
               </div>
             </div>
           </div>
