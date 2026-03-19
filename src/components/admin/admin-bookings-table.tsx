@@ -133,7 +133,7 @@ export function AdminBookingsTable({
     <div className="space-y-4">
       <div className="iv-admin-bulk-card">
         <div className="space-y-3">
-          <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
+          <div className="flex flex-col gap-3">
             <div className="min-w-0">
               <p className="iv-admin-bulk-heading">Cập nhật hàng loạt</p>
               <p className="iv-admin-bulk-meta">
