@@ -312,8 +312,8 @@ export function AdminBookingsTable({
                       <p className="text-xs text-slate-500">{formatDate(new Date(booking.createdAt))}</p>
                     </div>
                   </td>
-                  <td className="border-l border-slate-100 px-2 py-3 min-w-[190px]">
-                    <div className="ml-auto flex min-w-[160px] flex-col items-end gap-2">
+                  <td className="border-l border-slate-100 px-2 py-3 min-w-[160px]">
+                    <div className="ml-auto flex min-w-[140px] flex-col items-end gap-2">
                       <AdminBookingActions
                         bookingId={booking.id}
                         status={booking.status}

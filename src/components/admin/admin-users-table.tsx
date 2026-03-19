@@ -274,8 +274,8 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                     </div>
                   </td>
                   <td className="px-2 py-3 whitespace-nowrap text-slate-500">{formatDate(new Date(user.createdAt))}</td>
-                  <td className="border-l border-slate-100 px-2 py-3 min-w-[190px]">
-                    <div className="ml-auto flex min-w-[160px] flex-col items-end gap-2">
+                  <td className="border-l border-slate-100 px-2 py-3 min-w-[160px]">
+                    <div className="ml-auto flex min-w-[140px] flex-col items-end gap-2">
                       <AdminUserActions userId={user.id} role={user.role} status={user.status} compact />
                       <AdminUserDetailDialog user={user} />
                     </div>
