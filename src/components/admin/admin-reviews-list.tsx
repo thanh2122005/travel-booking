@@ -109,8 +109,8 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
             ) : null}
           </div>
 
-          <div className="grid gap-2 md:grid-cols-2 2xl:grid-cols-4">
-            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2 xl:col-span-1 2xl:col-span-2">
+          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2 xl:col-span-2">
               <input
                 type="checkbox"
                 checked={isAllSelected}
@@ -190,7 +190,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
 
       <div className="iv-card hidden xl:block">
         <div className="iv-admin-table-scroll">
-          <table className="min-w-[820px] w-full text-sm">
+          <table className="min-w-[700px] w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -220,11 +220,11 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                       className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
                     />
                   </td>
-                  <td className="px-2 py-3 min-w-[180px]">
+                  <td className="px-2 py-3 min-w-[160px]">
                     <p className="font-medium text-slate-800">{review.user.fullName}</p>
                     <p className="text-xs text-slate-500">{review.user.email}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[170px]">
+                  <td className="px-2 py-3 min-w-[150px]">
                     <Link href={`/tours/${review.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
                       {review.tour.title}
                     </Link>
@@ -237,7 +237,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                       </Badge>
                     </div>
                   </td>
-                  <td className="px-2 py-3 min-w-[220px]">
+                  <td className="px-2 py-3 min-w-[180px]">
                     <p className="line-clamp-2 text-sm text-slate-700">{review.comment}</p>
                   </td>
                   <td className="px-2 py-3 whitespace-nowrap text-xs text-slate-500">{formatDate(new Date(review.createdAt))}</td>

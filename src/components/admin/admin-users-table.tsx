@@ -130,8 +130,8 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
             ) : null}
           </div>
 
-          <div className="grid gap-2 md:grid-cols-2 2xl:grid-cols-5">
-            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2 2xl:col-span-2">
+          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
+            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2 xl:col-span-2">
               <input
                 type="checkbox"
                 checked={isAllSelected}
@@ -224,7 +224,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
 
       <div className="iv-card hidden xl:block">
         <div className="iv-admin-table-scroll">
-          <table className="min-w-[700px] w-full text-sm">
+          <table className="min-w-[640px] w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -253,12 +253,12 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                       className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
                     />
                   </td>
-                  <td className="px-2 py-3 min-w-[200px]">
+                  <td className="px-2 py-3 min-w-[170px]">
                     <p className="font-medium text-slate-800">{user.fullName}</p>
                     <p className="text-xs text-slate-500">{user.email}</p>
                     <p className="mt-1 text-xs text-slate-500">SĐT: {user.phone || "-"}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[150px]">
+                  <td className="px-2 py-3 min-w-[130px]">
                     <div className="space-y-2">
                       <Badge variant="outline">{roleLabels[user.role]}</Badge>
                       <div>
@@ -266,7 +266,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                       </div>
                     </div>
                   </td>
-                  <td className="px-2 py-3 min-w-[150px]">
+                  <td className="px-2 py-3 min-w-[130px]">
                     <div className="flex flex-wrap gap-1.5">
                       <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">Đơn {user._count.bookings}</span>
                       <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">Đánh giá {user._count.reviews}</span>

@@ -151,8 +151,8 @@ export function AdminBookingsTable({
             ) : null}
           </div>
 
-          <div className="grid gap-2 md:grid-cols-2 2xl:grid-cols-5">
-            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2 2xl:col-span-2">
+          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
+            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2 xl:col-span-2">
               <input
                 type="checkbox"
                 checked={isAllSelected}
@@ -259,7 +259,7 @@ export function AdminBookingsTable({
 
       <div className="iv-card hidden xl:block">
         <div className="iv-admin-table-scroll">
-          <table className="min-w-[760px] w-full text-sm">
+          <table className="min-w-[680px] w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -288,22 +288,22 @@ export function AdminBookingsTable({
                       className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
                     />
                   </td>
-                  <td className="px-2 py-3 min-w-[160px]">
+                  <td className="px-2 py-3 min-w-[145px]">
                     <p className="font-semibold text-slate-800">{booking.bookingCode}</p>
                     <p className="mt-1 font-medium text-slate-800">{booking.fullName}</p>
                     <p className="text-xs text-slate-500">{booking.email}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[160px]">
-                    <Link href={`/tours/${booking.tour.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
+                  <td className="px-2 py-3 min-w-[145px]">
+                    <Link href={`/tours/${booking.tour.slug}`} className="line-clamp-2 font-medium text-teal-700 hover:text-teal-800">
                       {booking.tour.title}
                     </Link>
                     <p className="mt-1 text-xs text-slate-500">{booking.numberOfGuests} khách</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[140px]">
+                  <td className="px-2 py-3 min-w-[128px]">
                     <p className="font-medium text-slate-800">{formatPrice(booking.totalPrice)}</p>
                     <p className="mt-1 text-xs text-slate-500">{booking.paymentMethod || "Thanh toán tiêu chuẩn"}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[140px]">
+                  <td className="px-2 py-3 min-w-[128px]">
                     <div className="space-y-2">
                       <Badge variant="outline">{statusLabels[booking.status]}</Badge>
                       <div>

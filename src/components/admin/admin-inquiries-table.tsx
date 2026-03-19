@@ -107,8 +107,8 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
             ) : null}
           </div>
 
-          <div className="grid gap-2 md:grid-cols-2 2xl:grid-cols-4">
-            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2 xl:col-span-1 2xl:col-span-2">
+          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2 xl:col-span-2">
               <input
                 type="checkbox"
                 checked={isAllSelected}
@@ -182,7 +182,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
 
       <div className="iv-card hidden xl:block">
         <div className="iv-admin-table-scroll">
-          <table className="min-w-[780px] w-full text-left text-sm">
+          <table className="min-w-[700px] w-full text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -215,12 +215,12 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                     />
                   </td>
                   <td className="px-2 py-3 font-mono text-xs text-slate-700">{inquiry.referenceCode}</td>
-                  <td className="px-2 py-3 min-w-[170px] font-medium text-slate-800">{inquiry.fullName}</td>
-                  <td className="px-2 py-3 min-w-[170px]">
+                  <td className="px-2 py-3 min-w-[150px] font-medium text-slate-800">{inquiry.fullName}</td>
+                  <td className="px-2 py-3 min-w-[150px]">
                     <p className="text-slate-800">{inquiry.phone}</p>
                     <p className="text-xs text-slate-500">{inquiry.email}</p>
                   </td>
-                  <td className="px-2 py-3 min-w-[165px] text-xs text-slate-600">
+                  <td className="px-2 py-3 min-w-[145px] text-xs text-slate-600">
                     {inquiry.tour?.slug ? (
                       <p>
                         Tour{" "}
@@ -236,7 +236,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                     <p className="mt-1">{inquiry.numberOfGuests} khách</p>
                     {inquiry.departureDate ? <p className="mt-1">Khởi hành: {formatDate(new Date(inquiry.departureDate))}</p> : null}
                   </td>
-                  <td className="px-2 py-3 min-w-[190px]">
+                  <td className="px-2 py-3 min-w-[170px]">
                     <p className="line-clamp-3 text-xs text-slate-700">{inquiry.message || "Không có nội dung"}</p>
                   </td>
                   <td className="px-2 py-3 text-xs text-slate-500 whitespace-nowrap">{formatDate(new Date(inquiry.createdAt))}</td>
