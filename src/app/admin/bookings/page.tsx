@@ -302,11 +302,11 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
             paymentLabels={adminLabels.paymentStatus}
           />
 
-          <div className="flex items-center justify-between gap-3">
+          <div className="mt-4 flex flex-col gap-3 rounded-xl border border-slate-200/70 bg-white/85 p-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-slate-600">
               Trang {data.page}/{data.totalPages} • Tổng {data.total} booking
             </p>
-            <div className="flex gap-2">
+            <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
               {data.page > 1 ? (
                 <Link
                   href={{
@@ -316,12 +316,12 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
                       page: String(data.page - 1),
                     },
                   }}
-                  className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
+                  className="iv-btn-soft inline-flex h-9 w-full items-center justify-center px-3 text-sm font-semibold sm:w-auto"
                 >
                   Trang trước
                 </Link>
               ) : (
-                <span className="inline-flex h-9 items-center rounded-md border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-400">
+                <span className="inline-flex h-9 w-full items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-400 sm:w-auto">
                   Trang trước
                 </span>
               )}
@@ -334,12 +334,12 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
                       page: String(data.page + 1),
                     },
                   }}
-                  className="iv-btn-soft inline-flex h-9 items-center px-3 text-sm font-semibold"
+                  className="iv-btn-soft inline-flex h-9 w-full items-center justify-center px-3 text-sm font-semibold sm:w-auto"
                 >
                   Trang sau
                 </Link>
               ) : (
-                <span className="inline-flex h-9 items-center rounded-md border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-400">
+                <span className="inline-flex h-9 w-full items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-400 sm:w-auto">
                   Trang sau
                 </span>
               )}
