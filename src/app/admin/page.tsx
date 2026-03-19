@@ -19,6 +19,7 @@ import { LatestReviews } from "@/components/admin/dashboard/latest-reviews";
 import { NewConsultations } from "@/components/admin/dashboard/new-consultations";
 import { NewSubscribers } from "@/components/admin/dashboard/new-subscribers";
 import { StatusSummary } from "@/components/admin/dashboard/status-summary";
+import { RevenueChartSkeleton } from "@/components/admin/dashboard/revenue-chart-skeleton";
 import type {
   DashboardRecentBooking,
   DashboardRecentInquiry,
@@ -39,7 +40,7 @@ type AdminPageProps = {
 
 const RevenueChart = nextDynamic(
   () => import("@/components/admin/dashboard/revenue-chart").then((mod) => mod.RevenueChart),
-  { ssr: false },
+  { ssr: false, loading: () => <RevenueChartSkeleton /> },
 );
 
 const rangeOptions = [
