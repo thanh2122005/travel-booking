@@ -67,21 +67,25 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
     }
 
     startTransition(async () => {
-      const response = await fetch("/api/admin/inquiries/bulk", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: selectedIdsInPage, status: bulkStatus }),
-      });
+      try {
+        const response = await fetch("/api/admin/inquiries/bulk", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: selectedIdsInPage, status: bulkStatus }),
+        });
 
-      const payload = (await response.json()) as { message?: string };
-      if (!response.ok) {
-        toast.error(payload.message ?? "Không thể cập nhật yêu cầu tư vấn hàng loạt.");
-        return;
+        const payload = (await response.json().catch(() => ({}))) as { message?: string };
+        if (!response.ok) {
+          toast.error(payload.message ?? "Không thể cập nhật yêu cầu tư vấn hàng loạt.");
+          return;
+        }
+
+        setSelectedIds([]);
+        toast.success(payload.message ?? "Đã cập nhật yêu cầu tư vấn hàng loạt.");
+        router.refresh();
+      } catch {
+        toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
       }
-
-      setSelectedIds([]);
-      toast.success(payload.message ?? "Đã cập nhật yêu cầu tư vấn hàng loạt.");
-      router.refresh();
     });
   }
 

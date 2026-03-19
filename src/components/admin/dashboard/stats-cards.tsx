@@ -12,6 +12,7 @@ export function StatsCards({ items }: StatsCardsProps) {
       {items.map((item) => {
         const Icon = item.icon;
         const isLongValue = item.value.length >= 9;
+        const isVeryLongValue = item.value.length >= 14;
 
         return (
           <article
@@ -26,8 +27,12 @@ export function StatsCards({ items }: StatsCardsProps) {
             </div>
 
             <p
-              className={`mt-2 block w-full min-w-0 max-w-full overflow-hidden break-all font-semibold leading-[1.1] tracking-[-0.01em] text-slate-700 ${
-                isLongValue ? "text-[1.55rem] md:text-[1.75rem]" : "text-[1.8rem] md:text-[2rem]"
+              className={`mt-2 block w-full min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap font-semibold leading-[1.1] tracking-[-0.01em] text-slate-700 ${
+                isVeryLongValue
+                  ? "text-[1.35rem] md:text-[1.55rem]"
+                  : isLongValue
+                    ? "text-[1.55rem] md:text-[1.75rem]"
+                    : "text-[1.8rem] md:text-[2rem]"
               }`}
               title={item.value}
             >
