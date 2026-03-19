@@ -117,7 +117,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
       <div className="iv-admin-bulk-card">
         <div className="space-y-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0">
+            <div className="min-w-[220px] flex-1">
               <p className="iv-admin-bulk-heading">Cập nhật hàng loạt</p>
               <p className="iv-admin-bulk-meta">
                 Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> người dùng trong trang hiện tại.
