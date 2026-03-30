@@ -46,3 +46,12 @@ next-env.d.ts
 /tsc-errors.txt
 /prisma_gen.txt
 /immerse-vietnam-master/
+/build_output.txt
+/errors_clean.txt
+/push_result.txt
+/seed_res.txt
+/ts_err_out.txt
+/ts_errs*.txt
+/ts_errs*.json
+/tsc_mysql_errors.txt
+/fix_insensitive.js

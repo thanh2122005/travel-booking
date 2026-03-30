@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -63,7 +63,7 @@ model Location {
   shortDescription String
   description      String
   imageUrl         String
-  gallery          String[]
+  gallery          Json     @default("[]")
   featured         Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

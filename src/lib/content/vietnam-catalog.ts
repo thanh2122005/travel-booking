@@ -259,7 +259,7 @@ const coreCatalogTours: CatalogTour[] = [
     ],
     featured: true,
     locationSlug: "da-nang",
-    itineraryTitles: ["Đón khách", "Bà Nà Hills", "Hội An", "Mua sắm và kết thúc"],
+    itineraryTitles: ["Đón sân bay - Bán Đảo Sơn Trà", "Khám phá chốn thần tiên Bà Nà Hills", "Thăm thú Phố Cổ Hội An lung linh", "Phố biển ngoạn mục - Tiễn khách"],
   },
   {
     title: "Đà Nẵng Nghỉ Dưỡng Gia Đình 3N2Đ",
@@ -282,7 +282,7 @@ const coreCatalogTours: CatalogTour[] = [
     ],
     featured: true,
     locationSlug: "da-nang",
-    itineraryTitles: ["Khởi hành", "Biển Mỹ Khê", "Tự do và kết thúc"],
+    itineraryTitles: ["Đón gia đình tại Sân bay Đà Nẵng", "Tắm biển Mỹ Khê - Dạo chơi công viên", "Nghỉ ngơi tự do tại Resort - Tiễn khách"],
   },
   {
     title: "Hà Nội - Ninh Bình 3N2Đ",
@@ -328,7 +328,7 @@ const coreCatalogTours: CatalogTour[] = [
     ],
     featured: true,
     locationSlug: "ha-noi",
-    itineraryTitles: ["Rời Hà Nội", "Khám phá Sa Pa", "Fansipan", "Trở về"],
+    itineraryTitles: ["Khởi hành từ Hà Nội đi Sa Pa", "Trekking bản Cát Cát - Núi Hàm Rồng", "Chinh phục đỉnh thiêng Fansipan", "Mua đặc sản miền núi - Trở về"],
   },
   {
     title: "Du Thuyền Hạ Long 2N1Đ",
@@ -350,7 +350,7 @@ const coreCatalogTours: CatalogTour[] = [
     ],
     featured: true,
     locationSlug: "ha-long",
-    itineraryTitles: ["Lên du thuyền", "Kết thúc hành trình"],
+    itineraryTitles: ["Check-in Du Thuyền 5 Sao - Chèo Kayak", "Đón bình minh trên Vịnh - Tiễn khách"],
   },
   {
     title: "Hạ Long - Cát Bà 3N2Đ",

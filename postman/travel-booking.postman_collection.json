@@ -1,0 +1,980 @@
+{
+  "info": {
+    "_postman_id": "c0a7c8df-7e63-4a83-b6c9-4fca19b4bdb0",
+    "name": "Travel Booking API",
+    "description": "Collection test API cho du an travel-booking. URL mac dinh http://localhost:3000. Da chuan hoa bien ID de test nhanh, han che hardcode gay loi.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "adminEmail",
+      "value": "admin@example.com"
+    },
+    {
+      "key": "adminPassword",
+      "value": "Admin@123"
+    },
+    {
+      "key": "userEmail",
+      "value": "user1@example.com"
+    },
+    {
+      "key": "userPassword",
+      "value": "12345678"
+    },
+    {
+      "key": "bookingId",
+      "value": ""
+    },
+    {
+      "key": "reviewId",
+      "value": ""
+    },
+    {
+      "key": "inquiryId",
+      "value": ""
+    },
+    {
+      "key": "newsletterId",
+      "value": ""
+    },
+    {
+      "key": "adminTourId",
+      "value": ""
+    },
+    {
+      "key": "tourImageId",
+      "value": ""
+    },
+    {
+      "key": "itineraryId",
+      "value": ""
+    },
+    {
+      "key": "csrfToken",
+      "value": ""
+    },
+    {
+      "key": "tourId",
+      "value": ""
+    },
+    {
+      "key": "locationId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Lay danh sach nhan tin",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/newsletter"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json();",
+                  "if (Array.isArray(data) && data.length && data[0].id) {",
+                  "  pm.collectionVariables.set('newsletterId', data[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dang ky nhan tin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"postman-newsletter-{{$timestamp}}@example.com\"\n}"
+            },
+            "url": "http://localhost:3000/api/newsletter"
+          }
+        },
+        {
+          "name": "Lay danh sach lien he tu van",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/contact-inquiries"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json();",
+                  "if (Array.isArray(data) && data.length && data[0].id) {",
+                  "  pm.collectionVariables.set('inquiryId', data[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Gui yeu cau tu van",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Tester\",\n  \"phone\": \"0909123456\",\n  \"email\": \"contact1@example.com\",\n  \"tourId\": \"{{tourId}}\",\n  \"departureDate\": \"2026-05-20\",\n  \"numberOfGuests\": 2,\n  \"message\": \"Toi muon duoc tu van lich trinh va chi phi chi tiet.\"\n}"
+            },
+            "url": "http://localhost:3000/api/contact-inquiries"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Lay CSRF token",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/auth/csrf"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var data = pm.response.json();",
+                  "if (data.csrfToken) {",
+                  "  pm.collectionVariables.set('csrfToken', data.csrfToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dang nhap admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "csrfToken",
+                  "value": "{{csrfToken}}",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "{{adminEmail}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPassword}}",
+                  "type": "text"
+                },
+                {
+                  "key": "callbackUrl",
+                  "value": "http://localhost:3000/",
+                  "type": "text"
+                },
+                {
+                  "key": "json",
+                  "value": "true",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": "http://localhost:3000/api/auth/callback/credentials?json=true"
+          }
+        },
+        {
+          "name": "Dang nhap nguoi dung",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "csrfToken",
+                  "value": "{{csrfToken}}",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "{{userEmail}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{userPassword}}",
+                  "type": "text"
+                },
+                {
+                  "key": "callbackUrl",
+                  "value": "http://localhost:3000/",
+                  "type": "text"
+                },
+                {
+                  "key": "json",
+                  "value": "true",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": "http://localhost:3000/api/auth/callback/credentials?json=true"
+          }
+        },
+        {
+          "name": "Lay phien dang nhap",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/auth/session"
+          }
+        },
+        {
+          "name": "Lay danh sach provider",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/auth/providers"
+          }
+        },
+        {
+          "name": "Dang ky tai khoan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Register\",\n  \"email\": \"postman-register-{{$timestamp}}@example.com\",\n  \"password\": \"12345678\",\n  \"confirmPassword\": \"12345678\",\n  \"phone\": \"0909000999\"\n}"
+            },
+            "url": "http://localhost:3000/api/auth/register"
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Cap nhat ho so tai khoan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman User\",\n  \"phone\": \"0909888777\"\n}"
+            },
+            "url": "http://localhost:3000/api/account/profile"
+          }
+        },
+        {
+          "name": "Tao booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tourId\": \"{{tourId}}\",\n  \"fullName\": \"Postman Booking\",\n  \"email\": \"user1@example.com\",\n  \"phone\": \"0909111222\",\n  \"numberOfGuests\": 2,\n  \"note\": \"Dat tu Postman\",\n  \"departureDate\": \"2026-06-01\"\n}"
+            },
+            "url": "http://localhost:3000/api/bookings"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var data = pm.response.json();",
+                  "if (data.booking && data.booking.id) {",
+                  "  pm.collectionVariables.set('bookingId', data.booking.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Huy booking",
+          "request": {
+            "method": "PATCH",
+            "url": "http://localhost:3000/api/bookings/{{bookingId}}/cancel"
+          }
+        },
+        {
+          "name": "Bat tat yeu thich",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tourId\": \"{{tourId}}\"\n}"
+            },
+            "url": "http://localhost:3000/api/favorites"
+          }
+        },
+        {
+          "name": "Gui danh gia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tourId\": \"{{tourId}}\",\n  \"rating\": 5,\n  \"comment\": \"Danh gia bang Postman de test API.\"\n}"
+            },
+            "url": "http://localhost:3000/api/reviews"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var data = pm.response.json();",
+                  "if (data.review && data.review.id) {",
+                  "  pm.collectionVariables.set('reviewId', data.review.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Xoa danh gia",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tourId\": \"{{tourId}}\"\n}"
+            },
+            "url": "http://localhost:3000/api/reviews"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Xuat danh sach nguoi dung",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/admin/users/export"
+          }
+        },
+        {
+          "name": "Cap nhat hang loat nguoi dung",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\"{{userId}}\"],\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": "http://localhost:3000/api/admin/users/bulk"
+          }
+        },
+        {
+          "name": "Cap nhat nguoi dung",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": "http://localhost:3000/api/admin/users/{{userId}}"
+          }
+        },
+        {
+          "name": "Cap nhat noi dung nguoi dung",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"User One\",\n  \"email\": \"user1@example.com\",\n  \"phone\": \"0909000001\",\n  \"avatarUrl\": \"/immerse-vietnam/images/test-2.jpg\",\n  \"role\": \"USER\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": "http://localhost:3000/api/admin/users/{{userId}}/content"
+          }
+        },
+        {
+          "name": "Xuat danh sach booking",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/admin/bookings/export"
+          }
+        },
+        {
+          "name": "Cap nhat hang loat booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\"{{bookingId}}\"],\n  \"status\": \"CONFIRMED\",\n  \"paymentStatus\": \"PAID\"\n}"
+            },
+            "url": "http://localhost:3000/api/admin/bookings/bulk"
+          }
+        },
+        {
+          "name": "Cap nhat booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PENDING\",\n  \"paymentStatus\": \"UNPAID\"\n}"
+            },
+            "url": "http://localhost:3000/api/admin/bookings/{{bookingId}}"
+          }
+        },
+        {
+          "name": "Cap nhat chi tiet booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Booking\",\n  \"email\": \"admin@example.com\",\n  \"phone\": \"0909111222\",\n  \"numberOfGuests\": 2,\n  \"note\": \"Cap nhat chi tiet bang Postman\",\n  \"departureDate\": \"2026-06-02\",\n  \"paymentMethod\": \"Chuyen khoan\",\n  \"status\": \"CONFIRMED\",\n  \"paymentStatus\": \"PAID\"\n}"
+            },
+            "url": "http://localhost:3000/api/admin/bookings/{{bookingId}}/detail"
+          }
+        },
+        {
+          "name": "Xuat danh sach danh gia",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/admin/reviews/export"
+          }
+        },
+        {
+          "name": "Cap nhat hang loat danh gia",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\"{{reviewId}}\"],\n  \"isVisible\": true\n}"
+            },
+            "url": "http://localhost:3000/api/admin/reviews/bulk"
+          }
+        },
+        {
+          "name": "Cap nhat hien thi danh gia",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isVisible\": false\n}"
+            },
+            "url": "http://localhost:3000/api/admin/reviews/{{reviewId}}"
+          }
+        },
+        {
+          "name": "Cap nhat noi dung danh gia",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Admin sua review bang Postman.\",\n  \"isVisible\": true\n}"
+            },
+            "url": "http://localhost:3000/api/admin/reviews/{{reviewId}}/content"
+          }
+        },
+        {
+          "name": "Xuat danh sach yeu cau tu van",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/admin/inquiries/export"
+          }
+        },
+        {
+          "name": "Cap nhat hang loat yeu cau tu van",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\"{{inquiryId}}\"],\n  \"status\": \"RESOLVED\"\n}"
+            },
+            "url": "http://localhost:3000/api/admin/inquiries/bulk"
+          }
+        },
+        {
+          "name": "Cap nhat yeu cau tu van",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PENDING\"\n}"
+            },
+            "url": "http://localhost:3000/api/admin/inquiries/{{inquiryId}}"
+          }
+        },
+        {
+          "name": "Xuat danh sach nhan tin",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/admin/newsletter/export"
+          }
+        },
+        {
+          "name": "Xoa hang loat dang ky nhan tin",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\"{{newsletterId}}\"]\n}"
+            },
+            "url": "http://localhost:3000/api/admin/newsletter/bulk"
+          }
+        },
+        {
+          "name": "Xuat bao cao dashboard",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/admin/dashboard/export?rangeDays=30&granularity=day"
+          }
+        },
+        {
+          "name": "Tao diem den",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Diem Test Postman\",\n  \"slug\": \"diem-test-postman-{{$timestamp}}\",\n  \"provinceOrCity\": \"Da Nang\",\n  \"country\": \"Viet Nam\",\n  \"shortDescription\": \"Mo ta ngan\",\n  \"description\": \"Mo ta chi tiet cho dia diem duoc tao tu Postman.\",\n  \"imageUrl\": \"/immerse-vietnam/images/test-1.jpg\",\n  \"featured\": false\n}"
+            },
+            "url": "http://localhost:3000/api/admin/locations"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var data = pm.response.json();",
+                  "if (data.location && data.location.id) {",
+                  "  pm.collectionVariables.set('locationId', data.location.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cap nhat diem den",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"featured\": true\n}"
+            },
+            "url": "http://localhost:3000/api/admin/locations/{{locationId}}"
+          }
+        },
+        {
+          "name": "Cap nhat noi dung diem den",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Diem Test Postman Updated\",\n  \"slug\": \"diem-test-postman-updated-{{$timestamp}}\",\n  \"provinceOrCity\": \"Da Nang\",\n  \"country\": \"Viet Nam\",\n  \"shortDescription\": \"Mo ta ngan updated\",\n  \"description\": \"Cap nhat noi dung dia diem bang Postman.\",\n  \"imageUrl\": \"/immerse-vietnam/images/test-2.jpg\",\n  \"featured\": true\n}"
+            },
+            "url": "http://localhost:3000/api/admin/locations/{{locationId}}/content"
+          }
+        },
+        {
+          "name": "Cap nhat thu vien anh diem den",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gallery\": [\n    \"/immerse-vietnam/images/test-2.jpg\",\n    \"/immerse-vietnam/images/test-3.jpg\"\n  ]\n}"
+            },
+            "url": "http://localhost:3000/api/admin/locations/{{locationId}}/gallery"
+          }
+        },
+        {
+          "name": "Tao tour",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tour Test Postman\",\n  \"slug\": \"tour-test-postman-{{$timestamp}}\",\n  \"shortDescription\": \"Mo ta ngan\",\n  \"description\": \"Noi dung chi tiet tao bang Postman.\",\n  \"price\": 1000000,\n  \"discountPrice\": 900000,\n  \"durationDays\": 3,\n  \"durationNights\": 2,\n  \"maxGuests\": 10,\n  \"transportation\": \"Xe\",\n  \"departureLocation\": \"Da Nang\",\n  \"featuredImage\": \"/immerse-vietnam/images/test-1.jpg\",\n  \"status\": \"ACTIVE\",\n  \"featured\": false,\n  \"locationId\": \"{{locationId}}\"\n}"
+            },
+            "url": "http://localhost:3000/api/admin/tours",
+            "event": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var data = pm.response.json();",
+                  "if (data.tour && data.tour.id) {",
+                  "  pm.collectionVariables.set('adminTourId', data.tour.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cap nhat tour",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\",\n  \"featured\": true\n}"
+            },
+            "url": "http://localhost:3000/api/admin/tours/{{adminTourId}}"
+          }
+        },
+        {
+          "name": "Cap nhat noi dung tour",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tour Test Postman Updated\",\n  \"slug\": \"tour-test-postman-updated-{{$timestamp}}\",\n  \"shortDescription\": \"Mo ta ngan updated\",\n  \"description\": \"Cap nhat noi dung tour bang Postman.\",\n  \"price\": 1100000,\n  \"discountPrice\": 950000,\n  \"durationDays\": 4,\n  \"durationNights\": 3,\n  \"maxGuests\": 12,\n  \"transportation\": \"May bay\",\n  \"departureLocation\": \"Da Nang\",\n  \"featuredImage\": \"/immerse-vietnam/images/test-2.jpg\",\n  \"locationId\": \"{{locationId}}\",\n  \"status\": \"ACTIVE\",\n  \"featured\": true\n}"
+            },
+            "url": "http://localhost:3000/api/admin/tours/{{adminTourId}}/content"
+          }
+        },
+        {
+          "name": "Them anh tour",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageUrl\": \"/immerse-vietnam/images/test-3.jpg\",\n  \"sortOrder\": 2\n}"
+            },
+            "url": "http://localhost:3000/api/admin/tours/{{adminTourId}}/images"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var data = pm.response.json();",
+                  "if (data.image && data.image.id) {",
+                  "  pm.collectionVariables.set('tourImageId', data.image.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cap nhat thu tu anh tour",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"id\": \"{{tourImageId}}\",\n      \"sortOrder\": 1\n    }\n  ]\n}"
+            },
+            "url": "http://localhost:3000/api/admin/tours/{{adminTourId}}/images"
+          }
+        },
+        {
+          "name": "Cap nhat anh tour",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageUrl\": \"/immerse-vietnam/images/test-1.jpg\",\n  \"sortOrder\": 2\n}"
+            },
+            "url": "http://localhost:3000/api/admin/tour-images/{{tourImageId}}"
+          }
+        },
+        {
+          "name": "Them lich trinh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dayNumber\": 10,\n  \"title\": \"Ngay 10\",\n  \"description\": \"Lich trinh tao bang Postman\"\n}"
+            },
+            "url": "http://localhost:3000/api/admin/tours/{{adminTourId}}/itineraries"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var data = pm.response.json();",
+                  "if (data.itinerary && data.itinerary.id) {",
+                  "  pm.collectionVariables.set('itineraryId', data.itinerary.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cap nhat lich trinh",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dayNumber\": 11,\n  \"title\": \"Ngay 10 updated\",\n  \"description\": \"Cap nhat lich trinh bang Postman\"\n}"
+            },
+            "url": "http://localhost:3000/api/admin/itineraries/{{itineraryId}}"
+          }
+        },
+        {
+          "name": "Xoa lich trinh",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:3000/api/admin/itineraries/{{itineraryId}}"
+          }
+        },
+        {
+          "name": "Xoa anh tour",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:3000/api/admin/tour-images/{{tourImageId}}"
+          }
+        },
+        {
+          "name": "Xoa tour",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:3000/api/admin/tours/{{adminTourId}}"
+          }
+        },
+        {
+          "name": "Xoa diem den",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:3000/api/admin/locations/{{locationId}}"
+          }
+        },
+        {
+          "name": "Upload anh tour",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": "http://localhost:3000/api/admin/uploads/tour-image"
+          }
+        }
+      ]
+    }
+  ]
+}

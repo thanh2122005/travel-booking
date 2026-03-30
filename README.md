@@ -1,172 +1,78 @@
-﻿# Immersive Vietnam - Travel Booking System
+# Immersive Vietnam
 
-Đồ án web du lịch full-stack (production-like) xây dựng bằng **Next.js App Router + TypeScript + Prisma + PostgreSQL**.
-Mặc định giao diện hiển thị bằng **tiếng Việt**.
+Immersive Vietnam là đồ án web đặt tour du lịch, xây dựng bằng `Next.js`, `TypeScript`, `Prisma` và `MySQL`. Hệ thống có 2 phần chính: giao diện cho người dùng đặt tour và khu vực quản trị để quản lý tour, booking, người dùng, đánh giá, yêu cầu tư vấn và danh sách nhận tin.
 
-## 1) Tính năng chính
+## Chức năng chính
 
-### Public
-- Trang chủ, tour, điểm đến, thư viện, giới thiệu, liên hệ
-- Tìm kiếm/lọc/sắp xếp danh sách tour
-- Chi tiết tour/điểm đến
+- Người dùng có thể xem tour, tìm kiếm, đăng ký tài khoản, đăng nhập, đặt tour, lưu tour yêu thích và viết đánh giá.
+- Quản trị viên có thể vào trang admin để xem thống kê, quản lý tour, điểm đến, booking, review, liên hệ và newsletter.
 
-### Người dùng
-- Đăng ký/đăng nhập bằng email + mật khẩu
-- Quản lý hồ sơ
-- Đặt tour và xem lịch sử booking
-- Yêu thích tour
-- Đánh giá tour
+## Công nghệ sử dụng
 
-### Quản trị
-- Dashboard KPI + biểu đồ doanh thu/đơn
-- Quản lý tour, điểm đến, đơn đặt, người dùng, đánh giá
-- Quản lý yêu cầu tư vấn và email nhận tin
-- Bulk actions + xuất CSV
+- `Next.js 16` + `React 19`
+- `TypeScript`
+- `Tailwind CSS`
+- `Prisma ORM`
+- `MySQL`
+- `NextAuth`
 
-## 2) Công nghệ sử dụng
+## Cách chạy dự án
 
-- Next.js 16 (App Router)
-- React 19 + TypeScript
-- Tailwind CSS + shadcn/ui + lucide-react + framer-motion
-- Prisma ORM + PostgreSQL
-- NextAuth Credentials
-- Zod + React Hook Form
-- bcryptjs
+Yêu cầu:
+- `Node.js 20+`
+- `npm 10+`
+- `MySQL` đang chạy, có thể dùng XAMPP
 
-## 3) Cấu trúc thư mục
-
-```text
-src/
-  app/
-    (public)/
-    (auth)/
-    (user)/
-    admin/
-    api/
-  components/
-    admin/
-    booking/
-    common/
-    layout/
-    location/
-    tour/
-    ui/
-  lib/
-    auth/
-    db/
-    demo/
-    utils/
-    validations/
-prisma/
-public/
-scripts/
-```
-
-## 4) Yêu cầu môi trường
-
-- Node.js 20+
-- npm 10+
-- PostgreSQL 14+
-
-## 5) Cấu hình biến môi trường
-
-Sao chép file mẫu:
+Tạo file môi trường:
 
 ```bash
 copy .env.example .env
 ```
 
-Điền các biến bắt buộc:
-
-- `DATABASE_URL`
-- `AUTH_SECRET` (hoặc `NEXTAUTH_SECRET`)
-- `NEXTAUTH_URL`
-- `ADMIN_EMAIL` (optional for dev)
-- `ADMIN_PASSWORD` (optional for dev)
-
-## 6) Chạy local
+Chạy project:
 
 ```bash
 npm install
 npm run prisma:generate
-npm run prisma:migrate
+npm run prisma:push
 npm run prisma:seed
 npm run dev
 ```
 
-Mở: [http://localhost:3000](http://localhost:3000)
+Sau đó mở `http://localhost:3000`.
 
-## 7) Tài khoản test
+## Tài khoản test
 
-- Admin: `admin@example.com` / `Admin@123`
-- User: `user1@example.com` / `12345678`
+Đây là các tài khoản mẫu dùng để demo và kiểm thử trong đồ án:
 
-## 8) Scripts hữu ích
+- Tài khoản quản trị: `admin@example.com` / `Admin@123`
+- Tài khoản người dùng: `user1@example.com` / `12345678`
 
-- `npm run dev`: chạy local
-- `npm run build`: build production
-- `npm run start`: chạy production
-- `npm run lint`: ESLint
-- `npx tsc --noEmit`: Type check
-- `npm run prisma:generate`
-- `npm run prisma:migrate`
-- `npm run prisma:seed`
-- `npm run prisma:deploy`
+## Cấu trúc thư mục chính
 
-## 9) Deploy Vercel
-
-1. Tạo database PostgreSQL (Neon/Supabase)
-2. Set env trên Vercel:
-   - `DATABASE_URL`
-   - `AUTH_SECRET` (hoặc `NEXTAUTH_SECRET`)
-   - `NEXTAUTH_URL`
-- `ADMIN_EMAIL` (optional for dev)
-- `ADMIN_PASSWORD` (optional for dev)
-3. Deploy từ GitHub repo
-4. Chạy migrate/seed trên môi trường deploy:
-
-```bash
-npx prisma migrate deploy
-npx prisma db seed
+```text
+src/app         giao diện và API
+src/components  các component dùng lại
+src/lib         auth, truy vấn DB, validate
+prisma          schema và seed dữ liệu
+public          ảnh, font, tài nguyên tĩnh
+postman         collection test API
+scripts         script hỗ trợ
 ```
 
-## 10) Kiểm thử nhanh sau khi seed
+## Một số lệnh thường dùng
 
-1. Đăng nhập admin vào `/admin`
-2. Kiểm tra dashboard có số liệu và biểu đồ
-3. Vào các module admin:
-   - `/admin/users`
-   - `/admin/bookings`
-   - `/admin/reviews`
-   - `/admin/inquiries`
-4. Thử filter + bulk action + xuất CSV
-5. Đăng nhập user và thử đặt tour, yêu thích, đánh giá
+```bash
+npm run dev
+npm run lint
+npx tsc --noEmit
+npm run prisma:generate
+npm run prisma:push
+npm run prisma:seed
+```
 
-## 11) Lưu ý kỹ thuật
+## Lưu ý
 
-- Mật khẩu đã hash bằng bcryptjs
-- API admin có guard phân quyền
-- Validate dữ liệu bằng Zod
-- Không tích hợp cổng thanh toán thật (chỉ mô phỏng trạng thái)
-
-## 12) Troubleshooting
-
-### Lỗi không kết nối DB
-- Kiểm tra `DATABASE_URL`
-- Đảm bảo PostgreSQL đang chạy
-
-### Lỗi không đăng nhập được
-- Kiểm tra `AUTH_SECRET`/`NEXTAUTH_SECRET`
-- Kiểm tra `NEXTAUTH_URL`
-
-### Lỗi build trên môi trường local Windows (`spawn EPERM`)
-- Thường do quyền tiến trình/sandbox trên môi trường hiện tại
-- Thử chạy lại terminal với quyền phù hợp
-- Xác nhận `npm run lint` và `npx tsc --noEmit` đều pass trước khi deploy
-
-## 13) Hướng mở rộng
-
-- Upload ảnh thật (S3/Cloudinary)
-- Dashboard analytics nâng cao
-- Audit logs cho admin
-- e2e tests + CI pipeline
+- File cấu hình mẫu nằm ở `.env.example`.
+- Nếu đăng ký hoặc đăng nhập lỗi, cần kiểm tra MySQL trong XAMPP đã bật chưa.
+- Thư mục `postman/` chứa file test API của dự án.

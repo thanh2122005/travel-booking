@@ -1,4 +1,4 @@
-﻿import {
+import {
   BookingStatus,
   InquiryStatus,
   PaymentStatus,
@@ -181,8 +181,11 @@ async function main() {
         tourId: currentTour.id,
         dayNumber: index + 1,
         title: tour.itineraryTitles[index] ?? `Ngày ${index + 1}`,
-        description:
-          "Lịch trình được tối ưu theo nhịp di chuyển thực tế, cân bằng giữa tham quan, trải nghiệm và nghỉ ngơi.",
+        description: index === 0 
+          ? "Xe và Hướng dẫn viên đón quý khách tại điểm hẹn, bắt đầu hành trình. Nhận phòng khách sạn, nghỉ ngơi sau chuyến đi dài và bắt đầu khởi hành tham quan các địa danh nổi tiếng với nhiều hoạt động thú vị."
+          : index === tour.durationDays - 1
+          ? "Quý khách tự do sinh hoạt, tham quan mua sắm các đặc sản địa phương về làm quà cho người thân, bạn bè. Thu dọn hành lý chuẩn bị làm thủ tục trả phòng, xe đưa đoàn ra điểm hẹn kết thúc chuyến đi tốt đẹp."
+          : "Trọn vẹn một ngày dấn thân khám phá các tuyệt cảnh, tham gia các hoạt động vui chơi giải trí bất tận. Quý khách còn có thời gian tự do hòa mình vào không gian văn hoá, trải nghiệm tinh hoa ẩm thực bản địa độc đáo.",
       }));
     }),
   });

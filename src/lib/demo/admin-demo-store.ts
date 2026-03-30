@@ -2224,6 +2224,7 @@ export async function demoGetPublicTours(filters: {
   return {
     tours: pagination.items,
     locations: state.locations.map((location) => ({ id: location.id, name: location.name, slug: location.slug })),
+    departurePlaces: [...new Set(state.tours.map((tour) => tour.departureLocation))].sort(),
     total: pagination.total,
     page: pagination.page,
     pageSize: pagination.pageSize,
