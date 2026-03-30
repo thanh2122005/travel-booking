@@ -97,8 +97,7 @@ export async function POST(request: Request) {
     const inquiry = await createContactInquiryWithRetry(parsed.data);
     return NextResponse.json(
       {
-        message:
-          "Đã nhận yêu cầu tư vấn. Đội ngũ sẽ liên hệ với bạn sớm nhất có thể.",
+        message: "Đã nhận yêu cầu tư vấn. Đội ngũ sẽ liên hệ với bạn sớm nhất có thể.",
         referenceCode: inquiry.referenceCode,
       },
       { status: 201 },
@@ -108,8 +107,7 @@ export async function POST(request: Request) {
       const inquiry = await saveContactInquiry(parsed.data);
       return NextResponse.json(
         {
-          message:
-            "Đã nhận yêu cầu tư vấn. Đội ngũ sẽ liên hệ với bạn sớm nhất có thể.",
+          message: "Đã nhận yêu cầu tư vấn. Đội ngũ sẽ liên hệ với bạn sớm nhất có thể.",
           referenceCode: inquiry.referenceCode,
         },
         { status: 201 },

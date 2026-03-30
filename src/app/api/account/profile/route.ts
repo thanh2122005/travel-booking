@@ -37,9 +37,8 @@ export async function PATCH(request: Request) {
   if (!json.ok) {
     return json.response;
   }
-  const body = json.data;
-  const parsed = profileUpdateSchema.safeParse(body);
 
+  const parsed = profileUpdateSchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(

@@ -38,15 +38,12 @@ export async function POST(request: Request) {
   if (!json.ok) {
     return json.response;
   }
-  const body = json.data;
-  const parsed = favoriteSchema.safeParse(body);
 
+  const parsed = favoriteSchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(
-      {
-        message: firstIssue?.message ?? "Dữ liệu không hợp lệ.",
-      },
+      { message: firstIssue?.message ?? "Dữ liệu không hợp lệ." },
       { status: 400 },
     );
   }
@@ -61,7 +58,10 @@ export async function POST(request: Request) {
     });
 
     if (!tour || tour.status !== TourStatus.ACTIVE) {
-      return NextResponse.json({ message: "Tour không tồn tại hoặc đã ngừng hoạt động." }, { status: 404 });
+      return NextResponse.json(
+        { message: "Tour không tồn tại hoặc đã ngừng hoạt động." },
+        { status: 404 },
+      );
     }
 
     const where = {
@@ -122,9 +122,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      {
-        message: "Không thể cập nhật yêu thích lúc này, vui lòng thử lại sau.",
-      },
+      { message: "Không thể cập nhật yêu thích lúc này, vui lòng thử lại sau." },
       { status: 500 },
     );
   }

@@ -37,30 +37,36 @@ export function RegisterForm() {
   });
 
   const onSubmit = handleSubmit(async (values) => {
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(values),
-    });
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
 
-    const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
 
-    if (!response.ok) {
-      toast.error(payload.message ?? "Đăng ký thất bại, vui lòng thử lại.");
-      return;
+      if (!response.ok) {
+        toast.error(payload.message ?? "Đăng ký thất bại, vui lòng thử lại.");
+        return;
+      }
+
+      toast.success(payload.message ?? "Đăng ký thành công.");
+      router.push(loginHref);
+    } catch {
+      toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
     }
-
-    toast.success(payload.message ?? "Đăng ký thành công.");
-    router.push(loginHref);
   });
 
   return (
     <Card className="rounded-2xl border shadow-sm">
       <CardHeader>
         <CardTitle className="text-2xl">Đăng ký tài khoản</CardTitle>
-        <CardDescription>Tạo tài khoản mới để bắt đầu sử dụng hệ thống đặt tour.</CardDescription>
+        <CardDescription>
+          Tạo tài khoản mới để bắt đầu sử dụng hệ thống đặt tour.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -79,7 +85,12 @@ export function RegisterForm() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="password">Mật khẩu</Label>
-              <Input id="password" type="password" placeholder="Tối thiểu 8 ký tự" {...register("password")} />
+              <Input
+                id="password"
+                type="password"
+                placeholder="Tối thiểu 8 ký tự"
+                {...register("password")}
+              />
               {errors.password ? (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               ) : null}

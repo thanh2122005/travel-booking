@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Compass, MapPin } from "lucide-react";
@@ -16,9 +16,25 @@ type DestinationDetailPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+async function getLocationMetadataData(slug: string) {
+  try {
+    return await getLocationBySlug(slug);
+  } catch {
+    return null;
+  }
+}
+
+async function getLocationPageData(slug: string) {
+  try {
+    return { data: await getLocationBySlug(slug), loadFailed: false };
+  } catch {
+    return { data: null, loadFailed: true };
+  }
+}
+
 export async function generateMetadata({ params }: DestinationDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const location = await getLocationBySlug(slug).catch(() => null);
+  const location = await getLocationMetadataData(slug);
 
   if (!location) {
     return {
@@ -34,7 +50,18 @@ export async function generateMetadata({ params }: DestinationDetailPageProps): 
 
 export default async function DestinationDetailPage({ params }: DestinationDetailPageProps) {
   const { slug } = await params;
-  const location = await getLocationBySlug(slug).catch(() => null);
+  const { data: location, loadFailed } = await getLocationPageData(slug);
+
+  if (loadFailed) {
+    return (
+      <EmptyState
+        title="Không thể tải thông tin điểm đến"
+        description="Vui lòng thử lại sau hoặc quay lại danh sách điểm đến."
+        ctaHref="/dia-diem"
+        ctaLabel="Quay lại danh sách điểm đến"
+      />
+    );
+  }
 
   if (!location) {
     notFound();
@@ -82,7 +109,7 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
           />
           <p className="text-sm leading-7 text-slate-600">{location.description}</p>
           <div className="grid gap-3 sm:grid-cols-3">
-            {location.gallery.slice(0, 3).map((image, index) => (
+            {(Array.isArray(location.gallery) ? location.gallery as string[] : []).slice(0, 3).map((image, index) => (
               <div key={`${image}-${index}`} className="relative h-32 overflow-hidden rounded-xl border border-slate-200">
                 <SafeImage
                   src={image}

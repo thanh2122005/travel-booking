@@ -40,7 +40,25 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
   }
 
   const { id } = await params;
-  const booking = await getUserBookingDetail(session.user.id, id).catch(() => null);
+  let booking: Awaited<ReturnType<typeof getUserBookingDetail>> | null = null;
+  let bookingLoadFailed = false;
+
+  try {
+    booking = await getUserBookingDetail(session.user.id, id);
+  } catch {
+    bookingLoadFailed = true;
+  }
+
+  if (bookingLoadFailed) {
+    return (
+      <EmptyState
+        title="Không thể tải chi tiết đơn đặt tour"
+        description="Vui lòng thử lại sau hoặc quay lại danh sách đơn của bạn."
+        ctaHref="/booking"
+        ctaLabel="Quay lại danh sách đơn"
+      />
+    );
+  }
 
   if (!booking) {
     return (

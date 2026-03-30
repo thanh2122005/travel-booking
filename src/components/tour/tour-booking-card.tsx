@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -164,38 +164,42 @@ export function TourBookingCard({
   }
 
   const onSubmitBooking = handleSubmit(async (values) => {
-    const response = await fetch("/api/bookings", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(values),
-    });
+    try {
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
 
-    const payload = (await response.json()) as {
-      message?: string;
-      booking?: {
-        bookingCode?: string;
+      const payload = (await response.json().catch(() => ({}))) as {
+        message?: string;
+        booking?: {
+          bookingCode?: string;
+        };
       };
-    };
 
-    if (!response.ok) {
-      toast.error(payload.message ?? "Không thể đặt tour, vui lòng thử lại.");
-      return;
+      if (!response.ok) {
+        toast.error(payload.message ?? "Không thể đặt tour, vui lòng thử lại.");
+        return;
+      }
+
+      toast.success(payload.message ?? "Đặt tour thành công.");
+      const createdCode = payload.booking?.bookingCode ?? null;
+      setLastBookingCode(createdCode);
+      router.push(createdCode ? `/booking/thanh-cong?code=${encodeURIComponent(createdCode)}` : "/booking/thanh-cong");
+      setActiveStep(1);
+      reset({
+        ...values,
+        tourId,
+        numberOfGuests: 1,
+        note: "",
+        departureDate: "",
+      });
+    } catch {
+      toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
     }
-
-    toast.success(payload.message ?? "Đặt tour thành công.");
-    const createdCode = payload.booking?.bookingCode ?? null;
-    setLastBookingCode(createdCode);
-    router.push(createdCode ? `/booking/thanh-cong?code=${encodeURIComponent(createdCode)}` : "/booking/thanh-cong");
-    setActiveStep(1);
-    reset({
-      ...values,
-      tourId,
-      numberOfGuests: 1,
-      note: "",
-      departureDate: "",
-    });
   });
 
   async function handleToggleFavorite() {
@@ -216,7 +220,7 @@ export function TourBookingCard({
         }),
       });
 
-      const payload = (await response.json()) as { message?: string; isFavorite?: boolean };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string; isFavorite?: boolean };
 
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể cập nhật yêu thích, vui lòng thử lại.");
@@ -225,6 +229,8 @@ export function TourBookingCard({
 
       setIsFavorite(payload.isFavorite ?? false);
       toast.success(payload.message ?? "Đã cập nhật danh sách yêu thích.");
+    } catch {
+      toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
     } finally {
       setIsFavoriteSubmitting(false);
     }
@@ -258,7 +264,7 @@ export function TourBookingCard({
         body: JSON.stringify(parsed.data),
       });
 
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
 
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể gửi đánh giá, vui lòng thử lại.");
@@ -267,6 +273,8 @@ export function TourBookingCard({
 
       setHasExistingReview(true);
       toast.success(payload.message ?? "Đánh giá của bạn đã được ghi nhận.");
+    } catch {
+      toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
     } finally {
       setIsReviewSubmitting(false);
     }

@@ -33,7 +33,7 @@ export function NewsletterSubscribeForm() {
         body: JSON.stringify(parsed.data),
       });
 
-      const payload = (await response.json()) as NewsletterResponse;
+      const payload = (await response.json().catch(() => ({}))) as NewsletterResponse;
 
       if (!response.ok) {
         toast.error(payload.message ?? "Không thể đăng ký nhận tin lúc này.");
@@ -42,6 +42,8 @@ export function NewsletterSubscribeForm() {
 
       toast.success(payload.message ?? "Đăng ký nhận tin thành công.");
       setEmail("");
+    } catch {
+      toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
     } finally {
       setIsSubmitting(false);
     }

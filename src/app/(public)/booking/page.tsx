@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Form from "next/form";
 import { CalendarCheck2, CreditCard, FileCheck2, List, ListFilter, UserCircle2, UserRoundCheck } from "lucide-react";
 import { PageHeroBanner } from "@/components/common/page-hero-banner";
 import { BookingCancelButton } from "@/components/booking/booking-cancel-button";
@@ -159,11 +160,32 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
   const normalizedSearch = search.trim().toLowerCase();
 
   const session = await getAuthSession();
-  const dashboard = session?.user?.id ? await getUserDashboardData(session.user.id).catch(() => null) : null;
+  let dashboard: Awaited<ReturnType<typeof getUserDashboardData>> | null = null;
+  let dashboardLoadFailed = false;
+
+  if (session?.user?.id) {
+    try {
+      dashboard = await getUserDashboardData(session.user.id);
+    } catch {
+      dashboardLoadFailed = true;
+    }
+  }
+
   const bookings = dashboard?.bookings ?? [];
   const loginHref = `/dang-nhap?callbackUrl=${encodeURIComponent(
     buildAliasRedirectPath("/booking", params),
   )}`;
+
+  if (dashboardLoadFailed) {
+    return (
+      <EmptyState
+        title="Không thể tải danh sách đơn đặt tour"
+        description="Vui lòng thử lại sau hoặc làm mới trang để tiếp tục."
+        ctaHref="/booking"
+        ctaLabel="Thử lại"
+      />
+    );
+  }
 
   const searchMatchedBookings = bookings.filter((booking) => {
     return (
@@ -312,7 +334,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
         </div>
 
         <div id="bo-loc-don" className="scroll-mt-24" />
-        <form className="iv-card p-4">
+        <Form action="/booking" scroll={false} className="iv-card p-4">
           <label htmlFor="search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
             Tìm kiếm đơn đặt tour
           </label>
@@ -413,7 +435,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
               ))}
             </div>
           ) : null}
-        </form>
+        </Form>
 
         {filteredBookings.length ? (
           <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
@@ -537,7 +559,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                       href={`/booking/${booking.id}`}
                       className="inline-flex h-9 items-center justify-center rounded-lg border border-teal-200 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-50"
                     >
-                      Chi ết đơn
+                      Chi tiết đơn
                     </Link>
                     <Link
                       href={`/tours/${booking.tour.slug}`}
@@ -597,7 +619,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                               href={`/booking/${booking.id}`}
                               className="inline-flex h-8 items-center justify-center rounded-lg border border-teal-200 px-2.5 text-xs font-semibold text-teal-700 transition hover:bg-teal-50"
                             >
-                              Chi ết
+                              Chi tiết
                             </Link>
                             <Link
                               href={`/tours/${booking.tour.slug}`}

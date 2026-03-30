@@ -49,9 +49,7 @@ export function LoginForm() {
 
     toast.success("Đăng nhập thành công.");
     const session = await getSession();
-    const destination =
-      callbackUrl ??
-      (session?.user?.role === "ADMIN" ? "/admin" : "/tai-khoan");
+    const destination = callbackUrl ?? (session?.user?.role === "ADMIN" ? "/admin" : "/tai-khoan");
 
     router.replace(destination);
     router.refresh();
@@ -66,14 +64,24 @@ export function LoginForm() {
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="ban@example.com" {...register("email")} />
+            <Label htmlFor="email">Email / Tên đăng nhập</Label>
+            <Input
+              id="email"
+              type="text"
+              placeholder="Nhập email hoặc tên đăng nhập (VD: admin)"
+              {...register("email")}
+            />
             {errors.email ? <p className="text-sm text-destructive">{errors.email.message}</p> : null}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="password">Mật khẩu</Label>
-            <Input id="password" type="password" placeholder="Nhập mật khẩu" {...register("password")} />
+            <Input
+              id="password"
+              type="password"
+              placeholder="Nhập mật khẩu"
+              {...register("password")}
+            />
             {errors.password ? (
               <p className="text-sm text-destructive">{errors.password.message}</p>
             ) : null}

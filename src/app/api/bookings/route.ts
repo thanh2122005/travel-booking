@@ -83,15 +83,12 @@ export async function POST(request: Request) {
   if (!json.ok) {
     return json.response;
   }
-  const body = json.data;
-  const parsed = bookingSchema.safeParse(body);
 
+  const parsed = bookingSchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(
-      {
-        message: firstIssue?.message ?? "Dữ liệu đặt tour không hợp lệ.",
-      },
+      { message: firstIssue?.message ?? "Dữ liệu đặt tour không hợp lệ." },
       { status: 400 },
     );
   }
@@ -206,17 +203,13 @@ export async function POST(request: Request) {
 
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json(
-        {
-          message: "Có lỗi trùng mã đặt tour, vui lòng thử lại.",
-        },
+        { message: "Có lỗi trùng mã đặt tour, vui lòng thử lại." },
         { status: 409 },
       );
     }
 
     return NextResponse.json(
-      {
-        message: "Không thể xử lý đặt tour lúc này, vui lòng thử lại sau.",
-      },
+      { message: "Không thể xử lý đặt tour lúc này, vui lòng thử lại sau." },
       { status: 500 },
     );
   }

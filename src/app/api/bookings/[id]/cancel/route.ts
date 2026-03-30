@@ -11,7 +11,7 @@ type BookingCancelRouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function PATCH(_request: Request, context: BookingCancelRouteContext) {
+export async function PATCH(request: Request, context: BookingCancelRouteContext) {
   const guard = await requireActiveUserApi({
     unauthorizedMessage: "Vui lòng đăng nhập để hủy đơn.",
   });
@@ -20,7 +20,7 @@ export async function PATCH(_request: Request, context: BookingCancelRouteContex
   }
   const session = guard.session;
 
-  const ip = getClientIp(_request);
+  const ip = getClientIp(request);
   const rate = consumeRateLimit(`public:booking:cancel:${session.user.id}:${ip}`, {
     windowMs: 15 * 60 * 1000,
     max: 20,

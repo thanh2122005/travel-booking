@@ -13,8 +13,8 @@ const passwordSchema = z
   .min(8, "Mật khẩu phải có ít nhất 8 ký tự");
 
 export const loginSchema = z.object({
-  email: emailSchema,
-  password: passwordSchema,
+  email: z.string().trim().min(1, "Vui lòng nhập email hoặc tên đăng nhập").toLowerCase(),
+  password: z.string().min(1, "Vui lòng nhập mật khẩu"),
 });
 
 const registerBaseSchema = z.object({

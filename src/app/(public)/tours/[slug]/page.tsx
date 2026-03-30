@@ -19,9 +19,25 @@ type TourDetailPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+async function getTourMetadataData(slug: string) {
+  try {
+    return await getTourBySlug(slug);
+  } catch {
+    return null;
+  }
+}
+
+async function getTourPageData(slug: string, userId?: string) {
+  try {
+    return { data: await getTourBySlug(slug, userId), loadFailed: false };
+  } catch {
+    return { data: null, loadFailed: true };
+  }
+}
+
 export async function generateMetadata({ params }: TourDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const data = await getTourBySlug(slug).catch(() => null);
+  const data = await getTourMetadataData(slug);
 
   if (!data) {
     return {
@@ -38,7 +54,18 @@ export async function generateMetadata({ params }: TourDetailPageProps): Promise
 export default async function TourDetailPage({ params }: TourDetailPageProps) {
   const { slug } = await params;
   const session = await getAuthSession();
-  const data = await getTourBySlug(slug, session?.user?.id).catch(() => null);
+  const { data, loadFailed } = await getTourPageData(slug, session?.user?.id);
+
+  if (loadFailed) {
+    return (
+      <EmptyState
+        title="Không thể tải chi tiết tour"
+        description="Vui lòng thử lại sau hoặc quay lại danh sách tour đang mở bán."
+        ctaHref="/tours"
+        ctaLabel="Quay lại danh sách tour"
+      />
+    );
+  }
 
   if (!data) {
     notFound();
@@ -53,14 +80,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
       ),
     ),
   );
-  const locationImages = Array.from(
-    new Set(
-      [tour.location.imageUrl, ...tour.location.gallery].filter(
-        (image): image is string => Boolean(image && image.trim()),
-      ),
-    ),
-  );
-  const galleryImages = Array.from(new Set([...dedicatedImages, ...locationImages]));
+  const galleryImages = dedicatedImages.length ? dedicatedImages : [tour.featuredImage];
 
   const reviewCount = tour.reviews.length;
   const averageRating = reviewCount
@@ -112,11 +132,15 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
           </article>
           <article className="rounded-2xl border bg-card p-4">
             <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Thời lượng</p>
-            <p className="mt-2 text-base font-semibold text-slate-900">{formatDuration(tour.durationDays, tour.durationNights)}</p>
+            <p className="mt-2 text-base font-semibold text-slate-900">
+              {formatDuration(tour.durationDays, tour.durationNights)}
+            </p>
           </article>
           <article className="rounded-2xl border bg-card p-4">
             <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Sức chứa</p>
-            <p className="mt-2 text-base font-semibold text-slate-900">Tối đa {tour.maxGuests} khách/đơn</p>
+            <p className="mt-2 text-base font-semibold text-slate-900">
+              Tối đa {tour.maxGuests} khách/đơn
+            </p>
           </article>
           <article className="rounded-2xl border bg-card p-4">
             <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Điểm trung bình</p>
@@ -176,17 +200,24 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
 
           <article id="lich-trinh" className="space-y-4 rounded-3xl border bg-card p-6">
             <h2 className="text-2xl font-bold">Lịch trình chi tiết</h2>
-            <div className="space-y-3">
-              {tour.itineraries.map((item) => (
-                <div key={item.id} className="rounded-xl border bg-background p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
-                    Ngày {item.dayNumber}
-                  </p>
-                  <h3 className="mt-1 text-base font-semibold">{item.title}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
-                </div>
-              ))}
-            </div>
+            {tour.itineraries.length ? (
+              <div className="space-y-3">
+                {tour.itineraries.map((item) => (
+                  <div key={item.id} className="rounded-xl border bg-background p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+                      Ngày {item.dayNumber}
+                    </p>
+                    <h3 className="mt-1 text-base font-semibold">{item.title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                title="Chưa có lịch trình chi tiết"
+                description="Quản trị viên sẽ cập nhật thêm lịch trình cho tour này sau."
+              />
+            )}
           </article>
 
           <article id="danh-gia" className="space-y-4 rounded-3xl border bg-card p-6">
@@ -206,7 +237,10 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
                       <div key={row.rating} className="flex items-center gap-2 text-xs">
                         <span className="w-10 font-medium text-slate-700">{row.rating} sao</span>
                         <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200">
-                          <div className="h-full rounded-full bg-amber-400" style={{ width: `${Math.max(row.percent, row.count ? 5 : 0)}%` }} />
+                          <div
+                            className="h-full rounded-full bg-amber-400"
+                            style={{ width: `${Math.max(row.percent, row.count ? 5 : 0)}%` }}
+                          />
                         </div>
                         <span className="w-8 text-right text-slate-500">{row.count}</span>
                       </div>
@@ -285,7 +319,10 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
       />
 
       <section id="lien-quan" className="space-y-5">
-        <SectionHeading title="Tour liên quan" description="Gợi ý thêm các tour khác cùng điểm đến." />
+        <SectionHeading
+          title="Tour liên quan"
+          description="Gợi ý thêm các tour khác cùng điểm đến."
+        />
         {relatedTours.length ? (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             {relatedTours.map((item) => (
@@ -305,7 +342,13 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
   );
 }
 
-function BadgeReviewSummary({ averageRating, reviewCount }: { averageRating: number; reviewCount: number }) {
+function BadgeReviewSummary({
+  averageRating,
+  reviewCount,
+}: {
+  averageRating: number;
+  reviewCount: number;
+}) {
   return (
     <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700">
       <Star className="h-4 w-4 fill-current" />

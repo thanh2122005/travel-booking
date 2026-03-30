@@ -1,6 +1,5 @@
-﻿import { Prisma, TourStatus } from "@prisma/client";
+import { Prisma, TourStatus } from "@prisma/client";
 import {
-  demoGetHomePublicData,
   demoGetPublicLocationBySlug,
   demoGetPublicLocations,
   demoGetPublicReviews,
@@ -13,6 +12,7 @@ import { db } from "@/lib/db/prisma";
 export type TourFilterInput = {
   search?: string;
   location?: string;
+  departureLocation?: string;
   minPrice?: number;
   maxPrice?: number;
   duration?: "duoi-3-ngay" | "tu-3-den-5-ngay" | "tren-5-ngay";
@@ -84,7 +84,7 @@ export async function getHomePublicData() {
       featuredLocations,
       featuredTours,
       latestReviews,
-      itineraryPreview,
+      itineraryPreviewRaw,
       totalTours,
       totalLocations,
       totalBookings,
@@ -146,6 +146,11 @@ export async function getHomePublicData() {
             },
             take: 3,
           },
+          _count: {
+            select: {
+              itineraries: true,
+            },
+          },
         },
         orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
         take: 4,
@@ -165,6 +170,16 @@ export async function getHomePublicData() {
     ]);
 
     const ratings = await getTourRatings(featuredTours.map((item) => item.id));
+    const itineraryPreview = itineraryPreviewRaw
+      .filter((item) => item._count.itineraries > 0)
+      .map((item) => ({
+        id: item.id,
+        title: item.title,
+        slug: item.slug,
+        location: item.location,
+        itineraries: item.itineraries,
+        itineraryCount: item._count.itineraries,
+      }));
 
     return {
       featuredLocations,
@@ -184,7 +199,18 @@ export async function getHomePublicData() {
     };
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      return demoGetHomePublicData();
+      return {
+        featuredLocations: [],
+        featuredTours: [],
+        latestReviews: [],
+        itineraryPreview: [],
+        stats: {
+          totalTours: 0,
+          totalLocations: 0,
+          totalBookings: 0,
+          totalReviews: 0,
+        },
+      };
     }
     throw error;
   }
@@ -200,8 +226,8 @@ export async function getTours(filters: TourFilterInput) {
       ...(filters.search
         ? {
             OR: [
-              { title: { contains: filters.search, mode: "insensitive" } },
-              { shortDescription: { contains: filters.search, mode: "insensitive" } },
+              { title: { contains: filters.search } },
+              { shortDescription: { contains: filters.search } },
             ],
           }
         : {}),
@@ -209,10 +235,11 @@ export async function getTours(filters: TourFilterInput) {
       ...(typeof filters.minPrice === "number" ? { price: { gte: filters.minPrice } } : {}),
       ...(typeof filters.maxPrice === "number" ? { price: { lte: filters.maxPrice } } : {}),
       ...(filters.featured ? { featured: true } : {}),
+      ...(filters.departureLocation ? { departureLocation: filters.departureLocation } : {}),
       ...buildDurationWhere(filters.duration),
     };
 
-    const [total, allLocations] = await Promise.all([
+    const [total, allLocations, departurePlaces] = await Promise.all([
       db.tour.count({ where }),
       db.location.findMany({
         select: {
@@ -223,6 +250,12 @@ export async function getTours(filters: TourFilterInput) {
         orderBy: {
           name: "asc",
         },
+      }),
+      db.tour.findMany({
+        where: { status: TourStatus.ACTIVE },
+        select: { departureLocation: true },
+        distinct: ["departureLocation"],
+        orderBy: { departureLocation: "asc" },
       }),
     ]);
 
@@ -256,6 +289,7 @@ export async function getTours(filters: TourFilterInput) {
       return {
         tours: sorted.slice((page - 1) * pageSize, page * pageSize),
         locations: allLocations,
+        departurePlaces: departurePlaces.map((item) => item.departureLocation),
         total,
         page,
         pageSize,
@@ -287,6 +321,7 @@ export async function getTours(filters: TourFilterInput) {
         reviewCount: ratings[item.id]?.reviewCount ?? 0,
       })),
       locations: allLocations,
+      departurePlaces: departurePlaces.map((item) => item.departureLocation),
       total,
       page,
       pageSize,
@@ -408,8 +443,8 @@ export async function getLocations(search?: string) {
       where: search
         ? {
             OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { provinceOrCity: { contains: search, mode: "insensitive" } },
+              { name: { contains: search } },
+              { provinceOrCity: { contains: search } },
             ],
           }
         : undefined,

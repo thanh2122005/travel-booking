@@ -1,4 +1,5 @@
-﻿import Link from "next/link";
+import Link from "next/link";
+import Form from "next/form";
 import { BookingStatus, PaymentStatus } from "@prisma/client";
 import {
   CalendarClock,
@@ -93,15 +94,6 @@ const paymentStatusMap: Record<PaymentStatus, { label: string; variant: "seconda
   },
 };
 
-const bookingStatusOrder: BookingStatus[] = [
-  BookingStatus.PENDING,
-  BookingStatus.CONFIRMED,
-  BookingStatus.COMPLETED,
-  BookingStatus.CANCELLED,
-];
-
-const paymentStatusOrder: PaymentStatus[] = [PaymentStatus.UNPAID, PaymentStatus.PAID];
-const accountBookingQuickRanges = [7, 30, 90] as const;
 const accountFavoriteQuickRanges = [30, 90, 180] as const;
 const accountReviewQuickRanges = [30, 90, 180] as const;
 const accountSectionLinks = [
@@ -282,6 +274,7 @@ function SectionPager({
           {currentPage > 1 ? (
             <Link
               href={prevHref}
+              scroll={false}
               className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
             >
               Trang trước
@@ -294,6 +287,7 @@ function SectionPager({
           {currentPage < totalPages ? (
             <Link
               href={nextHref}
+              scroll={false}
               className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 font-medium text-slate-700 transition hover:bg-white"
             >
               Trang sau
@@ -486,13 +480,6 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const pendingBookings = data.bookings.filter((booking) => booking.status === BookingStatus.PENDING).length;
   const paidBookings = data.bookings.filter((booking) => booking.paymentStatus === PaymentStatus.PAID).length;
 
-  const hasBookingFilters = Boolean(
-    state.bookingSearch ||
-      state.bookingStatus ||
-      state.paymentStatus ||
-      state.bookingCreatedFrom ||
-      state.bookingCreatedTo,
-  );
   const hasFavoriteFilters = Boolean(
     state.favoriteSearch ||
       state.favoriteSort !== "newest" ||
@@ -565,7 +552,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
   return (
     <div className="space-y-8 pb-24 lg:pb-8">
-      <section className="iv-card overflow-hidden bg-[linear-gradient(130deg,#091f33,#0a314d,#085a66)] p-6 text-white md:p-8">
+      <section className="rounded-2xl border bg-[linear-gradient(130deg,#091f33,#0a314d,#085a66)] p-6 text-white shadow-sm md:p-8">
         <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-teal-100">
           <UserCircle2 className="h-4 w-4" />
           Tài khoản của bạn
@@ -657,7 +644,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </Badge>
         </div>
 
-        <form className="mb-4 space-y-3">
+        <Form action="/tai-khoan" scroll={false} className="mb-4 space-y-3">
           <input type="hidden" name="bookingPage" value="1" />
           <input type="hidden" name="favoriteSearch" value={state.favoriteSearch} />
           <input type="hidden" name="favoriteSort" value={state.favoriteSort} />
@@ -670,95 +657,42 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <input type="hidden" name="reviewCreatedFrom" value={state.reviewCreatedFrom} />
           <input type="hidden" name="reviewCreatedTo" value={state.reviewCreatedTo} />
           <input type="hidden" name="reviewPage" value={state.reviewPage} />
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Mốc nhanh:</p>
-            {accountBookingQuickRanges.map((days) => {
-              const quickRange = createQuickDateRange(days);
-              const isActive =
-                state.bookingCreatedFrom === quickRange.createdFrom &&
-                state.bookingCreatedTo === quickRange.createdTo;
-              return (
-                <Link
-                  key={days}
-                  href={buildAccountHref(state, {
-                    bookingCreatedFrom: quickRange.createdFrom,
-                    bookingCreatedTo: quickRange.createdTo,
-                    bookingPage: 1,
-                  })}
-                  className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
-                    isActive
-                      ? "border-teal-300 bg-teal-50 text-teal-700"
-                      : "border-slate-300 text-slate-700 hover:bg-slate-50"
-                  }`}
-                >
-                  {days} ngày
-                </Link>
-              );
-            })}
-            {hasBookingFilters ? (
-              <Link
-                href={clearBookingHref}
-                className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
-              >
-                {"X\u00f3a l\u1ecdc nhanh"}
-              </Link>
-            ) : null}
-          </div>
-          <div className="grid gap-2 xl:grid-cols-[1fr_170px_170px_170px_170px_auto_auto]">
+          
+          <div className="flex flex-wrap items-center gap-2 md:flex-nowrap">
             <input
               name="bookingSearch"
               defaultValue={state.bookingSearch}
               placeholder="Mã đơn, tên tour hoặc điểm khởi hành..."
-              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none md:max-w-xs"
             />
             <select
               name="bookingStatus"
               defaultValue={state.bookingStatus}
-              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none md:max-w-[200px]"
             >
-              <option value="">Tất cả trạng thái đơn</option>
+              <option value="">Tất cả trạng thái</option>
               <option value="PENDING">Chờ xác nhận</option>
               <option value="CONFIRMED">Đã xác nhận</option>
               <option value="COMPLETED">Hoàn thành</option>
               <option value="CANCELLED">Đã hủy</option>
             </select>
-            <select
-              name="paymentStatus"
-              defaultValue={state.paymentStatus}
-              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-            >
-              <option value="">Tất cả thanh toán</option>
-              <option value="UNPAID">Chưa thanh toán</option>
-              <option value="PAID">Đã thanh toán</option>
-            </select>
-            <input
-              type="date"
-              name="bookingCreatedFrom"
-              defaultValue={state.bookingCreatedFrom}
-              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-            />
-            <input
-              type="date"
-              name="bookingCreatedTo"
-              defaultValue={state.bookingCreatedTo}
-              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-            />
             <button
               type="submit"
-              className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold"
+              className="iv-btn-primary inline-flex h-10 items-center justify-center whitespace-nowrap px-6 text-sm font-semibold"
             >
-              Lọc đơn
+              Tìm kiếm
             </button>
-            {hasBookingFilters ? (
+            {state.bookingSearch || state.bookingStatus ? (
               <Link
                 href={clearBookingHref}
-                className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+                scroll={false}
+                className="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
               >
                 Xóa lọc
               </Link>
             ) : null}
           </div>
-        </form>
+        </Form>
         {bookingActiveFilterLabels.length ? (
           <div className="mb-4 flex flex-wrap gap-2">
             {bookingActiveFilterLabels.map((label) => (
@@ -768,68 +702,6 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               >
                 {label}
               </span>
-            ))}
-          </div>
-        ) : null}
-        {bookingQuickStatusBase.length ? (
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Trạng thái nhanh:</p>
-            <Link
-              href={buildAccountHref(state, { bookingStatus: "", bookingPage: 1 })}
-              className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
-                !state.bookingStatus
-                  ? "border-teal-300 bg-teal-50 text-teal-700"
-                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              Tất cả ({bookingQuickStatusBase.length})
-            </Link>
-            {bookingStatusOrder.map((statusValue) => (
-              <Link
-                key={statusValue}
-                href={buildAccountHref(state, {
-                  bookingStatus: statusValue,
-                  bookingPage: 1,
-                })}
-                className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
-                  state.bookingStatus === statusValue
-                    ? "border-teal-300 bg-teal-50 text-teal-700"
-                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                {bookingStatusMap[statusValue].label} ({bookingStatusCounts[statusValue]})
-              </Link>
-            ))}
-          </div>
-        ) : null}
-        {bookingQuickPaymentBase.length ? (
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Thanh toán nhanh:</p>
-            <Link
-              href={buildAccountHref(state, { paymentStatus: "", bookingPage: 1 })}
-              className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
-                !state.paymentStatus
-                  ? "border-teal-300 bg-teal-50 text-teal-700"
-                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              Tất cả ({bookingQuickPaymentBase.length})
-            </Link>
-            {paymentStatusOrder.map((paymentStatus) => (
-              <Link
-                key={paymentStatus}
-                href={buildAccountHref(state, {
-                  paymentStatus,
-                  bookingPage: 1,
-                })}
-                className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold transition ${
-                  state.paymentStatus === paymentStatus
-                    ? "border-teal-300 bg-teal-50 text-teal-700"
-                    : "border-slate-300 text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                {paymentStatusMap[paymentStatus].label} ({paymentStatusCounts[paymentStatus]})
-              </Link>
             ))}
           </div>
         ) : null}
@@ -861,7 +733,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                       href={`/booking/${booking.id}`}
                       className="inline-flex h-9 items-center justify-center rounded-lg border border-teal-200 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-50"
                     >
-                      Chi ết đơn
+                      Chi tiết đơn
                     </Link>
                     {canCancelBooking(booking.status, booking.paymentStatus) ? (
                       <BookingCancelButton
@@ -918,7 +790,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                             href={`/booking/${booking.id}`}
                             className="inline-flex h-8 items-center justify-center rounded-lg border border-teal-200 px-2.5 text-xs font-semibold text-teal-700 transition hover:bg-teal-50"
                           >
-                            Chi ết
+                            Chi tiết
                           </Link>
                           {canCancelBooking(booking.status, booking.paymentStatus) ? (
                             <BookingCancelButton
@@ -975,7 +847,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </Badge>
         </div>
 
-        <form className="mb-4 space-y-3">
+        <Form action="/tai-khoan" scroll={false} className="mb-4 space-y-3">
           <input type="hidden" name="favoritePage" value="1" />
           <input type="hidden" name="bookingSearch" value={state.bookingSearch} />
           <input type="hidden" name="bookingStatus" value={state.bookingStatus} />
@@ -1060,13 +932,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             {hasFavoriteFilters ? (
               <Link
                 href={clearFavoriteHref}
+                scroll={false}
                 className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
               >
                 Xóa lọc
               </Link>
             ) : null}
           </div>
-        </form>
+        </Form>
         {favoriteActiveFilterLabels.length ? (
           <div className="mb-4 flex flex-wrap gap-2">
             {favoriteActiveFilterLabels.map((label) => (
@@ -1153,7 +1026,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </Badge>
         </div>
 
-        <form className="mb-4 space-y-3">
+        <Form action="/tai-khoan" scroll={false} className="mb-4 space-y-3">
           <input type="hidden" name="reviewPage" value="1" />
           <input type="hidden" name="bookingSearch" value={state.bookingSearch} />
           <input type="hidden" name="bookingStatus" value={state.bookingStatus} />
@@ -1249,13 +1122,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             {hasReviewFilters ? (
               <Link
                 href={clearReviewHref}
+                scroll={false}
                 className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
               >
                 Xóa lọc
               </Link>
             ) : null}
           </div>
-        </form>
+        </Form>
         {reviewActiveFilterLabels.length ? (
           <div className="mb-4 flex flex-wrap gap-2">
             {reviewActiveFilterLabels.map((label) => (

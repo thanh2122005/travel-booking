@@ -32,15 +32,14 @@ export async function POST(request: Request) {
     if (!json.ok) {
       return json.response;
     }
-    const body = json.data;
-    const parsed = registerSchema.safeParse(body);
+    const parsed = registerSchema.safeParse(json.data);
 
     if (!parsed.success) {
       const firstIssue = parsed.error.issues[0];
 
       return NextResponse.json(
         {
-          message: firstIssue?.message ?? "Dữ liệu không hợp lệ",
+          message: firstIssue?.message ?? "Dữ liệu không hợp lệ.",
         },
         { status: 400 },
       );

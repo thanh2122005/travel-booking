@@ -115,15 +115,19 @@ export const authOptions: NextAuthOptions = {
         typeof token.syncedAt !== "number" || Date.now() - token.syncedAt > 60_000;
 
       if (shouldSync && token.sub && token.sub !== "dev-admin") {
-        const currentUser = await db.user
-          .findUnique({
+        let currentUser: { role: UserRole; status: UserStatus } | null = null;
+
+        try {
+          currentUser = await db.user.findUnique({
             where: { id: token.sub },
             select: {
               role: true,
               status: true,
             },
-          })
-          .catch(() => null);
+          });
+        } catch {
+          currentUser = null;
+        }
 
         if (currentUser) {
           token.role = currentUser.role;

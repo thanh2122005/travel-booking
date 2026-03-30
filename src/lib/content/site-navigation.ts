@@ -16,7 +16,7 @@ export const footerQuickLinks: PublicNavItem[] = [
   { href: "/tours", label: "Danh sách tour" },
   { href: "/booking", label: "Đặt tour" },
   { href: "/favorites", label: "Yêu thích" },
-  { href: "/reviews", label: "Đánh giá" },
+  { href: "/lien-he", label: "Liên hệ tư vấn" },
 ];
 
 export const footerPopularDestinations: PublicNavItem[] = [

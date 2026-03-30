@@ -38,15 +38,12 @@ export async function POST(request: Request) {
   if (!json.ok) {
     return json.response;
   }
-  const body = json.data;
-  const parsed = reviewSchema.safeParse(body);
 
+  const parsed = reviewSchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(
-      {
-        message: firstIssue?.message ?? "Dữ liệu đánh giá không hợp lệ.",
-      },
+      { message: firstIssue?.message ?? "Dữ liệu đánh giá không hợp lệ." },
       { status: 400 },
     );
   }
@@ -61,7 +58,10 @@ export async function POST(request: Request) {
     });
 
     if (!tour || tour.status !== TourStatus.ACTIVE) {
-      return NextResponse.json({ message: "Tour không tồn tại hoặc đã ngừng hoạt động." }, { status: 404 });
+      return NextResponse.json(
+        { message: "Tour không tồn tại hoặc đã ngừng hoạt động." },
+        { status: 404 },
+      );
     }
 
     const confirmedBookingCount = await db.booking.count({
@@ -135,9 +135,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      {
-        message: "Không thể gửi đánh giá lúc này, vui lòng thử lại sau.",
-      },
+      { message: "Không thể gửi đánh giá lúc này, vui lòng thử lại sau." },
       { status: 500 },
     );
   }
@@ -173,15 +171,12 @@ export async function DELETE(request: Request) {
   if (!json.ok) {
     return json.response;
   }
-  const body = json.data;
-  const parsed = favoriteSchema.safeParse(body);
 
+  const parsed = favoriteSchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(
-      {
-        message: firstIssue?.message ?? "Dữ liệu đánh giá không hợp lệ.",
-      },
+      { message: firstIssue?.message ?? "Dữ liệu đánh giá không hợp lệ." },
       { status: 400 },
     );
   }
@@ -196,9 +191,7 @@ export async function DELETE(request: Request) {
 
     if (!deleted.count) {
       return NextResponse.json(
-        {
-          message: "Không tìm thấy đánh giá để xóa.",
-        },
+        { message: "Không tìm thấy đánh giá để xóa." },
         { status: 404 },
       );
     }
@@ -215,9 +208,7 @@ export async function DELETE(request: Request) {
 
       if (!deleted) {
         return NextResponse.json(
-          {
-            message: "Không tìm thấy đánh giá để xóa.",
-          },
+          { message: "Không tìm thấy đánh giá để xóa." },
           { status: 404 },
         );
       }
@@ -228,9 +219,7 @@ export async function DELETE(request: Request) {
     }
 
     return NextResponse.json(
-      {
-        message: "Không thể xóa đánh giá lúc này, vui lòng thử lại sau.",
-      },
+      { message: "Không thể xóa đánh giá lúc này, vui lòng thử lại sau." },
       { status: 500 },
     );
   }

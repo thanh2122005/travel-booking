@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,24 +35,28 @@ export function AccountProfileForm({ fullName, email, phone }: AccountProfileFor
   });
 
   const onSubmit = handleSubmit(async (values) => {
-    const requestPayload = profileUpdateSchema.parse(values);
-    const response = await fetch("/api/account/profile", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestPayload),
-    });
+    try {
+      const requestPayload = profileUpdateSchema.parse(values);
+      const response = await fetch("/api/account/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestPayload),
+      });
 
-    const result = (await response.json()) as ProfileUpdateResponse;
+      const result = (await response.json().catch(() => ({}))) as ProfileUpdateResponse;
 
-    if (!response.ok) {
-      toast.error(result.message ?? "Không thể cập nhật hồ sơ lúc này.");
-      return;
+      if (!response.ok) {
+        toast.error(result.message ?? "Không thể cập nhật hồ sơ lúc này.");
+        return;
+      }
+
+      toast.success(result.message ?? "Đã cập nhật hồ sơ cá nhân.");
+      router.refresh();
+    } catch {
+      toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
     }
-
-    toast.success(result.message ?? "Đã cập nhật hồ sơ cá nhân.");
-    router.refresh();
   });
 
   return (

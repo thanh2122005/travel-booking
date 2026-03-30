@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { buildCallbackUrl } from "@/lib/auth/callback-url";
 import { cn } from "@/lib/utils";
+
+const ADMIN_LABEL = "Quản trị";
 
 function getDisplayName(name?: string | null) {
   if (!name) return "Tài khoản";
@@ -15,7 +17,10 @@ function getDisplayName(name?: string | null) {
 export function AuthUserMenu() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const callbackUrl = buildCallbackUrl(pathname || "/", searchParams.toString() ? `?${searchParams.toString()}` : "");
+  const callbackUrl = buildCallbackUrl(
+    pathname || "/",
+    searchParams.toString() ? `?${searchParams.toString()}` : "",
+  );
   const { data: session, status } = useSession();
 
   if (status === "loading") {
@@ -42,6 +47,7 @@ export function AuthUserMenu() {
   }
 
   const profileHref = session.user.role === "ADMIN" ? "/admin" : "/tai-khoan";
+  const label = session.user.role === "ADMIN" ? ADMIN_LABEL : getDisplayName(session.user.name);
 
   return (
     <div className="flex items-center gap-2">
@@ -50,7 +56,7 @@ export function AuthUserMenu() {
         className={cn(buttonVariants({ variant: "outline", size: "sm" }), "px-3")}
         title={session.user.email || undefined}
       >
-        {session.user.role === "ADMIN" ? "Quản trị" : getDisplayName(session.user.name)}
+        {label}
       </Link>
       <Button size="sm" onClick={() => signOut({ callbackUrl: "/" })}>
         Đăng xuất

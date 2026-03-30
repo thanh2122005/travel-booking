@@ -83,6 +83,7 @@ function parseFilters(raw: Record<string, string | string[] | undefined>): TourF
   return {
     search: search || undefined,
     location: location || undefined,
+    departureLocation: normalizeParam(raw.departureLocation) || undefined,
     minPrice: toNumber(normalizeParam(raw.minPrice)),
     maxPrice: toNumber(normalizeParam(raw.maxPrice)),
     duration,
@@ -138,6 +139,7 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
   const data = await getTours(filters).catch(() => ({
     tours: [],
     locations: [],
+    departurePlaces: [],
     total: 0,
     page: 1,
     pageSize: 9,
@@ -147,6 +149,7 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
   const activeFilterLabels = [
     ...(filters.search ? [`Từ khóa: ${filters.search}`] : []),
     ...(selectedLocation ? [`Điểm đến: ${selectedLocation.name}`] : []),
+    ...(filters.departureLocation ? [`Khởi hành: ${filters.departureLocation}`] : []),
     ...(filters.duration ? [`Thời lượng: ${durationLabels[filters.duration]}`] : []),
     ...(filters.featured ? ["Chỉ tour nổi bật"] : []),
     ...((filters.sort && filters.sort !== "moi-nhat") ? [`Sắp xếp: ${sortLabels[filters.sort]}`] : []),
@@ -165,7 +168,7 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
       />
 
       <div id="bo-loc-tour" className="scroll-mt-24" />
-      <form className="grid gap-3 rounded-2xl border bg-card p-4 md:grid-cols-2 lg:grid-cols-6">
+      <form className="grid gap-3 rounded-2xl border bg-card p-4 md:grid-cols-2 lg:grid-cols-7">
         <input type="hidden" name="page" value="1" />
 
         <div className="lg:col-span-2">
@@ -217,6 +220,25 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
             <option value="duoi-3-ngay">Dưới 3 ngày</option>
             <option value="tu-3-den-5-ngay">Từ 3 đến 5 ngày</option>
             <option value="tren-5-ngay">Trên 5 ngày</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="departureLocation" className="mb-1.5 block text-xs font-medium text-muted-foreground">
+            Khởi hành từ
+          </label>
+          <select
+            id="departureLocation"
+            name="departureLocation"
+            defaultValue={filters.departureLocation ?? ""}
+            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="">Tất cả</option>
+            {data.departurePlaces.map((place) => (
+              <option key={place} value={place}>
+                {place}
+              </option>
+            ))}
           </select>
         </div>
 

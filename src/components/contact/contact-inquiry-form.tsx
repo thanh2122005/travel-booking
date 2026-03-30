@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -68,26 +68,30 @@ export function ContactInquiryForm({
 
   const onSubmit = handleSubmit(async (values) => {
     setReferenceCode(null);
-    const payload = contactInquirySchema.parse(values);
 
-    const response = await fetch("/api/contact-inquiries", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const payload = contactInquirySchema.parse(values);
+      const response = await fetch("/api/contact-inquiries", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    const result = (await response.json()) as ContactInquiryResponse;
+      const result = (await response.json().catch(() => ({}))) as ContactInquiryResponse;
 
-    if (!response.ok) {
-      toast.error(result.message ?? "Không thể gửi yêu cầu lúc này.");
-      return;
+      if (!response.ok) {
+        toast.error(result.message ?? "Không thể gửi yêu cầu lúc này.");
+        return;
+      }
+
+      toast.success(result.message ?? "Đã gửi yêu cầu tư vấn thành công.");
+      setReferenceCode(result.referenceCode ?? null);
+      reset(initialValues);
+    } catch {
+      toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
     }
-
-    toast.success(result.message ?? "Đã gửi yêu cầu tư vấn thành công.");
-    setReferenceCode(result.referenceCode ?? null);
-    reset(initialValues);
   });
 
   return (

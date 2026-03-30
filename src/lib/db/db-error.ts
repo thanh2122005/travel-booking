@@ -17,6 +17,17 @@ export function isDatabaseUnavailableError(error: unknown) {
     lowered.includes("can't reach database server") ||
     lowered.includes("environment variable not found: database_url") ||
     lowered.includes("connection error") ||
-    lowered.includes("connect") && lowered.includes("database")
+    (lowered.includes("connect") && lowered.includes("database"))
   );
+}
+
+export function isPrismaNotFoundError(error: unknown) {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025";
+}
+
+export function isPrismaUniqueConstraintError(error: unknown) {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+}
+export function isPrismaForeignKeyError(error: unknown) {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003";
 }
