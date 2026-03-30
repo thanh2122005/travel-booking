@@ -1,4 +1,4 @@
-﻿import { UserRole, UserStatus } from "@prisma/client";
+import { UserRole, UserStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApiAuth } from "@/lib/auth/admin-api";
@@ -39,18 +39,23 @@ export async function PATCH(request: Request, context: UserRouteContext) {
     );
   }
 
-  const updated = await updateAdminUser(id, parsed.data).catch(() => null);
-  if (updated === "LAST_ADMIN") {
-    return NextResponse.json(
-      { message: "Không thể hạ quyền hoặc khóa quản trị viên cuối cùng của hệ thống." },
-      { status: 400 },
-    );
-  }
-  if (!updated) {
+  try {
+    const updated = await updateAdminUser(id, parsed.data);
+
+    if (updated === "LAST_ADMIN") {
+      return NextResponse.json(
+        { message: "Không thể hạ quyền hoặc khóa quản trị viên cuối cùng của hệ thống." },
+        { status: 400 },
+      );
+    }
+    if (updated === "NOT_FOUND") {
+      return NextResponse.json({ message: "Không tìm thấy người dùng cần cập nhật." }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Đã cập nhật người dùng.", user: updated });
+  } catch {
     return NextResponse.json({ message: "Không thể cập nhật người dùng." }, { status: 500 });
   }
-
-  return NextResponse.json({ message: "Đã cập nhật người dùng.", user: updated });
 }
 
 export async function DELETE(_request: Request, context: UserRouteContext) {
@@ -65,24 +70,34 @@ export async function DELETE(_request: Request, context: UserRouteContext) {
     );
   }
 
-  const removed = await deleteAdminUser(id).catch(() => null);
+  try {
+    const removed = await deleteAdminUser(id);
 
-  if (removed === "LAST_ADMIN") {
-    return NextResponse.json(
-      { message: "Không thể xóa quản trị viên cuối cùng của hệ thống." },
-      { status: 400 },
-    );
-  }
+    if (removed === "LAST_ADMIN") {
+      return NextResponse.json(
+        { message: "Không thể xóa quản trị viên cuối cùng của hệ thống." },
+        { status: 400 },
+      );
+    }
+    if (removed === "NOT_FOUND") {
+      return NextResponse.json({ message: "Không tìm thấy người dùng cần xóa." }, { status: 404 });
+    }
 
-  if (!removed) {
+    let totalUsers: number | undefined;
+
+    try {
+      const currentUsers = await getAdminUsers({ page: 1, pageSize: 1 });
+      totalUsers = currentUsers.total;
+    } catch {
+      totalUsers = undefined;
+    }
+
+    return NextResponse.json({
+      message: "Đã xóa người dùng thành công.",
+      user: removed,
+      totalUsers,
+    });
+  } catch {
     return NextResponse.json({ message: "Không thể xóa người dùng." }, { status: 500 });
   }
-
-  const currentUsers = await getAdminUsers({ page: 1, pageSize: 1 }).catch(() => null);
-
-  return NextResponse.json({
-    message: "Đã xóa người dùng thành công.",
-    user: removed,
-    totalUsers: currentUsers?.total,
-  });
 }

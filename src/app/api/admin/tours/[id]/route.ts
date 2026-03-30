@@ -1,7 +1,8 @@
-﻿import { TourStatus } from "@prisma/client";
+import { TourStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
+import { isPrismaNotFoundError } from "@/lib/db/db-error";
 import { deleteAdminTour, updateAdminTour } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 
@@ -29,12 +30,16 @@ export async function PATCH(request: Request, context: TourRouteContext) {
     return NextResponse.json({ message: "Dữ liệu cập nhật không hợp lệ." }, { status: 400 });
   }
 
-  const updated = await updateAdminTour(id, parsed.data).catch(() => null);
-  if (!updated) {
+  try {
+    const updated = await updateAdminTour(id, parsed.data);
+    return NextResponse.json({ message: "Đã cập nhật tour.", tour: updated });
+  } catch (error) {
+    if (isPrismaNotFoundError(error)) {
+      return NextResponse.json({ message: "Không tìm thấy tour cần cập nhật." }, { status: 404 });
+    }
+
     return NextResponse.json({ message: "Không thể cập nhật tour." }, { status: 500 });
   }
-
-  return NextResponse.json({ message: "Đã cập nhật tour.", tour: updated });
 }
 
 export async function DELETE(_request: Request, context: TourRouteContext) {
@@ -42,13 +47,18 @@ export async function DELETE(_request: Request, context: TourRouteContext) {
   if (guard) return guard;
 
   const { id } = await context.params;
-  const removed = await deleteAdminTour(id).catch(() => null);
-  if (!removed) {
+
+  try {
+    const removed = await deleteAdminTour(id);
+    return NextResponse.json({
+      message: "Đã xóa tour thành công.",
+      tour: removed,
+    });
+  } catch (error) {
+    if (isPrismaNotFoundError(error)) {
+      return NextResponse.json({ message: "Không tìm thấy tour cần xóa." }, { status: 404 });
+    }
+
     return NextResponse.json({ message: "Không thể xóa tour." }, { status: 500 });
   }
-
-  return NextResponse.json({
-    message: "Đã xóa tour thành công.",
-    tour: removed,
-  });
 }

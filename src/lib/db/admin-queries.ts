@@ -1,4 +1,4 @@
-﻿import { BookingStatus, InquiryStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
+import { BookingStatus, InquiryStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
 import {
   demoCreateLocation,
   demoCreateItinerary,
@@ -154,10 +154,10 @@ function buildAdminBookingWhere(filter: AdminBookingListFilter) {
   const where: Prisma.BookingWhereInput = filter.search
     ? {
         OR: [
-          { bookingCode: { contains: filter.search, mode: "insensitive" } },
-          { fullName: { contains: filter.search, mode: "insensitive" } },
-          { email: { contains: filter.search, mode: "insensitive" } },
-          { tour: { title: { contains: filter.search, mode: "insensitive" } } },
+          { bookingCode: { contains: filter.search } },
+          { fullName: { contains: filter.search } },
+          { email: { contains: filter.search } },
+          { tour: { title: { contains: filter.search } } },
         ],
       }
     : {};
@@ -184,9 +184,9 @@ function buildAdminReviewWhere(filter: AdminReviewListFilter) {
   const where: Prisma.ReviewWhereInput = filter.search
     ? {
         OR: [
-          { comment: { contains: filter.search, mode: "insensitive" } },
-          { user: { fullName: { contains: filter.search, mode: "insensitive" } } },
-          { tour: { title: { contains: filter.search, mode: "insensitive" } } },
+          { comment: { contains: filter.search } },
+          { user: { fullName: { contains: filter.search } } },
+          { tour: { title: { contains: filter.search } } },
         ],
       }
     : {};
@@ -772,8 +772,8 @@ export async function getAdminUsers(
     const where: Prisma.UserWhereInput = filter.search
       ? {
           OR: [
-            { fullName: { contains: filter.search, mode: "insensitive" } },
-            { email: { contains: filter.search, mode: "insensitive" } },
+            { fullName: { contains: filter.search } },
+            { email: { contains: filter.search } },
           ],
         }
       : {};
@@ -834,8 +834,8 @@ export async function exportAdminUsers(filter: AdminUserListFilter = {}) {
     const where: Prisma.UserWhereInput = filter.search
       ? {
           OR: [
-            { fullName: { contains: filter.search, mode: "insensitive" } },
-            { email: { contains: filter.search, mode: "insensitive" } },
+            { fullName: { contains: filter.search } },
+            { email: { contains: filter.search } },
           ],
         }
       : {};
@@ -852,7 +852,7 @@ export async function exportAdminUsers(filter: AdminUserListFilter = {}) {
       };
     }
 
-    return db.user.findMany({
+    return await db.user.findMany({
       where,
       orderBy: { createdAt: "desc" },
       take: 5000,
@@ -888,9 +888,9 @@ export async function getAdminTours(filter: AdminTourListFilter = {}) {
     const where: Prisma.TourWhereInput = filter.search
       ? {
           OR: [
-            { title: { contains: filter.search, mode: "insensitive" } },
-            { slug: { contains: filter.search, mode: "insensitive" } },
-            { location: { name: { contains: filter.search, mode: "insensitive" } } },
+            { title: { contains: filter.search } },
+            { slug: { contains: filter.search } },
+            { location: { name: { contains: filter.search } } },
           ],
         }
       : {};
@@ -941,7 +941,7 @@ export async function getAdminTours(filter: AdminTourListFilter = {}) {
 
 export async function getAdminTourDetail(tourId: string) {
   try {
-    return db.tour.findUnique({
+    return await db.tour.findUnique({
       where: { id: tourId },
       include: {
         location: {
@@ -985,9 +985,9 @@ export async function getAdminLocations(filter: AdminListFilter = {}) {
     const where: Prisma.LocationWhereInput = filter.search
       ? {
           OR: [
-            { name: { contains: filter.search, mode: "insensitive" } },
-            { provinceOrCity: { contains: filter.search, mode: "insensitive" } },
-            { slug: { contains: filter.search, mode: "insensitive" } },
+            { name: { contains: filter.search } },
+            { provinceOrCity: { contains: filter.search } },
+            { slug: { contains: filter.search } },
           ],
         }
       : {};
@@ -1123,7 +1123,7 @@ export async function exportAdminBookings(filter: AdminBookingListFilter = {}) {
   try {
     const where = buildAdminBookingWhere(filter);
 
-    return db.booking.findMany({
+      return await db.booking.findMany({
       where,
       orderBy: { createdAt: "desc" },
       take: 5000,
@@ -1196,7 +1196,7 @@ export async function exportAdminReviews(filter: AdminReviewListFilter = {}) {
   try {
     const where = buildAdminReviewWhere(filter);
 
-    return db.review.findMany({
+      return await db.review.findMany({
       where,
       orderBy: { createdAt: "desc" },
       take: 5000,
@@ -1227,7 +1227,7 @@ export async function exportAdminReviews(filter: AdminReviewListFilter = {}) {
 
 export async function getAdminLocationOptions() {
   try {
-    return db.location.findMany({
+      return await db.location.findMany({
       select: {
         id: true,
         name: true,
@@ -1248,7 +1248,7 @@ export async function updateAdminBooking(
   payload: { status?: BookingStatus; paymentStatus?: PaymentStatus },
 ) {
   try {
-    return db.booking.update({
+      return await db.booking.update({
       where: { id: bookingId },
       data: {
         ...(payload.status ? { status: payload.status } : {}),
@@ -1274,7 +1274,7 @@ export async function updateAdminBookingsBulk(input: {
       return { count: 0 };
     }
 
-    return db.booking.updateMany({
+      return await db.booking.updateMany({
       where: {
         id: {
           in: ids,
@@ -1322,7 +1322,7 @@ export async function updateAdminBookingDetail(
         },
       },
     });
-    if (!current) return null;
+    if (!current) return "NOT_FOUND" as const;
 
     const nextGuests =
       typeof payload.numberOfGuests === "number" && Number.isFinite(payload.numberOfGuests)
@@ -1330,7 +1330,7 @@ export async function updateAdminBookingDetail(
         : current.numberOfGuests;
 
     if (nextGuests > current.tour.maxGuests) {
-      return null;
+      return "MAX_GUESTS_EXCEEDED" as const;
     }
 
     const unitPrice = current.tour.discountPrice ?? current.tour.price;
@@ -1341,7 +1341,7 @@ export async function updateAdminBookingDetail(
           ? new Date(payload.departureDate)
           : undefined;
 
-    return db.booking.update({
+      return await db.booking.update({
       where: { id: bookingId },
       data: {
         ...(payload.fullName ? { fullName: payload.fullName } : {}),
@@ -1366,7 +1366,7 @@ export async function updateAdminBookingDetail(
 
 export async function updateAdminReview(reviewId: string, payload: { isVisible?: boolean }) {
   try {
-    return db.review.update({
+      return await db.review.update({
       where: { id: reviewId },
       data: {
         ...(typeof payload.isVisible === "boolean" ? { isVisible: payload.isVisible } : {}),
@@ -1387,7 +1387,7 @@ export async function updateAdminReviewsBulk(input: { ids: string[]; isVisible: 
       return { count: 0 };
     }
 
-    return db.review.updateMany({
+      return await db.review.updateMany({
       where: {
         id: {
           in: ids,
@@ -1410,7 +1410,7 @@ export async function updateAdminReviewContent(
   payload: { rating?: number; comment?: string; isVisible?: boolean },
 ) {
   try {
-    return db.review.update({
+      return await db.review.update({
       where: { id: reviewId },
       data: {
         ...(typeof payload.rating === "number" && Number.isFinite(payload.rating)
@@ -1433,7 +1433,7 @@ export async function updateAdminTour(
   payload: { status?: TourStatus; featured?: boolean },
 ) {
   try {
-    return db.tour.update({
+      return await db.tour.update({
       where: { id: tourId },
       data: {
         ...(payload.status ? { status: payload.status } : {}),
@@ -1450,7 +1450,7 @@ export async function updateAdminTour(
 
 export async function deleteAdminTour(tourId: string) {
   try {
-    return db.$transaction(async (tx) => {
+      return await db.$transaction(async (tx) => {
       await tx.favorite.deleteMany({ where: { tourId } });
       await tx.review.deleteMany({ where: { tourId } });
       await tx.booking.deleteMany({ where: { tourId } });
@@ -1517,27 +1517,6 @@ export async function updateAdminTourContent(
       },
     });
 
-    if (payload.featuredImage) {
-      const firstImage = await db.tourImage.findFirst({
-        where: { tourId },
-        orderBy: { sortOrder: "asc" },
-      });
-      if (firstImage) {
-        await db.tourImage.update({
-          where: { id: firstImage.id },
-          data: { imageUrl: payload.featuredImage },
-        });
-      } else {
-        await db.tourImage.create({
-          data: {
-            tourId,
-            imageUrl: payload.featuredImage,
-            sortOrder: 1,
-          },
-        });
-      }
-    }
-
     return updated;
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
@@ -1549,7 +1528,7 @@ export async function updateAdminTourContent(
 
 export async function updateAdminLocation(locationId: string, payload: { featured?: boolean }) {
   try {
-    return db.location.update({
+    return await db.location.update({
       where: { id: locationId },
       data: {
         ...(typeof payload.featured === "boolean" ? { featured: payload.featured } : {}),
@@ -1572,7 +1551,7 @@ export async function deleteAdminLocation(locationId: string) {
       return "HAS_TOURS";
     }
 
-    return db.location.delete({
+    return await db.location.delete({
       where: { id: locationId },
       select: {
         id: true,
@@ -1618,9 +1597,9 @@ export async function updateAdminLocationContent(
 
     if (payload.imageUrl) {
       const nextGallery = Array.from(
-        new Set([payload.imageUrl, ...updated.gallery.filter((image) => image !== payload.imageUrl)]),
+        new Set([payload.imageUrl, ...((Array.isArray(updated.gallery) ? updated.gallery : []) as string[]).filter((image) => image !== payload.imageUrl)]),
       ).filter(Boolean);
-      return db.location.update({
+      return await db.location.update({
         where: { id: locationId },
         data: {
           gallery: nextGallery.length ? nextGallery : [payload.imageUrl],
@@ -1645,7 +1624,7 @@ export async function updateAdminLocationGallery(locationId: string, gallery: st
       return null;
     }
 
-    return db.location.update({
+    return await db.location.update({
       where: { id: locationId },
       data: {
         gallery: nextGallery,
@@ -1673,7 +1652,7 @@ export async function updateAdminUser(
         status: true,
       },
     });
-    if (!current) return null;
+    if (!current) return "NOT_FOUND" as const;
 
     const nextRole = payload.role ?? current.role;
     const nextStatus = payload.status ?? current.status;
@@ -1689,7 +1668,7 @@ export async function updateAdminUser(
       }
     }
 
-    return db.user.update({
+    return await db.user.update({
       where: { id: userId },
       data: {
         ...(payload.role ? { role: payload.role } : {}),
@@ -1773,7 +1752,7 @@ export async function deleteAdminUser(userId: string) {
       where: { id: userId },
       select: { id: true, role: true },
     });
-    if (!current) return null;
+    if (!current) return "NOT_FOUND" as const;
 
     if (current.role === UserRole.ADMIN) {
       const totalAdmins = await db.user.count({
@@ -1784,7 +1763,7 @@ export async function deleteAdminUser(userId: string) {
       }
     }
 
-    return db.$transaction(async (tx) => {
+    return await db.$transaction(async (tx) => {
       await tx.favorite.deleteMany({ where: { userId } });
       await tx.review.deleteMany({ where: { userId } });
       await tx.booking.deleteMany({ where: { userId } });
@@ -1826,7 +1805,7 @@ export async function updateAdminUserContent(
         status: true,
       },
     });
-    if (!current) return null;
+    if (!current) return "NOT_FOUND" as const;
 
     const nextRole = payload.role ?? current.role;
     const nextStatus = payload.status ?? current.status;
@@ -1842,7 +1821,7 @@ export async function updateAdminUserContent(
       }
     }
 
-    return db.user.update({
+    return await db.user.update({
       where: { id: userId },
       data: {
         ...(payload.fullName ? { fullName: payload.fullName } : {}),
@@ -1876,7 +1855,7 @@ export async function createAdminLocation(input: {
   featured?: boolean;
 }) {
   try {
-    return db.location.create({
+    return await db.location.create({
       data: {
         name: input.name,
         slug: input.slug,
@@ -1910,29 +1889,67 @@ export async function createAdminTour(input: {
   transportation: string;
   departureLocation: string;
   featuredImage: string;
+  images?: string[];
+  itineraries?: Array<{
+    dayNumber: number;
+    title: string;
+    description: string;
+  }>;
   status?: TourStatus;
   featured?: boolean;
   locationId: string;
 }) {
   try {
-    return db.tour.create({
-      data: {
-        title: input.title,
-        slug: input.slug,
-        shortDescription: input.shortDescription,
-        description: input.description,
-        price: input.price,
-        discountPrice: input.discountPrice ?? null,
-        durationDays: input.durationDays,
-        durationNights: input.durationNights,
-        maxGuests: input.maxGuests,
-        transportation: input.transportation,
-        departureLocation: input.departureLocation,
-        featuredImage: input.featuredImage,
-        status: input.status ?? TourStatus.ACTIVE,
-        featured: Boolean(input.featured),
-        locationId: input.locationId,
-      },
+    return await db.$transaction(async (tx) => {
+      const created = await tx.tour.create({
+        data: {
+          title: input.title,
+          slug: input.slug,
+          shortDescription: input.shortDescription,
+          description: input.description,
+          price: input.price,
+          discountPrice: input.discountPrice ?? null,
+          durationDays: input.durationDays,
+          durationNights: input.durationNights,
+          maxGuests: input.maxGuests,
+          transportation: input.transportation,
+          departureLocation: input.departureLocation,
+          featuredImage: input.featuredImage,
+          status: input.status ?? TourStatus.ACTIVE,
+          featured: Boolean(input.featured),
+          locationId: input.locationId,
+        },
+      });
+
+      const galleryImages = Array.from(new Set((input.images ?? []).map((item) => item.trim()).filter(Boolean)));
+      if (galleryImages.length) {
+        await tx.tourImage.createMany({
+          data: galleryImages.map((imageUrl, index) => ({
+            tourId: created.id,
+            imageUrl,
+            sortOrder: index + 1,
+          })),
+        });
+      }
+
+      const itineraryRows = (input.itineraries ?? [])
+        .map((item, index) => ({
+          tourId: created.id,
+          dayNumber: index + 1,
+          title: item.title.trim(),
+          description: item.description.trim(),
+        }))
+        .filter((item) => item.title && item.description);
+
+      if (itineraryRows.length) {
+        await tx.itinerary.createMany({
+          data: itineraryRows,
+        });
+      }
+
+      return tx.tour.findUniqueOrThrow({
+        where: { id: created.id },
+      });
     });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
@@ -1965,18 +1982,6 @@ export async function createAdminTourImage(input: {
       },
     });
 
-    const firstImage = await db.tourImage.findFirst({
-      where: { tourId: input.tourId },
-      orderBy: { sortOrder: "asc" },
-      select: { imageUrl: true },
-    });
-    if (firstImage) {
-      await db.tour.update({
-        where: { id: input.tourId },
-        data: { featuredImage: firstImage.imageUrl },
-      });
-    }
-
     return created;
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
@@ -2006,18 +2011,6 @@ export async function updateAdminTourImage(
         sortOrder: true,
       },
     });
-
-    const firstImage = await db.tourImage.findFirst({
-      where: { tourId: updated.tourId },
-      orderBy: { sortOrder: "asc" },
-      select: { imageUrl: true },
-    });
-    if (firstImage) {
-      await db.tour.update({
-        where: { id: updated.tourId },
-        data: { featuredImage: firstImage.imageUrl },
-      });
-    }
 
     return updated;
   } catch (error) {
@@ -2052,10 +2045,6 @@ export async function deleteAdminTourImage(imageId: string) {
           }),
         ),
       );
-      await db.tour.update({
-        where: { id: deleted.tourId },
-        data: { featuredImage: orderedImages[0]!.imageUrl },
-      });
     }
 
     return deleted;
@@ -2118,13 +2107,6 @@ export async function reorderAdminTourImages(
       select: { id: true, tourId: true, imageUrl: true, sortOrder: true },
     });
 
-    if (orderedImages.length) {
-      await db.tour.update({
-        where: { id: tourId },
-        data: { featuredImage: orderedImages[0]!.imageUrl },
-      });
-    }
-
     return orderedImages;
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
@@ -2141,7 +2123,7 @@ export async function createAdminItinerary(input: {
   description: string;
 }) {
   try {
-    return db.itinerary.create({
+    return await db.itinerary.create({
       data: {
         tourId: input.tourId,
         dayNumber: input.dayNumber,
@@ -2162,7 +2144,7 @@ export async function updateAdminItinerary(
   payload: { dayNumber?: number; title?: string; description?: string },
 ) {
   try {
-    return db.itinerary.update({
+    return await db.itinerary.update({
       where: { id: itineraryId },
       data: {
         ...(typeof payload.dayNumber === "number" && Number.isFinite(payload.dayNumber)
@@ -2182,7 +2164,7 @@ export async function updateAdminItinerary(
 
 export async function deleteAdminItinerary(itineraryId: string) {
   try {
-    return db.itinerary.delete({
+    return await db.itinerary.delete({
       where: { id: itineraryId },
     });
   } catch (error) {
@@ -2217,7 +2199,3 @@ export const adminLabels = {
     [UserStatus.BLOCKED]: "Bị khóa",
   },
 } as const;
-
-
-
-

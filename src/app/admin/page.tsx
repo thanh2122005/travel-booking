@@ -1,5 +1,5 @@
-﻿import Link from "next/link";
-import nextDynamic from "next/dynamic";
+import Link from "next/link";
+
 import {
   BookOpen,
   CircleDollarSign,
@@ -19,7 +19,7 @@ import { LatestReviews } from "@/components/admin/dashboard/latest-reviews";
 import { NewConsultations } from "@/components/admin/dashboard/new-consultations";
 import { NewSubscribers } from "@/components/admin/dashboard/new-subscribers";
 import { StatusSummary } from "@/components/admin/dashboard/status-summary";
-import { RevenueChartSkeleton } from "@/components/admin/dashboard/revenue-chart-skeleton";
+import { RevenueChartDynamic as RevenueChart } from "@/components/admin/dashboard/revenue-chart-dynamic";
 import type {
   DashboardRecentBooking,
   DashboardRecentInquiry,
@@ -38,10 +38,6 @@ type AdminPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-const RevenueChart = nextDynamic(
-  () => import("@/components/admin/dashboard/revenue-chart").then((mod) => mod.RevenueChart),
-  { ssr: false, loading: () => <RevenueChartSkeleton /> },
-);
 
 const rangeOptions = [
   { label: "7 ngày", value: 7 },
@@ -170,23 +166,30 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     ...(granularity ? { granularity } : {}),
   };
 
-  const data = await getAdminDashboardData({
-    ...(hasCustomDateRange
-      ? {
-          startDate: startDate || undefined,
-          endDate: endDate || undefined,
-        }
-      : {
-          rangeDays,
-        }),
-    ...(granularity ? { granularity } : {}),
-  }).catch(() => null);
+  let data: Awaited<ReturnType<typeof getAdminDashboardData>> | null = null;
+  let dashboardLoadFailed = false;
+
+  try {
+    data = await getAdminDashboardData({
+      ...(hasCustomDateRange
+        ? {
+            startDate: startDate || undefined,
+            endDate: endDate || undefined,
+          }
+        : {
+            rangeDays,
+          }),
+      ...(granularity ? { granularity } : {}),
+    });
+  } catch {
+    dashboardLoadFailed = true;
+  }
 
   if (!data) {
     return (
       <EmptyState
-        title="Không thể tải dữ liệu quản trị"
-        description="Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại."
+        title={dashboardLoadFailed ? "Không thể tải dữ liệu quản trị" : "Dữ liệu quản trị chưa sẵn sàng"}
+        description={dashboardLoadFailed ? "Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại." : "Hiện chưa có dữ liệu để hiển thị trên bảng điều khiển."}
         ctaHref="/admin"
         ctaLabel="Thử lại"
       />
@@ -194,6 +197,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   }
 
   const orderDelta = buildDeltaText(data.timeRangeStats.bookings, data.previousTimeRangeStats.bookings, "number");
+
   const revenueDelta = buildDeltaText(
     data.timeRangeStats.confirmedRevenue,
     data.previousTimeRangeStats.confirmedRevenue,

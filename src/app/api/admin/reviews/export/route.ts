@@ -58,14 +58,16 @@ export async function GET(request: NextRequest) {
   const createdFromRaw = normalizeParam(request.nextUrl.searchParams.get("createdFrom"));
   const createdToRaw = normalizeParam(request.nextUrl.searchParams.get("createdTo"));
 
-  const items = await exportAdminReviews({
+  let items: Awaited<ReturnType<typeof exportAdminReviews>> | null = null;
+
+  try {
+    items = await exportAdminReviews({
     search: search || undefined,
     isVisible: parseVisibleFilter(isVisibleRaw),
     createdFrom: parseDateAtBoundary(createdFromRaw, "start"),
     createdTo: parseDateAtBoundary(createdToRaw, "end"),
-  }).catch(() => null);
-
-  if (!items) {
+  });
+  } catch {
     return NextResponse.json({ message: "Không thể xuất dữ liệu đánh giá lúc này." }, { status: 500 });
   }
 

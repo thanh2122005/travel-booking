@@ -107,20 +107,27 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
     ...(dateRangeLabel ? [dateRangeLabel] : []),
   ];
 
-  const data = await getAdminInquiries({
+  let data: Awaited<ReturnType<typeof getAdminInquiries>> | null = null;
+  let loadFailed = false;
+
+  try {
+    data = await getAdminInquiries({
     search: search || undefined,
     status,
     createdFrom: parseDateAtBoundary(createdFrom, "start"),
     createdTo: parseDateAtBoundary(createdTo, "end"),
     page,
     pageSize: 15,
-  }).catch(() => null);
+  });
+  } catch {
+    loadFailed = true;
+  }
 
   if (!data) {
     return (
       <EmptyState
-        title="Không thể tải yêu cầu tư vấn"
-        description="Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại."
+        title={loadFailed ? "Không thể tải yêu cầu tư vấn" : "Dữ liệu tư vấn chưa sẵn sàng"}
+        description={loadFailed ? "Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại." : "Hiện chưa có dữ liệu để hiển thị trên trang này."}
         ctaHref="/admin/inquiries"
         ctaLabel="Thử lại"
       />

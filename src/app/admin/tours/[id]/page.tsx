@@ -4,6 +4,7 @@ import { ArrowLeft, MapPin } from "lucide-react";
 import { AdminItineraryManager } from "@/components/admin/admin-itinerary-manager";
 import { AdminTourContentForm } from "@/components/admin/admin-tour-content-form";
 import { AdminTourImagesManager } from "@/components/admin/admin-tour-images-manager";
+import { EmptyState } from "@/components/common/empty-state";
 import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { Badge } from "@/components/ui/badge";
 import { getAdminLocationOptions, getAdminTourDetail } from "@/lib/db/admin-queries";
@@ -17,10 +18,29 @@ type AdminTourDetailPageProps = {
 
 export default async function AdminTourDetailPage({ params }: AdminTourDetailPageProps) {
   const { id } = await params;
-  const [tour, locationOptions] = await Promise.all([
-    getAdminTourDetail(id).catch(() => null),
-    getAdminLocationOptions().catch(() => []),
-  ]);
+  let tour: Awaited<ReturnType<typeof getAdminTourDetail>> | null = null;
+  let locationOptions: Awaited<ReturnType<typeof getAdminLocationOptions>> = [];
+  let loadFailed = false;
+
+  try {
+    [tour, locationOptions] = await Promise.all([
+      getAdminTourDetail(id),
+      getAdminLocationOptions(),
+    ]);
+  } catch {
+    loadFailed = true;
+  }
+
+  if (loadFailed) {
+    return (
+      <EmptyState
+        title="Không thể tải dữ liệu tour"
+        description="Vui lòng thử lại sau hoặc quay lại danh sách tour quản trị."
+        ctaHref="/admin/tours"
+        ctaLabel="Quay lại danh sách tour"
+      />
+    );
+  }
 
   if (!tour) {
     notFound();
@@ -63,13 +83,13 @@ export default async function AdminTourDetailPage({ params }: AdminTourDetailPag
             </div>
             <div className="flex flex-wrap gap-1.5 lg:justify-end">
               <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                Don {tour._count.bookings}
+                Đơn {tour._count.bookings}
               </span>
               <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                Danh gia {tour._count.reviews}
+                Đánh giá {tour._count.reviews}
               </span>
               <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                Yeu thich {tour._count.favorites}
+                Yêu thích {tour._count.favorites}
               </span>
             </div>
           </div>

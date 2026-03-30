@@ -1,4 +1,4 @@
-﻿import { BookingStatus, PaymentStatus } from "@prisma/client";
+import { BookingStatus, PaymentStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
@@ -21,13 +21,12 @@ export async function PATCH(request: Request) {
   if (guard) return guard;
 
   try {
-    const json = await parseJsonBody(request, "Dữ liệu cập nhật booking hàng loạt không hợp lệ.");
+    const json = await parseJsonBody(request, "Dữ liệu cập nhật đơn đặt tour hàng loạt không hợp lệ.");
     if (!json.ok) {
       return json.response;
     }
-    const body = json.data;
-    const parsed = bulkBookingSchema.safeParse(body);
 
+    const parsed = bulkBookingSchema.safeParse(json.data);
     if (!parsed.success) {
       const firstIssue = parsed.error.issues[0];
       return NextResponse.json(
@@ -36,13 +35,13 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const updated = await updateAdminBookingsBulk(parsed.data).catch(() => null);
-    if (!updated) {
-      return NextResponse.json({ message: "Không thể cập nhật booking hàng loạt." }, { status: 500 });
+    const updated = await updateAdminBookingsBulk(parsed.data);
+    if (updated.count === 0) {
+      return NextResponse.json({ message: "Không tìm thấy đơn đặt tour phù hợp để cập nhật." }, { status: 404 });
     }
 
     return NextResponse.json({
-      message: `Đã cập nhật ${updated.count} booking.`,
+      message: `Đã cập nhật ${updated.count} đơn đặt tour.`,
       count: updated.count,
     });
   } catch {

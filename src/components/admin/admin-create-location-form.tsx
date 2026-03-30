@@ -4,38 +4,26 @@ import { FormEvent, useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-
-const locationImageSuggestions = [
-  "/immerse-vietnam/images/HaNoi/hanoicover.jpg",
-  "/immerse-vietnam/images/DaNang/danangcover.jpg",
-  "/immerse-vietnam/images/HoiAn/hoiancover.jpg",
-  "/immerse-vietnam/images/Hue/huecover.jpg",
-  "/immerse-vietnam/images/NhaTrang/nhatrangcover.jpg",
-  "/immerse-vietnam/images/PQ.jpg",
-  "/immerse-vietnam/images/DaLat/dalatcover.jpg",
-  "/immerse-vietnam/images/HaLong/halongcover.jpg",
-  "/immerse-vietnam/images/HCM/hcmcover.jpg",
-  "/immerse-vietnam/images/HaiPhong/HP1.jpg",
-  "/immerse-vietnam/images/PhuYen/PY1.jpg",
-  "/immerse-vietnam/images/PhuQuy/PQuy1.jpg",
-] as const;
+import { AdminImagePicker } from "@/components/admin/admin-image-picker";
 
 export function AdminCreateLocationForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [featured, setFeatured] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+
     const payload = {
-      name: String(formData.get("name") ?? ""),
-      slug: String(formData.get("slug") ?? ""),
-      provinceOrCity: String(formData.get("provinceOrCity") ?? ""),
-      country: String(formData.get("country") ?? "Việt Nam"),
-      shortDescription: String(formData.get("shortDescription") ?? ""),
-      description: String(formData.get("description") ?? ""),
-      imageUrl: String(formData.get("imageUrl") ?? ""),
+      name: String(formData.get("name") ?? "").trim(),
+      slug: String(formData.get("slug") ?? "").trim(),
+      provinceOrCity: String(formData.get("provinceOrCity") ?? "").trim(),
+      country: String(formData.get("country") ?? "Việt Nam").trim(),
+      shortDescription: String(formData.get("shortDescription") ?? "").trim(),
+      description: String(formData.get("description") ?? "").trim(),
+      imageUrl: imageUrl.trim(),
       featured,
     };
 
@@ -46,55 +34,82 @@ export function AdminCreateLocationForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
+
         const data = (await response.json().catch(() => ({}))) as { message?: string };
         if (!response.ok) {
-          toast.error(data.message ?? "\u004b\u0068\u00f4\u006e\u0067 \u0074\u0068\u1ec3 \u0074\u1ea1\u006f \u0111\u0069\u1ec3\u006d \u0111\u1ebf\u006e\u002e");
+          toast.error(data.message ?? "Không thể tạo điểm đến.");
           return;
         }
 
-        toast.success(data.message ?? "\u0054\u1ea1\u006f \u0111\u0069\u1ec3\u006d \u0111\u1ebf\u006e \u0074\u0068\u00e0\u006e\u0068 \u0063\u00f4\u006e\u0067\u002e");
+        toast.success(data.message ?? "Tạo điểm đến thành công.");
         (event.currentTarget as HTMLFormElement).reset();
         setFeatured(false);
+        setImageUrl("");
         router.refresh();
       } catch {
-        toast.error("\u004b\u1ebf\u0074 \u006e\u1ed1\u0069 \u0074\u1ea1\u006d \u0074\u0068\u1eddi \u0067\u0069\u00e1\u006e \u0111\u006f\u1ea1\u006e\u002e \u0056\u0075\u0069 \u006c\u00f2\u006e\u0067 \u0074\u0068\u1eed \u006c\u1ea1\u0069\u002e");
+        toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
       }
     });
   }
 
   return (
     <form onSubmit={handleSubmit} className="iv-card grid gap-3 p-4 md:grid-cols-2">
-      <h3 className="md:col-span-2 text-base font-semibold text-slate-900">Thêm điểm đến mới</h3>
-      <input name="name" required placeholder="Tên điểm đến" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-      <input name="slug" required placeholder="Slug (vd: phu-quoc)" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-      <input name="provinceOrCity" required placeholder="Tỉnh/Thành phố" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-      <input name="country" defaultValue="Việt Nam" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-      <input name="shortDescription" required placeholder="Mô tả ngắn" className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-2" />
+      <h3 className="text-base font-semibold text-slate-900 md:col-span-2">Thêm điểm đến mới</h3>
+
+      <input
+        name="name"
+        required
+        placeholder="Tên điểm đến"
+        className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm"
+      />
+      <input
+        name="slug"
+        required
+        placeholder="Slug (vd: phu-quoc)"
+        className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm"
+      />
+      <input
+        name="provinceOrCity"
+        required
+        placeholder="Tỉnh/Thành phố"
+        className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm"
+      />
+      <input
+        name="country"
+        defaultValue="Việt Nam"
+        className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm"
+      />
+      <input
+        name="shortDescription"
+        required
+        placeholder="Mô tả ngắn"
+        className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm md:col-span-2"
+      />
       <textarea
         name="description"
         required
         placeholder="Mô tả chi tiết"
-        className="min-h-24 rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2"
+        className="min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2"
       />
-      <input
-        name="imageUrl"
-        required
-        list="location-image-options"
-        placeholder="URL ảnh đại diện (gợi ý từ thư viện local)"
-        className="h-10 rounded-xl border border-slate-200 px-3 text-sm md:col-span-2"
-      />
-      <datalist id="location-image-options">
-        {locationImageSuggestions.map((imagePath) => (
-          <option key={imagePath} value={imagePath} />
-        ))}
-      </datalist>
-      <p className="md:col-span-2 text-xs text-slate-500">
-        Gợi ý: chọn ảnh trong `public/immerse-vietnam/images` để hiển thị ổn định ngay cả khi mạng chặn ảnh ngoài.
-      </p>
+
+      <div className="md:col-span-2">
+        <AdminImagePicker
+          name="imageUrl"
+          value={imageUrl}
+          onChange={setImageUrl}
+          required
+        />
+      </div>
+
       <label className="inline-flex items-center gap-2 text-sm text-slate-600">
-        <input type="checkbox" checked={featured} onChange={(event) => setFeatured(event.target.checked)} />
+        <input
+          type="checkbox"
+          checked={featured}
+          onChange={(event) => setFeatured(event.target.checked)}
+        />
         Đánh dấu nổi bật
       </label>
+
       <button
         type="submit"
         disabled={isPending}

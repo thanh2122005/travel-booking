@@ -14,13 +14,12 @@ export async function PATCH(request: Request) {
   if (guard) return guard;
 
   try {
-    const json = await parseJsonBody(request, "Dữ liệu cập nhật review hàng loạt không hợp lệ.");
+    const json = await parseJsonBody(request, "Dữ liệu cập nhật đánh giá hàng loạt không hợp lệ.");
     if (!json.ok) {
       return json.response;
     }
-    const body = json.data;
-    const parsed = bulkReviewSchema.safeParse(body);
 
+    const parsed = bulkReviewSchema.safeParse(json.data);
     if (!parsed.success) {
       const firstIssue = parsed.error.issues[0];
       return NextResponse.json(
@@ -29,13 +28,13 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const updated = await updateAdminReviewsBulk(parsed.data).catch(() => null);
-    if (!updated) {
-      return NextResponse.json({ message: "Không thể cập nhật review hàng loạt." }, { status: 500 });
+    const updated = await updateAdminReviewsBulk(parsed.data);
+    if (updated.count === 0) {
+      return NextResponse.json({ message: "Không tìm thấy đánh giá phù hợp để cập nhật." }, { status: 404 });
     }
 
     return NextResponse.json({
-      message: `Đã cập nhật ${updated.count} review.`,
+      message: `Đã cập nhật ${updated.count} đánh giá.`,
       count: updated.count,
     });
   } catch {

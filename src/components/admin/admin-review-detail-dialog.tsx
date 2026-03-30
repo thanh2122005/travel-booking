@@ -40,7 +40,7 @@ export function AdminReviewDetailDialog({ review }: AdminReviewDetailDialogProps
     event.preventDefault();
     const parsedRating = Number(rating);
     if (!Number.isFinite(parsedRating) || parsedRating < 1 || parsedRating > 5) {
-      toast.error("Rating phải từ 1 đến 5.");
+      toast.error("Điểm đánh giá phải từ 1 đến 5.");
       return;
     }
     if (!comment.trim().length) {
@@ -60,11 +60,11 @@ export function AdminReviewDetailDialog({ review }: AdminReviewDetailDialogProps
       });
       const payload = (await response.json().catch(() => ({}))) as { message?: string };
       if (!response.ok) {
-        toast.error(payload.message ?? "Không thể cập nhật review.");
+        toast.error(payload.message ?? "Không thể cập nhật đánh giá.");
         return;
       }
 
-      toast.success(payload.message ?? "Đã cập nhật review.");
+      toast.success(payload.message ?? "Đã cập nhật đánh giá.");
       setOpen(false);
       router.refresh();
     });
@@ -74,11 +74,11 @@ export function AdminReviewDetailDialog({ review }: AdminReviewDetailDialogProps
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger className="inline-flex h-8 items-center justify-center rounded-md border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100">
         <PencilLine className="mr-1.5 h-3.5 w-3.5" />
-        Sửa review
+        Sửa đánh giá
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Chỉnh sửa review</DialogTitle>
+          <DialogTitle>Chỉnh sửa đánh giá</DialogTitle>
           <DialogDescription>
             {review.user.fullName} · {review.tour.title}
           </DialogDescription>
@@ -87,7 +87,7 @@ export function AdminReviewDetailDialog({ review }: AdminReviewDetailDialogProps
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid gap-3 md:grid-cols-[120px_1fr]">
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Rating</label>
+              <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Điểm</label>
               <input
                 type="number"
                 min={1}
@@ -103,7 +103,7 @@ export function AdminReviewDetailDialog({ review }: AdminReviewDetailDialogProps
                 checked={isVisible}
                 onChange={(event) => setIsVisible(event.target.checked)}
               />
-              Hiển thị review này trên website
+              Hiển thị đánh giá này trên website
             </label>
           </div>
 
@@ -127,7 +127,7 @@ export function AdminReviewDetailDialog({ review }: AdminReviewDetailDialogProps
                 Đang lưu
               </>
             ) : (
-              "Lưu review"
+              "Lưu đánh giá"
             )}
           </button>
         </form>

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
+import { isPrismaNotFoundError } from "@/lib/db/db-error";
 import { updateAdminReview } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 
@@ -21,17 +22,20 @@ export async function PATCH(request: Request, context: ReviewRouteContext) {
   if (!json.ok) {
     return json.response;
   }
-  const body = json.data;
-  const parsed = reviewUpdateSchema.safeParse(body);
 
+  const parsed = reviewUpdateSchema.safeParse(json.data);
   if (!parsed.success) {
     return NextResponse.json({ message: "Dữ liệu cập nhật không hợp lệ." }, { status: 400 });
   }
 
-  const updated = await updateAdminReview(id, parsed.data).catch(() => null);
-  if (!updated) {
+  try {
+    const updated = await updateAdminReview(id, parsed.data);
+    return NextResponse.json({ message: "Đã cập nhật trạng thái đánh giá.", review: updated });
+  } catch (error) {
+    if (isPrismaNotFoundError(error)) {
+      return NextResponse.json({ message: "Không tìm thấy đánh giá cần cập nhật." }, { status: 404 });
+    }
+
     return NextResponse.json({ message: "Không thể cập nhật đánh giá." }, { status: 500 });
   }
-
-  return NextResponse.json({ message: "Đã cập nhật trạng thái đánh giá.", review: updated });
 }

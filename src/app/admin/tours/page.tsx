@@ -46,7 +46,12 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
   const featured = parseFeatured(featuredParam);
   const hasActiveFilters = Boolean(search || statusParam || featuredParam || locationId);
 
-  const [data, locationOptions] = await Promise.all([
+  let data: Awaited<ReturnType<typeof getAdminTours>> | null = null;
+  let locationOptions: Awaited<ReturnType<typeof getAdminLocationOptions>> = [];
+  let loadFailed = false;
+
+  try {
+    [data, locationOptions] = await Promise.all([
     getAdminTours({
       search: search || undefined,
       status,
@@ -54,15 +59,18 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
       locationId: locationId || undefined,
       page: Number.isFinite(page) && page > 0 ? page : 1,
       pageSize: 12,
-    }).catch(() => null),
-    getAdminLocationOptions().catch(() => []),
+    }),
+    getAdminLocationOptions(),
   ]);
+  } catch {
+    loadFailed = true;
+  }
 
   if (!data) {
     return (
       <EmptyState
-        title="Không thể tải danh sách tour"
-        description="Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại."
+        title={loadFailed ? "Không thể tải danh sách tour" : "Dữ liệu tour chưa sẵn sàng"}
+        description={loadFailed ? "Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại." : "Hiện chưa có dữ liệu để hiển thị trên trang này."}
         ctaHref="/admin/tours"
         ctaLabel="Thử lại"
       />

@@ -26,16 +26,16 @@ export async function PATCH(request: Request, context: BookingDetailRouteContext
   if (guard) return guard;
 
   const { id } = await context.params;
-  const json = await parseJsonBody(request, "Dữ liệu cập nhật chi tiết booking không hợp lệ.");
+  const json = await parseJsonBody(request, "Dữ liệu cập nhật chi tiết đơn không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }
-  const body = json.data;
-  const parsed = bookingDetailUpdateSchema.safeParse(body);
+
+  const parsed = bookingDetailUpdateSchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(
-      { message: firstIssue?.message ?? "Dữ liệu cập nhật booking không hợp lệ." },
+      { message: firstIssue?.message ?? "Dữ liệu cập nhật đơn không hợp lệ." },
       { status: 400 },
     );
   }
@@ -48,27 +48,34 @@ export async function PATCH(request: Request, context: BookingDetailRouteContext
     return NextResponse.json({ message: "Ngày khởi hành không hợp lệ." }, { status: 400 });
   }
 
-  const updated = await updateAdminBookingDetail(id, {
-    fullName: parsed.data.fullName,
-    email: parsed.data.email,
-    phone: parsed.data.phone,
-    numberOfGuests: parsed.data.numberOfGuests,
-    note: parsed.data.note ?? null,
-    departureDate: departureDate ? departureDate.toISOString() : null,
-    paymentMethod: parsed.data.paymentMethod,
-    status: parsed.data.status,
-    paymentStatus: parsed.data.paymentStatus,
-  }).catch(() => null);
+  try {
+    const updated = await updateAdminBookingDetail(id, {
+      fullName: parsed.data.fullName,
+      email: parsed.data.email,
+      phone: parsed.data.phone,
+      numberOfGuests: parsed.data.numberOfGuests,
+      note: parsed.data.note ?? null,
+      departureDate: departureDate ? departureDate.toISOString() : null,
+      paymentMethod: parsed.data.paymentMethod,
+      status: parsed.data.status,
+      paymentStatus: parsed.data.paymentStatus,
+    });
 
-  if (!updated) {
-    return NextResponse.json(
-      { message: "Không thể cập nhật booking. Vui lòng kiểm tra số khách tối đa của tour." },
-      { status: 409 },
-    );
+    if (updated === "NOT_FOUND") {
+      return NextResponse.json({ message: "Không tìm thấy đơn đặt tour cần cập nhật." }, { status: 404 });
+    }
+    if (updated === "MAX_GUESTS_EXCEEDED") {
+      return NextResponse.json(
+        { message: "Không thể cập nhật đơn. Vui lòng kiểm tra số khách tối đa của tour." },
+        { status: 409 },
+      );
+    }
+
+    return NextResponse.json({
+      message: "Đã cập nhật chi tiết đơn đặt tour.",
+      booking: updated,
+    });
+  } catch {
+    return NextResponse.json({ message: "Không thể cập nhật chi tiết đơn đặt tour." }, { status: 500 });
   }
-
-  return NextResponse.json({
-    message: "Đã cập nhật chi tiết booking.",
-    booking: updated,
-  });
 }

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import { Loader2, Trash2 } from "lucide-react";
@@ -34,14 +34,14 @@ export function AdminTourActions({ tourId, status, featured }: AdminTourActionsP
         const payload = (await response.json().catch(() => ({}))) as { message?: string };
 
         if (!response.ok) {
-          toast.error(payload.message ?? "\u004b\u0068\u00f4\u006e\u0067 \u0074\u0068\u1ec3 \u0063\u1ead\u0070 \u006e\u0068\u1ead\u0074 \u0074\u006f\u0075\u0072\u002e");
+          toast.error(payload.message ?? "Không thể cập nhật tour.");
           return;
         }
 
-        toast.success(payload.message ?? "\u0110\u00e3 \u0063\u1ead\u0070 \u006e\u0068\u1ead\u0074 \u0074\u006f\u0075\u0072\u002e");
+        toast.success(payload.message ?? "Đã cập nhật tour.");
         router.refresh();
       } catch {
-        toast.error("\u004b\u1ebf\u0074 \u006e\u1ed1\u0069 \u0074\u1ea1\u006d \u0074\u0068\u1eddi \u0067\u0069\u00e1\u006e \u0111\u006f\u1ea1\u006e\u002e \u0056\u0075\u0069 \u006c\u00f2\u006e\u0067 \u0074\u0068\u1eed \u006c\u1ea1\u0069\u002e");
+        toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
       }
     });
   }
@@ -66,6 +66,8 @@ export function AdminTourActions({ tourId, status, featured }: AdminTourActionsP
 
       toast.success(payload.message ?? "Đã xóa tour thành công.");
       router.refresh();
+    } catch {
+      toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
     } finally {
       setIsDeleting(false);
     }

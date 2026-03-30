@@ -1,6 +1,7 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
+import { isPrismaNotFoundError } from "@/lib/db/db-error";
 import { deleteAdminLocation, updateAdminLocation } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 
@@ -27,12 +28,16 @@ export async function PATCH(request: Request, context: LocationRouteContext) {
     return NextResponse.json({ message: "Dữ liệu cập nhật không hợp lệ." }, { status: 400 });
   }
 
-  const updated = await updateAdminLocation(id, parsed.data).catch(() => null);
-  if (!updated) {
+  try {
+    const updated = await updateAdminLocation(id, parsed.data);
+    return NextResponse.json({ message: "Đã cập nhật điểm đến.", location: updated });
+  } catch (error) {
+    if (isPrismaNotFoundError(error)) {
+      return NextResponse.json({ message: "Không tìm thấy điểm đến cần cập nhật." }, { status: 404 });
+    }
+
     return NextResponse.json({ message: "Không thể cập nhật điểm đến." }, { status: 500 });
   }
-
-  return NextResponse.json({ message: "Đã cập nhật điểm đến.", location: updated });
 }
 
 export async function DELETE(_request: Request, context: LocationRouteContext) {
@@ -40,21 +45,26 @@ export async function DELETE(_request: Request, context: LocationRouteContext) {
   if (guard) return guard;
 
   const { id } = await context.params;
-  const removed = await deleteAdminLocation(id).catch(() => null);
 
-  if (removed === "HAS_TOURS") {
-    return NextResponse.json(
-      { message: "Không thể xóa điểm đến đang có tour. Vui lòng xử lý tour trước." },
-      { status: 400 },
-    );
-  }
+  try {
+    const removed = await deleteAdminLocation(id);
 
-  if (!removed) {
+    if (removed === "HAS_TOURS") {
+      return NextResponse.json(
+        { message: "Không thể xóa điểm đến đang có tour. Vui lòng xử lý tour trước." },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json({
+      message: "Đã xóa điểm đến thành công.",
+      location: removed,
+    });
+  } catch (error) {
+    if (isPrismaNotFoundError(error)) {
+      return NextResponse.json({ message: "Không tìm thấy điểm đến cần xóa." }, { status: 404 });
+    }
+
     return NextResponse.json({ message: "Không thể xóa điểm đến." }, { status: 500 });
   }
-
-  return NextResponse.json({
-    message: "Đã xóa điểm đến thành công.",
-    location: removed,
-  });
 }

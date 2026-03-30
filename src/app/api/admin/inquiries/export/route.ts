@@ -59,14 +59,16 @@ export async function GET(request: NextRequest) {
     ? (statusRaw as InquiryStatus)
     : undefined;
 
-  const items = await exportAdminInquiries({
+  let items: Awaited<ReturnType<typeof exportAdminInquiries>> | null = null;
+
+  try {
+    items = await exportAdminInquiries({
     search: search || undefined,
     status,
     createdFrom: parseDateAtBoundary(createdFromRaw, "start"),
     createdTo: parseDateAtBoundary(createdToRaw, "end"),
-  }).catch(() => null);
-
-  if (!items) {
+  });
+  } catch {
     return NextResponse.json({ message: "Không thể xuất dữ liệu tư vấn lúc này." }, { status: 500 });
   }
 

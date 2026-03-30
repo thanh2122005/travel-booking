@@ -69,15 +69,17 @@ export async function GET(request: NextRequest) {
     ? (paymentStatusRaw as PaymentStatus)
     : undefined;
 
-  const items = await exportAdminBookings({
+  let items: Awaited<ReturnType<typeof exportAdminBookings>> | null = null;
+
+  try {
+    items = await exportAdminBookings({
     search: search || undefined,
     status,
     paymentStatus,
     createdFrom: parseDateAtBoundary(createdFromRaw, "start"),
     createdTo: parseDateAtBoundary(createdToRaw, "end"),
-  }).catch(() => null);
-
-  if (!items) {
+  });
+  } catch {
     return NextResponse.json({ message: "Không thể xuất dữ liệu booking lúc này." }, { status: 500 });
   }
 

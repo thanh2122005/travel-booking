@@ -1,4 +1,4 @@
-﻿import { UserRole, UserStatus } from "@prisma/client";
+import { UserRole, UserStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApiAuth } from "@/lib/auth/admin-api";
@@ -16,44 +16,51 @@ const userBulkUpdateSchema = z
   });
 
 export async function PATCH(request: Request) {
-  const auth = await requireAdminApiAuth();
-  if (auth.response) return auth.response;
+  try {
+    const auth = await requireAdminApiAuth();
+    if (auth.response) return auth.response;
 
-  const json = await parseJsonBody(request, "Dữ liệu cập nhật hàng loạt người dùng không hợp lệ.");
-  if (!json.ok) {
-    return json.response;
+    const json = await parseJsonBody(request, "Dữ liệu cập nhật hàng loạt người dùng không hợp lệ.");
+    if (!json.ok) {
+      return json.response;
+    }
+
+    const parsed = userBulkUpdateSchema.safeParse(json.data);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { message: parsed.error.issues[0]?.message || "Dữ liệu cập nhật không hợp lệ." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      parsed.data.ids.includes(auth.userId ?? "") &&
+      ((parsed.data.role && parsed.data.role !== UserRole.ADMIN) || parsed.data.status === UserStatus.BLOCKED)
+    ) {
+      return NextResponse.json(
+        { message: "Không thể tự hạ quyền hoặc tự khóa tài khoản quản trị trong cập nhật hàng loạt." },
+        { status: 400 },
+      );
+    }
+
+    const result = await updateAdminUsersBulk(parsed.data);
+
+    if (result === "LAST_ADMIN") {
+      return NextResponse.json(
+        { message: "Không thể hạ quyền hoặc khóa quản trị viên cuối cùng của hệ thống." },
+        { status: 400 },
+      );
+    }
+
+    if (result.count === 0) {
+      return NextResponse.json({ message: "Không tìm thấy người dùng phù hợp để cập nhật." }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      message: `Đã cập nhật ${result.count} người dùng.`,
+      count: result.count,
+    });
+  } catch {
+    return NextResponse.json({ message: "Không thể xử lý yêu cầu lúc này." }, { status: 500 });
   }
-
-  const parsed = userBulkUpdateSchema.safeParse(json.data);
-  if (!parsed.success) {
-    return NextResponse.json({ message: parsed.error.issues[0]?.message || "Dữ liệu cập nhật không hợp lệ." }, { status: 400 });
-  }
-
-  if (
-    parsed.data.ids.includes(auth.userId ?? "") &&
-    ((parsed.data.role && parsed.data.role !== UserRole.ADMIN) || parsed.data.status === UserStatus.BLOCKED)
-  ) {
-    return NextResponse.json(
-      { message: "Không thể tự hạ quyền hoặc tự khóa tài khoản quản trị trong cập nhật hàng loạt." },
-      { status: 400 },
-    );
-  }
-
-  const result = await updateAdminUsersBulk(parsed.data).catch(() => null);
-
-  if (result === "LAST_ADMIN") {
-    return NextResponse.json(
-      { message: "Không thể hạ quyền hoặc khóa quản trị viên cuối cùng của hệ thống." },
-      { status: 400 },
-    );
-  }
-
-  if (!result) {
-    return NextResponse.json({ message: "Không thể cập nhật người dùng hàng loạt." }, { status: 500 });
-  }
-
-  return NextResponse.json({
-    message: `Đã cập nhật ${result.count} người dùng.`,
-    count: result.count,
-  });
 }

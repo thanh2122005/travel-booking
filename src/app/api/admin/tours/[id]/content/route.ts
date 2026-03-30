@@ -1,7 +1,8 @@
-﻿import { Prisma, TourStatus } from "@prisma/client";
+import { Prisma, TourStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
+import { isPrismaNotFoundError } from "@/lib/db/db-error";
 import { updateAdminTourContent } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { requiredMediaUrlSchema } from "@/lib/validations/media-url";
@@ -49,9 +50,6 @@ export async function PATCH(request: Request, context: TourContentRouteContext) 
 
   try {
     const updated = await updateAdminTourContent(id, parsed.data);
-    if (!updated) {
-      return NextResponse.json({ message: "Không thể cập nhật nội dung tour." }, { status: 500 });
-    }
     return NextResponse.json({
       message: "Đã cập nhật nội dung tour.",
       tour: updated,
@@ -63,6 +61,11 @@ export async function PATCH(request: Request, context: TourContentRouteContext) 
         { status: 409 },
       );
     }
+
+    if (isPrismaNotFoundError(error)) {
+      return NextResponse.json({ message: "Không tìm thấy tour cần cập nhật." }, { status: 404 });
+    }
+
     return NextResponse.json({ message: "Không thể cập nhật nội dung tour." }, { status: 500 });
   }
 }

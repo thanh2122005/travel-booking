@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { AdminLocationContentForm } from "@/components/admin/admin-location-content-form";
 import { AdminLocationGalleryManager } from "@/components/admin/admin-location-gallery-manager";
+import { EmptyState } from "@/components/common/empty-state";
 import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 import { Badge } from "@/components/ui/badge";
 import { getAdminLocationDetail } from "@/lib/db/admin-queries";
@@ -16,7 +17,25 @@ type AdminLocationDetailPageProps = {
 
 export default async function AdminLocationDetailPage({ params }: AdminLocationDetailPageProps) {
   const { id } = await params;
-  const location = await getAdminLocationDetail(id).catch(() => null);
+  let location: Awaited<ReturnType<typeof getAdminLocationDetail>> | null = null;
+  let loadFailed = false;
+
+  try {
+    location = await getAdminLocationDetail(id);
+  } catch {
+    loadFailed = true;
+  }
+
+  if (loadFailed) {
+    return (
+      <EmptyState
+        title="Không thể tải dữ liệu điểm đến"
+        description="Vui lòng thử lại sau hoặc quay lại danh sách điểm đến."
+        ctaHref="/admin/locations"
+        ctaLabel="Quay lại danh sách điểm đến"
+      />
+    );
+  }
 
   if (!location) {
     notFound();
@@ -51,13 +70,13 @@ export default async function AdminLocationDetailPage({ params }: AdminLocationD
             </div>
             <div className="flex flex-wrap gap-1.5 lg:justify-end">
               <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                Don {location._count.bookings}
+                Đơn {location._count.bookings}
               </span>
               <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                Danh gia {location._count.reviews}
+                Đánh giá {location._count.reviews}
               </span>
               <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                Yeu thich {location._count.favorites}
+                Yêu thích {location._count.favorites}
               </span>
             </div>
             <p className="text-xs text-slate-500">Cập nhật: {formatDate(location.updatedAt)}</p>
@@ -66,13 +85,13 @@ export default async function AdminLocationDetailPage({ params }: AdminLocationD
       </section>
 
       <div id="noi-dung-dia-diem-admin" className="scroll-mt-24">
-        <AdminLocationContentForm location={location} />
+        <AdminLocationContentForm location={{ ...location, gallery: Array.isArray(location.gallery) ? location.gallery as string[] : [] }} />
       </div>
       <div id="gallery-dia-diem-admin" className="scroll-mt-24">
         <AdminLocationGalleryManager
           locationId={location.id}
           imageUrl={location.imageUrl}
-          gallery={location.gallery}
+          gallery={Array.isArray(location.gallery) ? location.gallery as string[] : []}
         />
       </div>
 
@@ -93,12 +112,10 @@ export default async function AdminLocationDetailPage({ params }: AdminLocationD
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">{tour.title}</p>
                   <p className="text-xs text-slate-500">
-                    {tour.durationDays}N{tour.durationNights}Đ ·{" "}
-                    {formatPrice(tour.discountPrice ?? tour.price)} · Cập nhật {formatDate(tour.updatedAt)}
+                    {tour.durationDays}N{tour.durationNights}Đ · {formatPrice(tour.discountPrice ?? tour.price)} · Cập nhật {formatDate(tour.updatedAt)}
                   </p>
                   <p className="text-xs text-slate-500">
-                    Đơn: {tour._count.bookings} · Đánh giá: {tour._count.reviews} · Yêu thích:{" "}
-                    {tour._count.favorites}
+                    Đơn: {tour._count.bookings} · Đánh giá: {tour._count.reviews} · Yêu thích: {tour._count.favorites}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 md:justify-end">

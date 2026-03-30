@@ -25,17 +25,24 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
   const page = Number(normalizeParam(params.page) || "1");
   const hasActiveFilters = Boolean(search);
 
-  const data = await getAdminLocations({
+  let data: Awaited<ReturnType<typeof getAdminLocations>> | null = null;
+  let loadFailed = false;
+
+  try {
+    data = await getAdminLocations({
     search: search || undefined,
     page: Number.isFinite(page) ? page : 1,
     pageSize: 12,
-  }).catch(() => null);
+  });
+  } catch {
+    loadFailed = true;
+  }
 
   if (!data) {
     return (
       <EmptyState
-        title="Không thể tải danh sách điểm đến"
-        description="Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại."
+        title={loadFailed ? "Không thể tải danh sách điểm đến" : "Dữ liệu điểm đến chưa sẵn sàng"}
+        description={loadFailed ? "Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại." : "Hiện chưa có dữ liệu để hiển thị trên trang này."}
         ctaHref="/admin/locations"
         ctaLabel="Thử lại"
       />

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import { Loader2, Trash2 } from "lucide-react";
@@ -27,14 +27,14 @@ export function AdminLocationActions({ locationId, featured }: AdminLocationActi
         const payload = (await response.json().catch(() => ({}))) as { message?: string };
 
         if (!response.ok) {
-          toast.error(payload.message ?? "\u004b\u0068\u00f4\u006e\u0067 \u0074\u0068\u1ec3 \u0063\u1ead\u0070 \u006e\u0068\u1ead\u0074 \u0111\u0069\u1ec3\u006d \u0111\u1ebf\u006e\u002e");
+          toast.error(payload.message ?? "Không thể cập nhật điểm đến.");
           return;
         }
 
-        toast.success(payload.message ?? "\u0110\u00e3 \u0063\u1ead\u0070 \u006e\u0068\u1ead\u0074 \u0111\u0069\u1ec3\u006d \u0111\u1ebf\u006e\u002e");
+        toast.success(payload.message ?? "Đã cập nhật điểm đến.");
         router.refresh();
       } catch {
-        toast.error("\u004b\u1ebf\u0074 \u006e\u1ed1\u0069 \u0074\u1ea1\u006d \u0074\u0068\u1eddi \u0067\u0069\u00e1\u006e \u0111\u006f\u1ea1\u006e\u002e \u0056\u0075\u0069 \u006c\u00f2\u006e\u0067 \u0074\u0068\u1eed \u006c\u1ea1\u0069\u002e");
+        toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
       }
     });
   }
@@ -59,6 +59,8 @@ export function AdminLocationActions({ locationId, featured }: AdminLocationActi
 
       toast.success(payload.message ?? "Đã xóa điểm đến thành công.");
       router.refresh();
+    } catch {
+      toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
     } finally {
       setIsDeleting(false);
     }

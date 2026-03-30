@@ -1,14 +1,13 @@
-﻿import { z } from "zod";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminApi } from "@/lib/auth/admin-api";
+import { isPrismaNotFoundError } from "@/lib/db/db-error";
 import { updateAdminLocationGallery } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { requiredMediaUrlSchema } from "@/lib/validations/media-url";
 
 const updateLocationGallerySchema = z.object({
-  gallery: z
-    .array(requiredMediaUrlSchema("URL ảnh không hợp lệ."))
-    .min(1, "Gallery điểm đến phải có ít nhất 1 ảnh."),
+  gallery: z.array(requiredMediaUrlSchema("URL ảnh không hợp lệ.")).min(1, "Gallery điểm đến phải có ít nhất 1 ảnh."),
 });
 
 type LocationGalleryRouteContext = {
@@ -34,13 +33,21 @@ export async function PATCH(request: Request, context: LocationGalleryRouteConte
     );
   }
 
-  const updated = await updateAdminLocationGallery(id, parsed.data.gallery).catch(() => null);
-  if (!updated) {
+  try {
+    const updated = await updateAdminLocationGallery(id, parsed.data.gallery);
+    if (!updated) {
+      return NextResponse.json({ message: "Gallery điểm đến không hợp lệ." }, { status: 400 });
+    }
+
+    return NextResponse.json({
+      message: "Đã cập nhật gallery điểm đến.",
+      location: updated,
+    });
+  } catch (error) {
+    if (isPrismaNotFoundError(error)) {
+      return NextResponse.json({ message: "Không tìm thấy điểm đến cần cập nhật gallery." }, { status: 404 });
+    }
+
     return NextResponse.json({ message: "Không thể cập nhật gallery điểm đến." }, { status: 500 });
   }
-
-  return NextResponse.json({
-    message: "Đã cập nhật gallery điểm đến.",
-    location: updated,
-  });
 }

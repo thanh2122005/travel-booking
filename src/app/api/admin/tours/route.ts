@@ -1,7 +1,8 @@
-﻿import { TourStatus } from "@prisma/client";
+import { Prisma, TourStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
+import { isPrismaForeignKeyError } from "@/lib/db/db-error";
 import { createAdminTour } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { requiredMediaUrlSchema } from "@/lib/validations/media-url";
@@ -18,7 +19,18 @@ const createTourSchema = z.object({
   maxGuests: z.number().int().positive("Số khách tối đa phải lớn hơn 0."),
   transportation: z.string().trim().min(1, "Phương tiện là bắt buộc."),
   departureLocation: z.string().trim().min(1, "Điểm khởi hành là bắt buộc."),
-  featuredImage: requiredMediaUrlSchema("Ảnh đại diện là bắt buộc."),
+  featuredImage: requiredMediaUrlSchema("Ảnh nổi bật là bắt buộc."),
+  images: z.array(z.string().trim()).optional().default([]),
+  itineraries: z
+    .array(
+      z.object({
+        dayNumber: z.number().int().positive("Ngày không hợp lệ."),
+        title: z.string().trim().min(1, "Tiêu đề lịch trình là bắt buộc."),
+        description: z.string().trim().min(1, "Mô tả lịch trình là bắt buộc."),
+      }),
+    )
+    .optional()
+    .default([]),
   status: z.nativeEnum(TourStatus).optional(),
   featured: z.boolean().optional(),
   locationId: z.string().trim().min(1, "Điểm đến là bắt buộc."),
@@ -42,10 +54,40 @@ export async function POST(request: Request) {
     );
   }
 
-  const created = await createAdminTour(parsed.data).catch(() => null);
-  if (!created) {
-    return NextResponse.json({ message: "Không thể tạo tour mới." }, { status: 500 });
+  const normalized = {
+    ...parsed.data,
+    images: parsed.data.images.map((item) => item.trim()).filter(Boolean),
+    itineraries: parsed.data.itineraries
+      .map((item, index) => ({
+        dayNumber: index + 1,
+        title: item.title.trim(),
+        description: item.description.trim(),
+      }))
+      .filter((item) => item.title && item.description),
+  };
+
+  if (!normalized.itineraries.length) {
+    return NextResponse.json(
+      { message: "Vui lòng thêm ít nhất 1 ngày lịch trình." },
+      { status: 400 },
+    );
   }
 
-  return NextResponse.json({ message: "Tạo tour thành công.", tour: created }, { status: 201 });
+  try {
+    const created = await createAdminTour(normalized);
+    return NextResponse.json({ message: "Tạo tour thành công.", tour: created }, { status: 201 });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json(
+        { message: "Slug tour đã tồn tại. Vui lòng nhập slug khác." },
+        { status: 409 },
+      );
+    }
+
+    if (isPrismaForeignKeyError(error)) {
+      return NextResponse.json({ message: "Không tìm thấy điểm đến được chọn." }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Không thể tạo tour mới." }, { status: 500 });
+  }
 }

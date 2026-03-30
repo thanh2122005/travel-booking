@@ -55,7 +55,9 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
   const [phone, setPhone] = useState(booking.phone);
   const [numberOfGuests, setNumberOfGuests] = useState(String(booking.numberOfGuests));
   const [note, setNote] = useState(booking.note ?? "");
-  const [paymentMethod, setPaymentMethod] = useState(booking.paymentMethod ?? "Thanh toán khi xác nhận");
+  const [paymentMethod, setPaymentMethod] = useState(
+    booking.paymentMethod ?? "Thanh toán khi xác nhận",
+  );
   const [departureDate, setDepartureDate] = useState(toDateInputValue(booking.departureDate));
   const [status, setStatus] = useState<BookingStatusValue>(booking.status);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatusValue>(booking.paymentStatus);
@@ -99,11 +101,11 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
 
         const payload = (await response.json().catch(() => ({}))) as { message?: string };
         if (!response.ok) {
-          toast.error(payload.message ?? "Không thể cập nhật booking.");
+          toast.error(payload.message ?? "Không thể cập nhật đơn đặt tour.");
           return;
         }
 
-        toast.success(payload.message ?? "Đã cập nhật booking.");
+        toast.success(payload.message ?? "Đã cập nhật đơn đặt tour.");
         setOpen(false);
         router.refresh();
       } catch {
@@ -120,7 +122,7 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Cập nhật booking {booking.bookingCode}</DialogTitle>
+          <DialogTitle>Cập nhật đơn {booking.bookingCode}</DialogTitle>
           <DialogDescription>
             Chỉnh thông tin khách, ngày đi và trạng thái xử lý cho đơn tour {booking.tour.title}.
           </DialogDescription>
@@ -227,7 +229,7 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
                 Đang lưu
               </>
             ) : (
-              "Lưu chi tiết booking"
+              "Lưu chi tiết đơn"
             )}
           </button>
         </form>

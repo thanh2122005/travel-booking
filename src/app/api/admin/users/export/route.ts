@@ -60,15 +60,17 @@ export async function GET(request: NextRequest) {
   const role = roleValues.includes(roleRaw as UserRole) ? (roleRaw as UserRole) : undefined;
   const status = statusValues.includes(statusRaw as UserStatus) ? (statusRaw as UserStatus) : undefined;
 
-  const items = await exportAdminUsers({
+  let items: Awaited<ReturnType<typeof exportAdminUsers>> | null = null;
+
+  try {
+    items = await exportAdminUsers({
     search: search || undefined,
     role,
     status,
     createdFrom: parseDateAtBoundary(createdFromRaw, "start"),
     createdTo: parseDateAtBoundary(createdToRaw, "end"),
-  }).catch(() => null);
-
-  if (!items) {
+  });
+  } catch {
     return NextResponse.json({ message: "Không thể xuất dữ liệu người dùng lúc này." }, { status: 500 });
   }
 

@@ -31,13 +31,6 @@ type AdminNewsletterListFilter = AdminListFilter & {
 };
 
 const MAX_ADMIN_DATE_RANGE_DAYS = 366;
-let forceDemoEngagementStore = false;
-
-function markDemoFallback(error?: unknown) {
-  if (error && isDatabaseUnavailableError(error)) {
-    forceDemoEngagementStore = true;
-  }
-}
 
 function startOfDay(value: Date) {
   const next = new Date(value);
@@ -106,12 +99,12 @@ function buildInquiryWhere(filter: AdminInquiryListFilter) {
   const where: Prisma.ContactInquiryWhereInput = filter.search
     ? {
         OR: [
-          { referenceCode: { contains: filter.search, mode: "insensitive" } },
-          { fullName: { contains: filter.search, mode: "insensitive" } },
-          { phone: { contains: filter.search, mode: "insensitive" } },
-          { email: { contains: filter.search, mode: "insensitive" } },
-          { message: { contains: filter.search, mode: "insensitive" } },
-          { tour: { title: { contains: filter.search, mode: "insensitive" } } },
+          { referenceCode: { contains: filter.search } },
+          { fullName: { contains: filter.search } },
+          { phone: { contains: filter.search } },
+          { email: { contains: filter.search } },
+          { message: { contains: filter.search } },
+          { tour: { title: { contains: filter.search } } },
         ],
       }
     : {};
@@ -135,7 +128,7 @@ function buildNewsletterWhere(filter: AdminNewsletterListFilter) {
 
   const where: Prisma.NewsletterSubscriberWhereInput = filter.search
     ? {
-        email: { contains: filter.search, mode: "insensitive" },
+        email: { contains: filter.search },
       }
     : {};
 
@@ -171,14 +164,6 @@ function mapDemoNewsletter(
 }
 
 export async function getAdminInquiries(filter: AdminInquiryListFilter = {}) {
-  if (forceDemoEngagementStore) {
-    const demoData = await demoGetContactInquiries(filter);
-    return {
-      ...demoData,
-      items: demoData.items.map(mapDemoInquiry),
-    };
-  }
-
   try {
     const { page, pageSize, skip } = getPagination(filter, 15);
     const where = buildInquiryWhere(filter);
@@ -210,7 +195,6 @@ export async function getAdminInquiries(filter: AdminInquiryListFilter = {}) {
     };
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      markDemoFallback(error);
       const demoData = await demoGetContactInquiries(filter);
       return {
         ...demoData,
@@ -222,11 +206,6 @@ export async function getAdminInquiries(filter: AdminInquiryListFilter = {}) {
 }
 
 export async function exportAdminInquiries(filter: AdminInquiryListFilter = {}) {
-  if (forceDemoEngagementStore) {
-    const demoData = await demoExportContactInquiries(filter);
-    return demoData.map(mapDemoInquiry);
-  }
-
   try {
     const where = buildInquiryWhere(filter);
     return await db.contactInquiry.findMany({
@@ -244,7 +223,6 @@ export async function exportAdminInquiries(filter: AdminInquiryListFilter = {}) 
     });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      markDemoFallback(error);
       const demoData = await demoExportContactInquiries(filter);
       return demoData.map(mapDemoInquiry);
     }
@@ -253,11 +231,6 @@ export async function exportAdminInquiries(filter: AdminInquiryListFilter = {}) 
 }
 
 export async function updateAdminInquiryStatus(inquiryId: string, status: InquiryStatus) {
-  if (forceDemoEngagementStore) {
-    const updated = await demoUpdateContactInquiryStatus(inquiryId, status).catch(() => null);
-    return updated ? mapDemoInquiry(updated) : null;
-  }
-
   try {
     return await db.contactInquiry.update({
       where: { id: inquiryId },
@@ -272,9 +245,18 @@ export async function updateAdminInquiryStatus(inquiryId: string, status: Inquir
       },
     });
   } catch (error) {
-    markDemoFallback(error);
-    const updated = await demoUpdateContactInquiryStatus(inquiryId, status).catch(() => null);
-    return updated ? mapDemoInquiry(updated) : null;
+    if (isDatabaseUnavailableError(error)) {
+      let updated: Awaited<ReturnType<typeof demoUpdateContactInquiryStatus>> | null = null;
+
+      try {
+        updated = await demoUpdateContactInquiryStatus(inquiryId, status);
+      } catch {
+        updated = null;
+      }
+
+      return updated ? mapDemoInquiry(updated) : null;
+    }
+    throw error;
   }
 }
 
@@ -282,10 +264,6 @@ export async function updateAdminInquiriesBulk(input: {
   ids: string[];
   status: InquiryStatus;
 }) {
-  if (forceDemoEngagementStore) {
-    return demoUpdateContactInquiriesBulk(input).catch(() => ({ count: 0 }));
-  }
-
   try {
     return await db.contactInquiry.updateMany({
       where: {
@@ -298,20 +276,14 @@ export async function updateAdminInquiriesBulk(input: {
       },
     });
   } catch (error) {
-    markDemoFallback(error);
-    return demoUpdateContactInquiriesBulk(input).catch(() => ({ count: 0 }));
+    if (isDatabaseUnavailableError(error)) {
+      return demoUpdateContactInquiriesBulk(input).catch(() => ({ count: 0 }));
+    }
+    throw error;
   }
 }
 
 export async function getAdminNewsletterSubscribers(filter: AdminNewsletterListFilter = {}) {
-  if (forceDemoEngagementStore) {
-    const demoData = await demoGetNewsletterSubscribers(filter);
-    return {
-      ...demoData,
-      items: demoData.items.map(mapDemoNewsletter),
-    };
-  }
-
   try {
     const { page, pageSize, skip } = getPagination(filter, 15);
     const where = buildNewsletterWhere(filter);
@@ -335,7 +307,6 @@ export async function getAdminNewsletterSubscribers(filter: AdminNewsletterListF
     };
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      markDemoFallback(error);
       const demoData = await demoGetNewsletterSubscribers(filter);
       return {
         ...demoData,
@@ -347,11 +318,6 @@ export async function getAdminNewsletterSubscribers(filter: AdminNewsletterListF
 }
 
 export async function exportAdminNewsletterSubscribers(filter: AdminNewsletterListFilter = {}) {
-  if (forceDemoEngagementStore) {
-    const demoData = await demoExportNewsletterSubscribers(filter);
-    return demoData.map(mapDemoNewsletter);
-  }
-
   try {
     const where = buildNewsletterWhere(filter);
     return await db.newsletterSubscriber.findMany({
@@ -361,7 +327,6 @@ export async function exportAdminNewsletterSubscribers(filter: AdminNewsletterLi
     });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      markDemoFallback(error);
       const demoData = await demoExportNewsletterSubscribers(filter);
       return demoData.map(mapDemoNewsletter);
     }
@@ -375,10 +340,6 @@ export async function deleteAdminNewsletterSubscribersBulk(input: { ids: string[
     return { count: 0 };
   }
 
-  if (forceDemoEngagementStore) {
-    return demoDeleteNewsletterSubscribersBulk({ ids: uniqueIds });
-  }
-
   try {
     return await db.newsletterSubscriber.deleteMany({
       where: {
@@ -389,7 +350,6 @@ export async function deleteAdminNewsletterSubscribersBulk(input: { ids: string[
     });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      markDemoFallback(error);
       return demoDeleteNewsletterSubscribersBulk({ ids: uniqueIds });
     }
     throw error;

@@ -183,9 +183,10 @@ export function AdminTourImagesManager({ tourId, images }: AdminTourImagesManage
     <section className="iv-card space-y-4 rounded-2xl border-slate-200/80 bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-slate-700">Ảnh tour</h3>
+          <h3 className="text-lg font-semibold text-slate-700">Ảnh chi tiết của tour</h3>
           <p className="text-sm text-slate-500">
-            Kéo thả để đổi thứ tự hiển thị. Ảnh đầu tiên sẽ là ảnh đại diện trên trang công khai.
+            Kéo thả để đổi thứ tự hiển thị. Ảnh nổi bật của tour được quản lý riêng, không tự đồng
+            bộ từ gallery này.
           </p>
         </div>
         <button

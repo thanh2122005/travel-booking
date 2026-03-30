@@ -17,7 +17,21 @@ export function escapeCsvCell(value: unknown) {
   return /[",\n]/.test(safeText) ? `"${safeText}"` : safeText;
 }
 
-export function toCsv(rows: Array<Array<unknown>>) {
-  return rows.map((row) => row.map((value) => escapeCsvCell(value)).join(",")).join("\n");
+function needsQuote(text: string, delimiter: string) {
+  const escapedDelimiter = delimiter.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const matcher = new RegExp(`[\\"\\n\\r${escapedDelimiter}]`);
+  return matcher.test(text);
 }
 
+export function toCsv(rows: Array<Array<unknown>>, delimiter = ",") {
+  return rows
+    .map((row) =>
+      row
+        .map((value) => {
+          const cell = sanitizeCsvFormula(String(value ?? "")).replace(/"/g, '""');
+          return needsQuote(cell, delimiter) ? `"${cell}"` : cell;
+        })
+        .join(delimiter),
+    )
+    .join("\r\n");
+}

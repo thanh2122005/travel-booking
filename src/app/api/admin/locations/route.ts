@@ -1,4 +1,5 @@
-﻿import { z } from "zod";
+import { Prisma } from "@prisma/client";
+import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { createAdminLocation } from "@/lib/db/admin-queries";
@@ -34,13 +35,20 @@ export async function POST(request: Request) {
     );
   }
 
-  const created = await createAdminLocation(parsed.data).catch(() => null);
-  if (!created) {
+  try {
+    const created = await createAdminLocation(parsed.data);
+    return NextResponse.json(
+      { message: "Tạo điểm đến thành công.", location: created },
+      { status: 201 },
+    );
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json(
+        { message: "Slug điểm đến đã tồn tại. Vui lòng nhập slug khác." },
+        { status: 409 },
+      );
+    }
+
     return NextResponse.json({ message: "Không thể tạo điểm đến mới." }, { status: 500 });
   }
-
-  return NextResponse.json(
-    { message: "Tạo điểm đến thành công.", location: created },
-    { status: 201 },
-  );
 }

@@ -1,7 +1,8 @@
-﻿import { Prisma, UserRole, UserStatus } from "@prisma/client";
+import { Prisma, UserRole, UserStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApiAuth } from "@/lib/auth/admin-api";
+import { isPrismaNotFoundError } from "@/lib/db/db-error";
 import { updateAdminUserContent } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { optionalNullableMediaUrlSchema } from "@/lib/validations/media-url";
@@ -38,10 +39,7 @@ export async function PATCH(request: Request, context: UserContentRouteContext) 
     );
   }
 
-  if (
-    id === auth.userId &&
-    (parsed.data.role !== UserRole.ADMIN || parsed.data.status === UserStatus.BLOCKED)
-  ) {
+  if (id === auth.userId && (parsed.data.role !== UserRole.ADMIN || parsed.data.status === UserStatus.BLOCKED)) {
     return NextResponse.json(
       { message: "Bạn không thể tự hạ quyền hoặc tự khóa tài khoản quản trị." },
       { status: 400 },
@@ -57,15 +55,18 @@ export async function PATCH(request: Request, context: UserContentRouteContext) 
       role: parsed.data.role,
       status: parsed.data.status,
     });
+
     if (updated === "LAST_ADMIN") {
       return NextResponse.json(
         { message: "Không thể hạ quyền hoặc khóa quản trị viên cuối cùng của hệ thống." },
         { status: 400 },
       );
     }
+
     if (!updated) {
-      return NextResponse.json({ message: "Không thể cập nhật người dùng." }, { status: 500 });
+      return NextResponse.json({ message: "Không tìm thấy người dùng cần cập nhật." }, { status: 404 });
     }
+
     return NextResponse.json({
       message: "Đã cập nhật thông tin người dùng.",
       user: updated,
@@ -77,6 +78,11 @@ export async function PATCH(request: Request, context: UserContentRouteContext) 
         { status: 409 },
       );
     }
+
+    if (isPrismaNotFoundError(error)) {
+      return NextResponse.json({ message: "Không tìm thấy người dùng cần cập nhật." }, { status: 404 });
+    }
+
     return NextResponse.json({ message: "Không thể cập nhật người dùng." }, { status: 500 });
   }
 }

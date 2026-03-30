@@ -1,11 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AdminBookingActions } from "@/components/admin/admin-booking-actions";
 import { AdminBookingDetailDialog } from "@/components/admin/admin-booking-detail-dialog";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatPrice } from "@/lib/utils/format";
@@ -91,7 +90,7 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
 
   function handleBulkUpdate() {
     if (!selectedIdsInPage.length) {
-      toast.error("Vui lòng chọn ít nhất một booking để cập nhật.");
+      toast.error("Vui lòng chọn ít nhất một đơn để cập nhật.");
       return;
     }
 
@@ -114,14 +113,14 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
 
         const payload = (await response.json().catch(() => ({}))) as { message?: string };
         if (!response.ok) {
-          toast.error(payload.message ?? "Không thể cập nhật booking hàng loạt.");
+          toast.error(payload.message ?? "Không thể cập nhật đơn hàng loạt.");
           return;
         }
 
         setSelectedIds([]);
         setBulkStatus("");
         setBulkPaymentStatus("");
-        toast.success(payload.message ?? "Đã cập nhật booking hàng loạt.");
+        toast.success(payload.message ?? "Đã cập nhật đơn hàng loạt.");
         router.refresh();
       } catch {
         toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
@@ -137,7 +136,7 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
             <div className="min-w-[220px] flex-1">
               <p className="iv-admin-bulk-heading">Cập nhật hàng loạt</p>
               <p className="iv-admin-bulk-meta">
-                Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> booking trong trang hiện tại.
+                Đã chọn <span className="font-semibold text-slate-800">{selectedIdsInPage.length}</span> đơn trong trang hiện tại.
               </p>
             </div>
             {selectedIdsInPage.length ? (
@@ -243,12 +242,7 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
                   <Badge variant="outline">{paymentLabels[booking.paymentStatus]}</Badge>
                 </div>
 
-                <div className="space-y-2">
-                  <AdminBookingActions
-                    bookingId={booking.id}
-                    status={booking.status}
-                    paymentStatus={booking.paymentStatus}
-                  />
+                <div className="pt-2">
                   <AdminBookingDetailDialog booking={booking} />
                 </div>
               </div>
@@ -257,9 +251,9 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
         ))}
       </div>
 
-      <div className="iv-card hidden xl:block">
-        <div className="iv-admin-table-scroll">
-          <table className="w-full min-w-[1100px] text-sm">
+      <div className="hidden overflow-x-auto rounded-[1.25rem] border border-slate-200/60 bg-white shadow-[0_14px_35px_rgba(15,23,42,0.06)] xl:block">
+        <div className="p-4 pb-2">
+          <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -312,14 +306,8 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
                       <p className="text-xs text-slate-500">{formatDate(new Date(booking.createdAt))}</p>
                     </div>
                   </td>
-                  <td className="min-w-[232px] px-2 py-3">
-                    <div className="ml-auto flex w-full max-w-[216px] flex-col items-end gap-2">
-                      <AdminBookingActions
-                        bookingId={booking.id}
-                        status={booking.status}
-                        paymentStatus={booking.paymentStatus}
-                        compact
-                      />
+                  <td className="px-2 py-3">
+                    <div className="flex justify-end">
                       <AdminBookingDetailDialog booking={booking} />
                     </div>
                   </td>

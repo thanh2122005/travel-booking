@@ -51,13 +51,15 @@ export async function GET(request: NextRequest) {
   const createdFromRaw = normalizeParam(request.nextUrl.searchParams.get("createdFrom"));
   const createdToRaw = normalizeParam(request.nextUrl.searchParams.get("createdTo"));
 
-  const items = await exportAdminNewsletterSubscribers({
+  let items: Awaited<ReturnType<typeof exportAdminNewsletterSubscribers>> | null = null;
+
+  try {
+    items = await exportAdminNewsletterSubscribers({
     search: search || undefined,
     createdFrom: parseDateAtBoundary(createdFromRaw, "start"),
     createdTo: parseDateAtBoundary(createdToRaw, "end"),
-  }).catch(() => null);
-
-  if (!items) {
+  });
+  } catch {
     return NextResponse.json({ message: "Không thể xuất dữ liệu nhận tin lúc này." }, { status: 500 });
   }
 

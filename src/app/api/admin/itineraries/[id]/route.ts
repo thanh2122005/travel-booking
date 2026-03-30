@@ -1,7 +1,8 @@
-﻿import { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
+import { isPrismaNotFoundError } from "@/lib/db/db-error";
 import { deleteAdminItinerary, updateAdminItinerary } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 
@@ -51,6 +52,11 @@ export async function PATCH(request: Request, context: ItineraryByIdRouteContext
         { status: 409 },
       );
     }
+
+    if (isPrismaNotFoundError(error)) {
+      return NextResponse.json({ message: "Không tìm thấy lịch trình cần cập nhật." }, { status: 404 });
+    }
+
     return NextResponse.json({ message: "Không thể cập nhật lịch trình." }, { status: 500 });
   }
 }
@@ -60,10 +66,15 @@ export async function DELETE(_request: Request, context: ItineraryByIdRouteConte
   if (guard) return guard;
 
   const { id } = await context.params;
-  const deleted = await deleteAdminItinerary(id).catch(() => null);
-  if (!deleted) {
+
+  try {
+    await deleteAdminItinerary(id);
+    return NextResponse.json({ message: "Đã xóa lịch trình." });
+  } catch (error) {
+    if (isPrismaNotFoundError(error)) {
+      return NextResponse.json({ message: "Không tìm thấy lịch trình cần xóa." }, { status: 404 });
+    }
+
     return NextResponse.json({ message: "Không thể xóa lịch trình." }, { status: 500 });
   }
-
-  return NextResponse.json({ message: "Đã xóa lịch trình." });
 }

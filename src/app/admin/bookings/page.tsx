@@ -115,7 +115,11 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
     ...(dateRangeLabel ? [dateRangeLabel] : []),
   ];
 
-  const data = await getAdminBookings({
+  let data: Awaited<ReturnType<typeof getAdminBookings>> | null = null;
+  let loadFailed = false;
+
+  try {
+    data = await getAdminBookings({
     search: search || undefined,
     status,
     paymentStatus,
@@ -123,13 +127,16 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
     createdTo: parseDateAtBoundary(createdTo, "end"),
     page,
     pageSize: 15,
-  }).catch(() => null);
+  });
+  } catch {
+    loadFailed = true;
+  }
 
   if (!data) {
     return (
       <EmptyState
-        title="Không thể tải danh sách booking"
-        description="Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại."
+        title={loadFailed ? "Không thể tải danh sách đơn đặt tour" : "Dữ liệu booking chưa sẵn sàng"}
+        description={loadFailed ? "Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại." : "Hiện chưa có dữ liệu để hiển thị trên trang này."}
         ctaHref="/admin/bookings"
         ctaLabel="Thử lại"
       />
@@ -170,10 +177,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
       </section>
 
       <form id="bo-loc-booking" className="iv-admin-filter-form">
-        <label
-          htmlFor="search"
-          className="iv-admin-filter-title"
-        >
+        <label htmlFor="search" className="iv-admin-filter-title">
           Tìm kiếm booking
         </label>
         <div className="iv-admin-filter-quick">
@@ -282,10 +286,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
         {activeFilterLabels.length ? (
           <div className="mt-3 flex flex-wrap gap-2">
             {activeFilterLabels.map((label) => (
-              <span
-                key={label}
-                className="iv-admin-filter-chip"
-              >
+              <span key={label} className="iv-admin-filter-chip">
                 {label}
               </span>
             ))}

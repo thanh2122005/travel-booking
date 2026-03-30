@@ -1,25 +1,10 @@
 "use client";
 
-import { FormEvent, useMemo, useState, useTransition } from "react";
+import { FormEvent, useState, useTransition } from "react";
 import { Loader2, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { SafeImage } from "@/components/common/safe-image";
-
-const defaultLocationImageSuggestions = [
-  "/immerse-vietnam/images/HaNoi/hanoicover.jpg",
-  "/immerse-vietnam/images/DaNang/danangcover.jpg",
-  "/immerse-vietnam/images/HoiAn/hoiancover.jpg",
-  "/immerse-vietnam/images/Hue/huecover.jpg",
-  "/immerse-vietnam/images/NhaTrang/nhatrangcover.jpg",
-  "/immerse-vietnam/images/PQ.jpg",
-  "/immerse-vietnam/images/DaLat/dalatcover.jpg",
-  "/immerse-vietnam/images/HaLong/halongcover.jpg",
-  "/immerse-vietnam/images/HCM/hcmcover.jpg",
-  "/immerse-vietnam/images/HaiPhong/HP1.jpg",
-  "/immerse-vietnam/images/PhuYen/PY1.jpg",
-  "/immerse-vietnam/images/PhuQuy/PQuy1.jpg",
-] as const;
+import { AdminImagePicker } from "@/components/admin/admin-image-picker";
 
 type LocationDetailForForm = {
   id: string;
@@ -56,17 +41,10 @@ export function AdminLocationContentForm({ location }: AdminLocationContentFormP
   const [featured, setFeatured] = useState(location.featured);
   const [imageUrl, setImageUrl] = useState(location.imageUrl);
 
-  const imageSuggestions = useMemo(
-    () =>
-      Array.from(
-        new Set([imageUrl, ...location.gallery, ...defaultLocationImageSuggestions]),
-      ).filter(Boolean),
-    [imageUrl, location.gallery],
-  );
-
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+
     const payload = {
       name: String(formData.get("name") ?? "").trim(),
       slug: String(formData.get("slug") ?? "").trim(),
@@ -74,7 +52,7 @@ export function AdminLocationContentForm({ location }: AdminLocationContentFormP
       country: String(formData.get("country") ?? "").trim(),
       shortDescription: String(formData.get("shortDescription") ?? "").trim(),
       description: String(formData.get("description") ?? "").trim(),
-      imageUrl: String(formData.get("imageUrl") ?? "").trim(),
+      imageUrl: imageUrl.trim(),
       featured,
     };
 
@@ -84,6 +62,7 @@ export function AdminLocationContentForm({ location }: AdminLocationContentFormP
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
       const data = (await response.json().catch(() => ({}))) as { message?: string };
       if (!response.ok) {
         toast.error(data.message ?? "Không thể cập nhật điểm đến.");
@@ -130,6 +109,7 @@ export function AdminLocationContentForm({ location }: AdminLocationContentFormP
             Tạo slug
           </button>
         </div>
+
         <input
           name="provinceOrCity"
           required
@@ -152,6 +132,7 @@ export function AdminLocationContentForm({ location }: AdminLocationContentFormP
           />
           Đánh dấu điểm đến nổi bật
         </label>
+
         <input
           name="shortDescription"
           required
@@ -166,25 +147,16 @@ export function AdminLocationContentForm({ location }: AdminLocationContentFormP
           placeholder="Mô tả chi tiết"
           className="min-h-28 rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-3"
         />
-        <div className="md:col-span-2">
-          <input
+
+        <div className="md:col-span-3">
+          <AdminImagePicker
             name="imageUrl"
-            required
-            list="location-image-options-edit"
             value={imageUrl}
-            onChange={(event) => setImageUrl(event.target.value)}
-            placeholder="Ảnh đại diện điểm đến"
-            className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
+            onChange={setImageUrl}
+            required
           />
-          <datalist id="location-image-options-edit">
-            {imageSuggestions.map((imagePath) => (
-              <option key={imagePath} value={imagePath} />
-            ))}
-          </datalist>
         </div>
-        <div className="relative h-20 overflow-hidden rounded-xl border border-slate-200">
-          <SafeImage src={imageUrl} alt={location.name} fill sizes="240px" className="object-cover" />
-        </div>
+
         <button
           type="submit"
           disabled={isPending}

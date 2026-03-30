@@ -1,6 +1,7 @@
-﻿import { z } from "zod";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminApi } from "@/lib/auth/admin-api";
+import { isPrismaForeignKeyError } from "@/lib/db/db-error";
 import { createAdminTourImage, reorderAdminTourImages } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { requiredMediaUrlSchema } from "@/lib/validations/media-url";
@@ -36,7 +37,6 @@ export async function POST(request: Request, context: TourImageRouteContext) {
   }
 
   const parsed = createTourImageSchema.safeParse(json.data);
-
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(
@@ -45,23 +45,27 @@ export async function POST(request: Request, context: TourImageRouteContext) {
     );
   }
 
-  const created = await createAdminTourImage({
-    tourId,
-    imageUrl: parsed.data.imageUrl,
-    sortOrder: parsed.data.sortOrder,
-  }).catch(() => null);
+  try {
+    const created = await createAdminTourImage({
+      tourId,
+      imageUrl: parsed.data.imageUrl,
+      sortOrder: parsed.data.sortOrder,
+    });
 
-  if (!created) {
+    return NextResponse.json(
+      {
+        message: "Đã thêm ảnh tour.",
+        image: created,
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    if (isPrismaForeignKeyError(error)) {
+      return NextResponse.json({ message: "Không tìm thấy tour để thêm ảnh." }, { status: 404 });
+    }
+
     return NextResponse.json({ message: "Không thể thêm ảnh tour." }, { status: 500 });
   }
-
-  return NextResponse.json(
-    {
-      message: "Đã thêm ảnh tour.",
-      image: created,
-    },
-    { status: 201 },
-  );
 }
 
 export async function PATCH(request: Request, context: TourImageRouteContext) {
@@ -75,7 +79,6 @@ export async function PATCH(request: Request, context: TourImageRouteContext) {
   }
 
   const parsed = reorderTourImagesSchema.safeParse(json.data);
-
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(
@@ -84,8 +87,11 @@ export async function PATCH(request: Request, context: TourImageRouteContext) {
     );
   }
 
-  const reordered = await reorderAdminTourImages(tourId, parsed.data.items).catch(() => null);
-  if (!reordered) {
+  let reordered: Awaited<ReturnType<typeof reorderAdminTourImages>> | null = null;
+
+  try {
+    reordered = await reorderAdminTourImages(tourId, parsed.data.items);
+  } catch {
     return NextResponse.json({ message: "Không thể cập nhật thứ tự ảnh." }, { status: 500 });
   }
 

@@ -98,19 +98,26 @@ export default async function AdminNewsletterPage({ searchParams }: AdminNewslet
     ...(dateRangeLabel ? [dateRangeLabel] : []),
   ];
 
-  const data = await getAdminNewsletterSubscribers({
+  let data: Awaited<ReturnType<typeof getAdminNewsletterSubscribers>> | null = null;
+  let loadFailed = false;
+
+  try {
+    data = await getAdminNewsletterSubscribers({
     search: search || undefined,
     createdFrom: parseDateAtBoundary(createdFrom, "start"),
     createdTo: parseDateAtBoundary(createdTo, "end"),
     page,
     pageSize: 15,
-  }).catch(() => null);
+  });
+  } catch {
+    loadFailed = true;
+  }
 
   if (!data) {
     return (
       <EmptyState
-        title="Không thể tải danh sách nhận tin"
-        description="Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại."
+        title={loadFailed ? "Không thể tải danh sách nhận tin" : "Dữ liệu nhận tin chưa sẵn sàng"}
+        description={loadFailed ? "Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại." : "Hiện chưa có dữ liệu để hiển thị trên trang này."}
         ctaHref="/admin/newsletter"
         ctaLabel="Thử lại"
       />
@@ -206,7 +213,7 @@ export default async function AdminNewsletterPage({ searchParams }: AdminNewslet
             type="submit"
             className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto"
           >
-            L???c d??? li???u
+            Lọc dữ liệu
           </button>
           <Link
             href={{
@@ -222,7 +229,7 @@ export default async function AdminNewsletterPage({ searchParams }: AdminNewslet
               href="/admin/newsletter"
               className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
             >
-              X??a l???c
+              Xóa lọc
             </Link>
           ) : null}
         </div>

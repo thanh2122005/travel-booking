@@ -102,7 +102,11 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
     ...(dateRangeLabel ? [dateRangeLabel] : []),
   ];
 
-  const data = await getAdminUsers({
+  let data: Awaited<ReturnType<typeof getAdminUsers>> | null = null;
+  let loadFailed = false;
+
+  try {
+    data = await getAdminUsers({
     search: search || undefined,
     role: role ? (role as "ADMIN" | "USER") : undefined,
     status: status ? (status as "ACTIVE" | "BLOCKED") : undefined,
@@ -110,13 +114,16 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
     createdTo: parseDateAtBoundary(createdTo, "end"),
     page,
     pageSize: 12,
-  }).catch(() => null);
+  });
+  } catch {
+    loadFailed = true;
+  }
 
   if (!data) {
     return (
       <EmptyState
-        title="Không thể tải danh sách người dùng"
-        description="Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại."
+        title={loadFailed ? "Không thể tải danh sách người dùng" : "Dữ liệu người dùng chưa sẵn sàng"}
+        description={loadFailed ? "Vui lòng kiểm tra kết nối cơ sở dữ liệu rồi thử lại." : "Hiện chưa có dữ liệu để hiển thị trên trang này."}
         ctaHref="/admin/users"
         ctaLabel="Thử lại"
       />
