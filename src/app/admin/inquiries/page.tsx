@@ -1,4 +1,4 @@
-import { InquiryStatus } from "@prisma/client";
+﻿import { InquiryStatus } from "@prisma/client";
 import Link from "next/link";
 import { AdminInquiriesTable } from "@/components/admin/admin-inquiries-table";
 import { EmptyState } from "@/components/common/empty-state";
@@ -322,4 +322,5 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
     </div>
   );
 }
+
 

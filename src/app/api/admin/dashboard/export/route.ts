@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/admin/dashboard/export/route.ts
+// Phạm vi: API quản trị (admin).
+// Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
+
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { getAdminDashboardData } from "@/lib/db/admin-queries";
@@ -13,6 +17,7 @@ function normalizeParam(value: string | null) {
 }
 
 function parseRangeDays(value: string) {
+  // Giới hạn range được phép để tránh export dữ liệu quá nặng.
   const number = Number(value || "180");
   if (!Number.isFinite(number)) return 180;
   return rangeOptions.includes(number as (typeof rangeOptions)[number]) ? number : 180;
@@ -58,6 +63,7 @@ function formatSigned(value: number, formatter: (input: number) => string) {
 }
 
 function buildFileName(prefix: string) {
+  // Tạo tên file có timestamp để tránh trùng tên khi tải nhiều lần.
   const now = new Date();
   const date = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(
     now.getDate(),
@@ -73,12 +79,19 @@ function getGranularityLabel(value: TimelineGranularity) {
 }
 
 function toUtf16LePayload(text: string) {
+  // Encode UTF-16LE + BOM để Excel mở tiếng Việt không lỗi font.
   const bom = Buffer.from([0xff, 0xfe]);
   const body = Buffer.from(text, "utf16le");
   return Buffer.concat([bom, body]);
 }
 
+// FLOW: GET - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function GET(request: NextRequest) {
+  // STEP 1: Kiểm tra quyền truy cập (nếu endpoint có yêu cầu auth/admin).
+  // STEP 2: Đọc query params và chuẩn hóa bộ lọc/sắp xếp.
+  // STEP 3: Gọi service/DB để lấy dữ liệu hoặc tạo file export.
+  // STEP 4: Trả response thành công hoặc mã lỗi phù hợp (400/401/403/404/500).
+  // Chỉ admin được xuất báo cáo dashboard.
   const guard = await requireAdminApi();
   if (guard) return guard;
 
@@ -91,6 +104,7 @@ export async function GET(request: NextRequest) {
 
   let data: Awaited<ReturnType<typeof getAdminDashboardData>> | null = null;
   try {
+    // Lấy snapshot dữ liệu dashboard tại thời điểm export.
     data = await getAdminDashboardData({
       ...(hasCustomDateRange
         ? { startDate: startDate || undefined, endDate: endDate || undefined }
@@ -102,6 +116,7 @@ export async function GET(request: NextRequest) {
   }
 
   const rows: Array<Array<unknown>> = [];
+  // Hàm helper đặt dữ liệu vào đúng ô row/col của ma trận CSV.
   const setCell = (row: number, col: number, value: unknown) => {
     while (rows.length <= row) rows.push([]);
     rows[row]![col] = value;
@@ -234,3 +249,11 @@ export async function GET(request: NextRequest) {
     },
   });
 }
+
+
+
+
+
+
+
+

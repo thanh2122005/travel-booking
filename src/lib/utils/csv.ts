@@ -1,4 +1,4 @@
-function sanitizeCsvFormula(text: string) {
+﻿function sanitizeCsvFormula(text: string) {
   const trimmed = text.trimStart();
   if (!trimmed) return text;
 
@@ -13,6 +13,7 @@ function sanitizeCsvFormula(text: string) {
 export function escapeCsvCell(value: unknown) {
   if (value === null || value === undefined) return "";
 
+  // Escape dấu " theo chuẩn CSV.
   const safeText = sanitizeCsvFormula(String(value)).replace(/"/g, '""');
   return /[",\n]/.test(safeText) ? `"${safeText}"` : safeText;
 }
@@ -24,6 +25,7 @@ function needsQuote(text: string, delimiter: string) {
 }
 
 export function toCsv(rows: Array<Array<unknown>>, delimiter = ",") {
+  // Chuyển ma trận dữ liệu thành chuỗi CSV theo delimiter cấu hình.
   return rows
     .map((row) =>
       row

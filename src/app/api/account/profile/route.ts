@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/account/profile/route.ts
+// Phạm vi: API public hoặc user đã đăng nhập.
+// Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
+
 import { NextResponse } from "next/server";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { db } from "@/lib/db/prisma";
@@ -7,7 +11,13 @@ import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { profileUpdateSchema } from "@/lib/validations/profile";
 
+// FLOW: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function PATCH(request: Request) {
+  // STEP 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
+  // STEP 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
+  // STEP 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
+  // STEP 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
+  // Guard xác thực user trước khi cho phép cập nhật hồ sơ.
   const guard = await requireActiveUserApi({
     unauthorizedMessage: "Vui lòng đăng nhập để cập nhật hồ sơ.",
   });
@@ -22,6 +32,7 @@ export async function PATCH(request: Request) {
     max: 20,
   });
   if (!rate.allowed) {
+    // Trả Retry-After để frontend hiển thị chờ hợp lý.
     return NextResponse.json(
       { message: "Bạn cập nhật quá nhanh. Vui lòng thử lại sau." },
       {
@@ -40,6 +51,7 @@ export async function PATCH(request: Request) {
 
   const parsed = profileUpdateSchema.safeParse(json.data);
   if (!parsed.success) {
+    // Trả lỗi kiểm tra hợp lệ đầu tiên để thông báo ngắn gọn cho người dùng.
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(
       { message: firstIssue?.message ?? "Thông tin cập nhật không hợp lệ." },
@@ -48,6 +60,7 @@ export async function PATCH(request: Request) {
   }
 
   try {
+    // Chỉ cho cập nhật các trường cho phép (fullName, phone).
     const updated = await db.user.update({
       where: { id: session.user.id },
       data: {
@@ -68,6 +81,7 @@ export async function PATCH(request: Request) {
     });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
+      // Dự phòng demo khi DB tạm không khả dụng.
       const updated = await demoUpdateUserContent(session.user.id, {
         fullName: parsed.data.fullName,
         phone: parsed.data.phone ?? null,
@@ -97,3 +111,10 @@ export async function PATCH(request: Request) {
     );
   }
 }
+
+
+
+
+
+
+

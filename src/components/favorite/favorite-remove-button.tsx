@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -70,3 +70,4 @@ export function FavoriteRemoveButton({ tourId, className }: FavoriteRemoveButton
     </button>
   );
 }
+

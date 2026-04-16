@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/admin/inquiries/bulk/route.ts
+// Phạm vi: API quản trị (admin).
+// Luồng chính: kiểm tra quyền -> parse body -> validate -> cập nhật trạng thái hàng loạt.
+
 import { InquiryStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
@@ -42,3 +46,4 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ message: "Không thể xử lý yêu cầu lúc này." }, { status: 500 });
   }
 }
+

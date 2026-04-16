@@ -1,7 +1,8 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 function normalizeOptional(value?: string) {
   const normalized = value?.trim();
+  // Chuẩn hóa input optional: rỗng -> undefined.
   return normalized ? normalized : undefined;
 }
 
@@ -18,6 +19,7 @@ export const contactInquirySchema = z.object({
     .max(15, "Số điện thoại không hợp lệ.")
     .regex(/^[0-9+\s.-]+$/, "Số điện thoại chỉ bao gồm chữ số hoặc ký tự + - ."),
   email: z.string().trim().email("Vui lòng nhập email hợp lệ."),
+  // tourId cho phép bỏ trống với các yêu cầu tư vấn chung.
   tourId: z.string().optional().transform(normalizeOptional),
   departureDate: z
     .string()

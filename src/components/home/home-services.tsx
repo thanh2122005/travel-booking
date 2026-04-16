@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { Gem, Handshake, ShieldCheck, Sparkles } from "lucide-react";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
 
@@ -52,3 +52,4 @@ export function HomeServices() {
     </section>
   );
 }
+

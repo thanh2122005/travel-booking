@@ -1,10 +1,10 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
 import { BookingCancelButton } from "@/components/booking/booking-cancel-button";
 import { getAuthSession } from "@/lib/auth/session";
 import { getUserBookingDetail } from "@/lib/db/user-queries";
-import { canCancelBooking } from "@/lib/utils/booking-actions";
+import { canCancelBooking, evaluateCancelBooking } from "@/lib/utils/booking-actions";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
 type BookingDetailPageProps = {
@@ -24,6 +24,13 @@ const paymentStatusLabels: Record<string, string> = {
 };
 
 export const dynamic = "force-dynamic";
+
+function getCancelBlockedLabel(status: string, paymentStatus: string, departureDate?: string | Date | null) {
+  const decision = evaluateCancelBooking(status, paymentStatus, departureDate);
+  if (decision.allowed) return null;
+  if (decision.reason === "TOO_CLOSE_TO_DEPARTURE") return "Đơn đã quá hạn hủy trực tuyến (dưới 2 ngày trước ngày đi).";
+  return "Đơn hiện tại không thể hủy trực tuyến.";
+}
 
 export default async function BookingDetailPage({ params }: BookingDetailPageProps) {
   const session = await getAuthSession();
@@ -123,13 +130,17 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
           >
             Quay lại đơn của tôi
           </Link>
-          {canCancelBooking(booking.status, booking.paymentStatus) ? (
+          {canCancelBooking(booking.status, booking.paymentStatus, booking.departureDate) ? (
             <BookingCancelButton
               bookingId={booking.id}
               bookingCode={booking.bookingCode}
               className="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
             />
-          ) : null}
+          ) : (
+            <p className="text-sm text-slate-500">
+              {getCancelBlockedLabel(booking.status, booking.paymentStatus, booking.departureDate)}
+            </p>
+          )}
         </div>
       </section>
     </div>

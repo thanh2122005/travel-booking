@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useState, useTransition } from "react";
 import { Loader2, Save } from "lucide-react";
@@ -178,3 +178,4 @@ export function AdminLocationContentForm({ location }: AdminLocationContentFormP
     </section>
   );
 }
+

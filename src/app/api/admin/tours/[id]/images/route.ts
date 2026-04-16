@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/admin/tours/[id]/images/route.ts
+// Phạm vi: API quản trị (admin).
+// Luồng chính: kiểm tra quyền -> validate -> thêm ảnh/sắp xếp ảnh tour.
+
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminApi } from "@/lib/auth/admin-api";
@@ -88,7 +92,6 @@ export async function PATCH(request: Request, context: TourImageRouteContext) {
   }
 
   let reordered: Awaited<ReturnType<typeof reorderAdminTourImages>> | null = null;
-
   try {
     reordered = await reorderAdminTourImages(tourId, parsed.data.items);
   } catch {
@@ -100,3 +103,4 @@ export async function PATCH(request: Request, context: TourImageRouteContext) {
     images: reordered,
   });
 }
+

@@ -1,4 +1,4 @@
-import { UserRole, UserStatus } from "@prisma/client";
+﻿import { UserRole, UserStatus } from "@prisma/client";
 import { db } from "@/lib/db/prisma";
 
 type SessionUserLike = {
@@ -14,10 +14,12 @@ type AccessState = {
 };
 
 function normalizeRole(value: SessionUserLike["role"]) {
+  // Mặc định hạ về USER nếu giá trị role không hợp lệ.
   return value === UserRole.ADMIN ? UserRole.ADMIN : UserRole.USER;
 }
 
 function normalizeStatus(value: SessionUserLike["status"]) {
+  // Mặc định ACTIVE khi status không rõ.
   return value === UserStatus.BLOCKED ? UserStatus.BLOCKED : UserStatus.ACTIVE;
 }
 
@@ -31,6 +33,7 @@ function getSessionFallbackState(user: SessionUserLike): AccessState {
 
 export async function resolveAccessState(user: SessionUserLike | undefined | null): Promise<AccessState> {
   if (!user?.id) {
+    // Người chưa đăng nhập được coi là blocked cho các luồng cần quyền.
     return {
       authenticated: false,
       role: UserRole.USER,
@@ -39,6 +42,7 @@ export async function resolveAccessState(user: SessionUserLike | undefined | nul
   }
 
   if (user.id === "dev-admin") {
+    // Tài khoản dev-admin chỉ hợp lệ trong môi trường non-production.
     if (process.env.NODE_ENV !== "production") {
       return {
         authenticated: true,
@@ -55,6 +59,7 @@ export async function resolveAccessState(user: SessionUserLike | undefined | nul
   }
 
   try {
+    // Luôn ưu tiên trạng thái thật từ DB thay vì tin hoàn toàn vào session.
     const currentUser = await db.user.findUnique({
       where: { id: user.id },
       select: {
@@ -81,4 +86,3 @@ export async function resolveAccessState(user: SessionUserLike | undefined | nul
     return getSessionFallbackState(user);
   }
 }
-

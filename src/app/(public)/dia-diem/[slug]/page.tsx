@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Compass, MapPin } from "lucide-react";
@@ -219,3 +219,4 @@ export default async function DestinationDetailPage({ params }: DestinationDetai
     </div>
   );
 }
+

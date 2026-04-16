@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+﻿import { Star } from "lucide-react";
 
 type StarRatingProps = {
   rating: number;
@@ -19,3 +19,4 @@ export function StarRating({ rating, reviewCount, showCount = true }: StarRating
     </div>
   );
 }
+

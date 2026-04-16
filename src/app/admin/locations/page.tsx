@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { AdminCreateLocationForm } from "@/components/admin/admin-create-location-form";
 import { AdminLocationActions } from "@/components/admin/admin-location-actions";
 import { SafeImage } from "@/components/common/safe-image";
@@ -180,4 +180,5 @@ export default async function AdminLocationsPage({ searchParams }: AdminLocation
     </div>
   );
 }
+
 

@@ -1,4 +1,8 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+﻿// API SUMMARY: src/app/api/admin/newsletter/export/route.ts
+// Phạm vi: API quản trị (admin).
+// Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
+
+import { NextRequest, NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { exportAdminNewsletterSubscribers } from "@/lib/db/admin-engagement-queries";
 import { toCsv } from "@/lib/utils/csv";
@@ -43,7 +47,12 @@ function buildFileName(prefix: string) {
   return `${prefix}_${date}_${time}.csv`;
 }
 
+// FLOW: GET - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function GET(request: NextRequest) {
+  // STEP 1: Kiểm tra quyền truy cập (nếu endpoint có yêu cầu auth/admin).
+  // STEP 2: Đọc query params và chuẩn hóa bộ lọc/sắp xếp.
+  // STEP 3: Gọi service/DB để lấy dữ liệu hoặc tạo file export.
+  // STEP 4: Trả response thành công hoặc mã lỗi phù hợp (400/401/403/404/500).
   const guard = await requireAdminApi();
   if (guard) return guard;
 
@@ -79,3 +88,10 @@ export async function GET(request: NextRequest) {
     },
   });
 }
+
+
+
+
+
+
+

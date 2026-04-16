@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { DragEvent, FormEvent, useEffect, useMemo, useState, useTransition } from "react";
 import { ArrowDown, ArrowUp, GripVertical, Loader2, Plus, Save, Trash2 } from "lucide-react";
@@ -343,3 +343,4 @@ export function AdminTourImagesManager({ tourId, images }: AdminTourImagesManage
     </section>
   );
 }
+

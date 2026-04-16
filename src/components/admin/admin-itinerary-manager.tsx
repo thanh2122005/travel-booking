@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useState, useTransition } from "react";
 import { Loader2, Plus, Save, Trash2 } from "lucide-react";
@@ -203,3 +203,4 @@ export function AdminItineraryManager({ tourId, itineraries }: AdminItineraryMan
     </section>
   );
 }
+

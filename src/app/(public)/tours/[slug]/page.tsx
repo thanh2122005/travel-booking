@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock3, MapPin, Plane, Star, Users } from "lucide-react";
@@ -8,6 +8,7 @@ import { SectionHeading } from "@/components/common/section-heading";
 import { TourBookingCard } from "@/components/tour/tour-booking-card";
 import { TourCard } from "@/components/tour/tour-card";
 import { TourImageGallery } from "@/components/tour/tour-image-gallery";
+import { TourReviewForm } from "@/components/tour/tour-review-form";
 import { StarRating } from "@/components/tour/star-rating";
 import { getAuthSession } from "@/lib/auth/session";
 import { getTourBySlug } from "@/lib/db/public-queries";
@@ -18,6 +19,37 @@ export const dynamic = "force-dynamic";
 type TourDetailPageProps = {
   params: Promise<{ slug: string }>;
 };
+
+const pricePolicyItems = [
+  "Giá hiển thị là đơn giá chuẩn cho khách từ 8 tuổi trở lên.",
+  "Tổng tiền đơn = (khách từ 8 tuổi x 100%) + (khách 5-7 tuổi x 50%) + (khách dưới 5 tuổi x 0%).",
+  "Chính sách trẻ em: từ 5 đến 7 tuổi tính 50% đơn giá, dưới 5 tuổi miễn phí (0%).",
+  "Phụ thu phòng đơn hoặc phụ thu dịp lễ/tết (nếu có) sẽ được tư vấn và xác nhận trước khi chốt đơn.",
+  "Các dịch vụ phát sinh ngoài chương trình (chi tiêu cá nhân, nâng hạng dịch vụ...) không nằm trong giá cơ bản.",
+];
+
+function buildIncludedItems(tour: {
+  transportation: string;
+  durationDays: number;
+  durationNights: number;
+  departureLocation: string;
+}) {
+  return [
+    `${tour.transportation} theo lịch trình công bố của tour.`,
+    `Lưu trú tiêu chuẩn trong ${tour.durationDays} ngày ${tour.durationNights} đêm.`,
+    "Hướng dẫn viên đồng hành theo đoàn.",
+    "Bảo hiểm du lịch cơ bản theo quy định của đơn vị tổ chức.",
+    `Đón khách tại điểm khởi hành: ${tour.departureLocation}.`,
+  ];
+}
+
+const defaultExcludedItems = [
+  "Chi phí cá nhân: giặt ủi, điện thoại, minibar, mua sắm tự túc.",
+  "Chi phí ngoài chương trình và các hoạt động phát sinh theo nhu cầu riêng.",
+  "Thuế VAT và chi phí xuất hóa đơn (nếu khách có yêu cầu).",
+  "Phụ thu phòng đơn, phụ thu lễ/tết hoặc phụ thu dịch vụ nâng hạng.",
+  "Tiền tip cho hướng dẫn viên/tài xế và các khoản bồi dưỡng tự nguyện.",
+];
 
 async function getTourMetadataData(slug: string) {
   try {
@@ -141,6 +173,9 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
             <p className="mt-2 text-base font-semibold text-slate-900">
               Tối đa {tour.maxGuests} khách/đơn
             </p>
+            <p className="mt-1 text-xs text-slate-500">
+              Số chỗ còn trống thực tế sẽ hiển thị theo ngày ở khung Đặt tour.
+            </p>
           </article>
           <article className="rounded-2xl border bg-card p-4">
             <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Điểm trung bình</p>
@@ -155,6 +190,12 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
         <nav className="flex flex-wrap gap-2 rounded-xl border bg-card p-3 text-sm">
           <a href="#tong-quan" className="inline-flex h-8 items-center rounded-md border px-3 font-medium hover:bg-muted">
             Tổng quan
+          </a>
+          <a href="#dieu-kien-gia" className="inline-flex h-8 items-center rounded-md border px-3 font-medium hover:bg-muted">
+            Điều kiện giá
+          </a>
+          <a href="#bao-gom" className="inline-flex h-8 items-center rounded-md border px-3 font-medium hover:bg-muted">
+            Bao gồm
           </a>
           <a href="#lich-trinh" className="inline-flex h-8 items-center rounded-md border px-3 font-medium hover:bg-muted">
             Lịch trình
@@ -195,6 +236,47 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
                 <MapPin className="h-4 w-4 text-primary" />
                 Khởi hành: {tour.departureLocation}
               </p>
+            </div>
+          </article>
+
+          <article id="dieu-kien-gia" className="space-y-4 rounded-3xl border bg-card p-6">
+            <h2 className="text-2xl font-bold">Điều kiện giá</h2>
+            <ul className="space-y-2 text-sm leading-7 text-muted-foreground">
+              {pricePolicyItems.map((item) => (
+                <li key={item} className="flex gap-2">
+                  <span className="mt-[0.55rem] h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+
+          <article id="bao-gom" className="space-y-4 rounded-3xl border bg-card p-6">
+            <h2 className="text-2xl font-bold">Giá bao gồm / không bao gồm</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4">
+                <p className="text-sm font-semibold text-emerald-800">Giá bao gồm</p>
+                <ul className="mt-2 space-y-2 text-sm text-emerald-900/90">
+                  {buildIncludedItems(tour).map((item) => (
+                    <li key={item} className="flex gap-2">
+                      <span className="mt-[0.55rem] h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="rounded-2xl border border-rose-200 bg-rose-50/40 p-4">
+                <p className="text-sm font-semibold text-rose-800">Giá không bao gồm</p>
+                <ul className="mt-2 space-y-2 text-sm text-rose-900/90">
+                  {defaultExcludedItems.map((item) => (
+                    <li key={item} className="flex gap-2">
+                      <span className="mt-[0.55rem] h-1.5 w-1.5 shrink-0 rounded-full bg-rose-600" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </article>
 
@@ -278,6 +360,12 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
                 ctaLabel="Xem tour khác"
               />
             )}
+
+            <TourReviewForm
+              tourId={tour.id}
+              tourSlug={tour.slug}
+              initialReview={viewer?.review ?? null}
+            />
           </article>
         </div>
 
@@ -303,7 +391,6 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
               originalPrice={tour.price}
               maxGuests={tour.maxGuests}
               initialIsFavorite={viewer?.isFavorite ?? false}
-              initialReview={viewer?.review ?? null}
               initialPhone={viewer?.phone ?? ""}
             />
           </div>
@@ -356,3 +443,4 @@ function BadgeReviewSummary({
     </div>
   );
 }
+

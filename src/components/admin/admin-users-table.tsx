@@ -44,6 +44,12 @@ const statusOptions: Array<{ value: UserStatusValue; label: string }> = [
   { value: "BLOCKED", label: "Bị khóa" },
 ];
 
+/**
+ * Component table user trong admin:
+ * - Bulk update role/status.
+ * - Có card mode cho mobile và table mode cho desktop.
+ * - Tất cả action cập nhật xong đều refresh để lấy state mới.
+ */
 export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersTableProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -51,7 +57,11 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
   const [bulkStatus, setBulkStatus] = useState("");
   const [isPending, startTransition] = useTransition();
 
+  // Giong bang booking:
+  // selectedIds lưu state tổng, selectedIdsInPage chỉ xử lý trên page hiện tại.
+  // Mục tiêu: tránh bulk nhầm user không đang hiển thị.
   const itemIds = useMemo(() => items.map((item) => item.id), [items]);
+  // Chỉ lấy các id đang hiển thị ở page hiện tại.
   const selectedIdsInPage = useMemo(
     () => selectedIds.filter((id) => itemIds.includes(id)),
     [itemIds, selectedIds],
@@ -59,6 +69,8 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
   const isAllSelected = itemIds.length > 0 && selectedIdsInPage.length === itemIds.length;
 
   function toggleSelectAll(checked: boolean) {
+    // checked=true: merge id page hiện tại vào selection.
+    // checked=false: bỏ chọn id page hiện tại.
     setSelectedIds((prev) => {
       if (checked) return Array.from(new Set([...prev, ...itemIds]));
       return prev.filter((id) => !itemIds.includes(id));
@@ -73,6 +85,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
   }
 
   function handleBulkUpdate() {
+    // Validate local trước để UX rõ ràng và tránh request dư thừa.
     if (!selectedIdsInPage.length) {
       toast.error("Vui lòng chọn ít nhất một người dùng để cập nhật.");
       return;
@@ -85,6 +98,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
 
     startTransition(async () => {
       try {
+        // Gửi patch bulk role/status cho danh sách id được chọn.
         const response = await fetch("/api/admin/users/bulk", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -104,6 +118,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
         setSelectedIds([]);
         setBulkRole("");
         setBulkStatus("");
+        // refresh để table + pagination meta cập nhật theo dữ liệu mới.
         toast.success(payload.message ?? "Đã cập nhật người dùng hàng loạt.");
         router.refresh();
       } catch {
@@ -191,6 +206,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
       </div>
 
       <div className="space-y-3 xl:hidden">
+        {/* Mobile layout: card + action stack de thao tac de hon tren dien thoai. */}
         {items.map((user) => (
           <article key={user.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
@@ -227,6 +243,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
       </div>
 
       <div className="iv-card hidden xl:block">
+        {/* Desktop layout: table day du thong tin de so sanh nhanh giua cac user. */}
         <div className="iv-admin-table-scroll">
           <table className="w-full min-w-[980px] text-sm">
             <thead>
@@ -293,3 +310,4 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
     </div>
   );
 }
+

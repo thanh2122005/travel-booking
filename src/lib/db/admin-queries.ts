@@ -1,4 +1,4 @@
-import { BookingStatus, InquiryStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
+﻿import { BookingStatus, InquiryStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
 import {
   demoCreateLocation,
   demoCreateItinerary,
@@ -41,6 +41,7 @@ import {
 } from "@/lib/demo/admin-demo-store";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { db } from "@/lib/db/prisma";
+import { resolveBookingGuestBreakdown } from "@/lib/utils/booking-breakdown";
 
 type AdminListFilter = {
   search?: string;
@@ -99,7 +100,15 @@ type DashboardRangeStats = {
 
 const MAX_ADMIN_DATE_RANGE_DAYS = 366;
 
+/**
+ * Ý đồ file này:
+ * - Tập trung toàn bộ nghiệp vụ dữ liệu của khu admin vào 1 lớp.
+ * - Route/API chỉ làm validate và map lỗi HTTP; phần query nằm ở đây để tái dùng.
+ * - Các hàm có fallback demo khi DB không sẵn sàng.
+ */
+
 function getPagination(filter: AdminListFilter) {
+  // Chuẩn hóa page/pageSize để dùng chung cho toàn bộ list admin.
   const page = Math.max(filter.page ?? 1, 1);
   const pageSize = Math.min(Math.max(filter.pageSize ?? 12, 1), 50);
   return { page, pageSize, skip: (page - 1) * pageSize };
@@ -110,6 +119,7 @@ function normalizeDateRange(
   to?: Date,
   maxDays = MAX_ADMIN_DATE_RANGE_DAYS,
 ) {
+  // Giới hạn dải ngày để tránh query quá nặng.
   let start = from ? startOfDay(from) : undefined;
   let end = to ? endOfDay(to) : undefined;
 
@@ -118,16 +128,19 @@ function normalizeDateRange(
   }
 
   if (!start && end) {
+    // Chỉ có mốc cuối -> tự suy ra mốc đầu theo cửa sổ maxDays.
     start = startOfDay(end);
     start.setDate(start.getDate() - (maxDays - 1));
   }
 
   if (start && !end) {
+    // Chỉ có mốc đầu -> tự suy ra mốc cuối theo cửa sổ maxDays.
     end = endOfDay(start);
     end.setDate(end.getDate() + (maxDays - 1));
   }
 
   if (start && end && start > end) {
+    // Người dùng nhập ngược from/to -> tự đảo lại.
     const swappedStart = startOfDay(end);
     const swappedEnd = endOfDay(start);
     start = swappedStart;
@@ -149,6 +162,7 @@ function normalizeDateRange(
 }
 
 function buildAdminBookingWhere(filter: AdminBookingListFilter) {
+  // Build where cho danh sách booking từ search/filter.
   const { start: createdFrom, end: createdTo } = normalizeDateRange(filter.createdFrom, filter.createdTo);
 
   const where: Prisma.BookingWhereInput = filter.search
@@ -312,6 +326,7 @@ function buildTimelineRows(
 }
 
 function resolveDashboardOptions(options?: DashboardTimelineOptions) {
+  // Chuẩn hóa đầu vào dashboard để luôn có range hợp lệ.
   const now = new Date();
   const requestedRangeDays = options?.rangeDays;
   const rangeDays =
@@ -344,6 +359,8 @@ function resolveDashboardOptions(options?: DashboardTimelineOptions) {
   );
   const startDate = normalizedStartDate ?? startOfDay(normalizedEndDate);
   const safeEndDate = boundedEndDate ?? normalizedEndDate;
+  // safeEndDate/safeStartDate luon nam trong gioi han MAX_ADMIN_DATE_RANGE_DAYS.
+  // Muc dich: tranh query qua lon khi user nhap date range qua dai.
 
   const dayDiff = Math.max(
     1,
@@ -352,6 +369,10 @@ function resolveDashboardOptions(options?: DashboardTimelineOptions) {
   const granularity: TimelineGranularity =
     options?.granularity ??
     (dayDiff <= 45 ? "day" : dayDiff <= 210 ? "week" : "month");
+  // Quy ước auto granularity:
+  // - range ngắn: theo ngày
+  // - range trung bình: theo tuần
+  // - range dài: theo tháng
 
   return {
     startDate,
@@ -366,10 +387,12 @@ function buildBookingRevenueTimeline(
   bookings: Array<{ createdAt: Date; totalPrice: number; status: BookingStatus }>,
   options: { startDate: Date; endDate: Date; granularity: TimelineGranularity },
 ) {
+  // Đổ dữ liệu booking vào các bucket timeline (day/week/month).
   const rows = buildTimelineRows(options.startDate, options.endDate, options.granularity);
   const map = new Map(rows.map((row) => [row.monthKey, row]));
 
   for (const booking of bookings) {
+    // Chỉ tính doanh thu đã xác nhận/hoàn thành theo quy tắc nghiệp vụ hiện tại.
     if (booking.createdAt < options.startDate || booking.createdAt > options.endDate) continue;
     const key = getTimelineKey(booking.createdAt, options.granularity);
     const row = map.get(key);
@@ -397,6 +420,7 @@ function getPreviousTimelineRange(startDate: Date, endDate: Date) {
 function summarizeDashboardRangeStats(
   bookings: Array<{ status: BookingStatus; paymentStatus: PaymentStatus; totalPrice: number }>,
 ): DashboardRangeStats {
+  // Gom KPI chính cho dashboard từ danh sách booking trong kỳ.
   const aggregated = bookings.reduce(
     (acc, booking) => {
       const isConfirmed =
@@ -426,6 +450,7 @@ function summarizeDashboardRangeStats(
 
   const bookingCount = aggregated.bookings;
   const confirmedCount = aggregated.confirmedBookings;
+  // Rate tính trên tổng số booking trong kỳ (không chỉ trên booking có payment).
 
   return {
     ...aggregated,
@@ -439,6 +464,7 @@ function summarizeDashboardRangeStats(
 
 export async function getAdminDashboardData(options?: DashboardTimelineOptions) {
   try {
+    // Dashboard lấy nhiều nguồn dữ liệu song song để tối ưu tốc độ.
     const timelineOptions = resolveDashboardOptions(options);
     const previousTimelineOptions = getPreviousTimelineRange(
       timelineOptions.startDate,
@@ -508,6 +534,15 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
           status: true,
           paymentStatus: true,
           tourId: true,
+          fullName: true,
+          email: true,
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+            },
+          },
           tour: {
             select: {
               id: true,
@@ -686,6 +721,10 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
     }, new Map());
     const topRevenueTours = Array.from(topRevenueToursMap.values())
       .sort((a, b) => {
+        // Thu tu uu tien:
+        // 1) confirmedRevenue
+        // 2) confirmedBookings
+        // 3) tong bookings
         if (b.confirmedRevenue !== a.confirmedRevenue) {
           return b.confirmedRevenue - a.confirmedRevenue;
         }
@@ -693,6 +732,51 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
           return b.confirmedBookings - a.confirmedBookings;
         }
         return b.bookings - a.bookings;
+      })
+      .slice(0, 6);
+    const topCustomersMap = bookingTimelineRows.reduce<
+      Map<
+        string,
+        {
+          userId: string;
+          fullName: string;
+          email: string;
+          bookings: number;
+          confirmedBookings: number;
+          paidBookings: number;
+          confirmedRevenue: number;
+        }
+      >
+    >((acc, booking) => {
+      const current = acc.get(booking.user.id) ?? {
+        userId: booking.user.id,
+        fullName: booking.user.fullName || booking.fullName,
+        email: booking.user.email || booking.email,
+        bookings: 0,
+        confirmedBookings: 0,
+        paidBookings: 0,
+        confirmedRevenue: 0,
+      };
+      current.bookings += 1;
+      if (booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED) {
+        current.confirmedBookings += 1;
+        current.confirmedRevenue += booking.totalPrice;
+      }
+      if (booking.paymentStatus === PaymentStatus.PAID) {
+        current.paidBookings += 1;
+      }
+      acc.set(booking.user.id, current);
+      return acc;
+    }, new Map());
+    const topCustomers = Array.from(topCustomersMap.values())
+      .sort((a, b) => {
+        if (b.bookings !== a.bookings) {
+          return b.bookings - a.bookings;
+        }
+        if (b.confirmedRevenue !== a.confirmedRevenue) {
+          return b.confirmedRevenue - a.confirmedRevenue;
+        }
+        return b.confirmedBookings - a.confirmedBookings;
       })
       .slice(0, 6);
     const fallbackInquiries = recentInquiries.length
@@ -741,6 +825,7 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
       timeRangeStats,
       previousTimeRangeStats,
       topRevenueTours,
+      topCustomers,
       monthCount: timelineOptions.monthCount,
       rangeDays: timelineOptions.rangeDays,
       timelineGranularity: timelineOptions.granularity,
@@ -1300,6 +1385,9 @@ export async function updateAdminBookingDetail(
     email?: string;
     phone?: string;
     numberOfGuests?: number;
+    guestsFrom8?: number;
+    child5To7Guests?: number;
+    childUnder5Guests?: number;
     note?: string | null;
     departureDate?: string | null;
     paymentMethod?: string;
@@ -1313,6 +1401,10 @@ export async function updateAdminBookingDetail(
       select: {
         id: true,
         numberOfGuests: true,
+        guestsFrom8: true,
+        child5To7Guests: true,
+        childUnder5Guests: true,
+        totalPrice: true,
         tour: {
           select: {
             price: true,
@@ -1333,7 +1425,27 @@ export async function updateAdminBookingDetail(
       return "MAX_GUESTS_EXCEEDED" as const;
     }
 
+    const inferred = resolveBookingGuestBreakdown({
+      numberOfGuests: current.numberOfGuests,
+      totalPrice: current.totalPrice,
+      unitPrice: current.tour.discountPrice ?? current.tour.price,
+      guestsFrom8: current.guestsFrom8,
+      child5To7Guests: current.child5To7Guests,
+      childUnder5Guests: current.childUnder5Guests,
+    });
+
+    let nextGuestsFrom8 = inferred.adults;
+    let nextChild5To7Guests = inferred.child5To7;
+    let nextChildUnder5Guests = inferred.childUnder5;
+    if (typeof payload.numberOfGuests === "number") {
+      // Admin sửa nhanh tổng số khách trong popup: mặc định quy về nhóm khách người lớn.
+      nextGuestsFrom8 = nextGuests;
+      nextChild5To7Guests = 0;
+      nextChildUnder5Guests = 0;
+    }
+
     const unitPrice = current.tour.discountPrice ?? current.tour.price;
+    const weightedGuests = Math.max(nextGuestsFrom8, 0) + Math.max(nextChild5To7Guests, 0) * 0.5;
     const nextDepartureDate =
       payload.departureDate === null
         ? null
@@ -1353,7 +1465,10 @@ export async function updateAdminBookingDetail(
         ...(nextDepartureDate !== undefined ? { departureDate: nextDepartureDate } : {}),
         ...(payload.status ? { status: payload.status } : {}),
         ...(payload.paymentStatus ? { paymentStatus: payload.paymentStatus } : {}),
-        totalPrice: unitPrice * nextGuests,
+        guestsFrom8: nextGuestsFrom8,
+        child5To7Guests: nextChild5To7Guests,
+        childUnder5Guests: nextChildUnder5Guests,
+        totalPrice: Math.round(unitPrice * weightedGuests),
       },
     });
   } catch (error) {
@@ -1450,10 +1565,18 @@ export async function updateAdminTour(
 
 export async function deleteAdminTour(tourId: string) {
   try {
-      return await db.$transaction(async (tx) => {
+    const totalBookings = await db.booking.count({
+      where: { tourId },
+    });
+
+    // Nghiệp vụ: tour đã phát sinh đơn thì không cho xóa để giữ lịch sử.
+    if (totalBookings > 0) {
+      return "HAS_BOOKINGS" as const;
+    }
+
+    return await db.$transaction(async (tx) => {
       await tx.favorite.deleteMany({ where: { tourId } });
       await tx.review.deleteMany({ where: { tourId } });
-      await tx.booking.deleteMany({ where: { tourId } });
       await tx.itinerary.deleteMany({ where: { tourId } });
       await tx.tourImage.deleteMany({ where: { tourId } });
       return tx.tour.delete({
@@ -2199,3 +2322,5 @@ export const adminLabels = {
     [UserStatus.BLOCKED]: "Bị khóa",
   },
 } as const;
+
+

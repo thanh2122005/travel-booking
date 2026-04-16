@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -85,6 +85,11 @@ export function LoginForm() {
             {errors.password ? (
               <p className="text-sm text-destructive">{errors.password.message}</p>
             ) : null}
+            <p className="text-right text-sm">
+              <Link href="/quen-mat-khau" className="font-medium text-primary hover:underline">
+                Quên mật khẩu?
+              </Link>
+            </p>
           </div>
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
@@ -109,3 +114,4 @@ export function LoginForm() {
     </Card>
   );
 }
+

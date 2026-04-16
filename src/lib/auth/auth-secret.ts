@@ -1,4 +1,4 @@
-const configuredAuthSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+﻿const configuredAuthSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
 
 if (process.env.NODE_ENV === "production" && !configuredAuthSecret) {
   throw new Error(
@@ -7,3 +7,4 @@ if (process.env.NODE_ENV === "production" && !configuredAuthSecret) {
 }
 
 export const authSecret = configuredAuthSecret ?? "travel-booking-dev-secret";
+

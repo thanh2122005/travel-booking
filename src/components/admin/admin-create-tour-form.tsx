@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ChangeEvent, FormEvent, useRef, useState, useTransition } from "react";
 import { ExternalLink, Loader2, Plus, Trash2, Upload } from "lucide-react";
@@ -54,6 +54,7 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
   const galleryUploadInputRef = useRef<HTMLInputElement | null>(null);
 
   function updateGalleryImage(index: number, value: string) {
+    // Cập nhật 1 URL ảnh trong danh sách gallery.
     setGalleryImages((current) =>
       current.map((item, itemIndex) => (itemIndex === index ? value : item)),
     );
@@ -84,6 +85,7 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
   }
 
   async function uploadImage(file: File) {
+    // Upload ảnh qua API admin, trả về URL public để lưu vào tour.
     const formData = new FormData();
     formData.append("file", file);
 
@@ -108,15 +110,18 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
     const files = Array.from(event.target.files ?? []);
     if (!files.length) return;
 
+    // UX note: khóa nút khi đang upload để tránh bấm lặp.
     setIsUploadingGallery(true);
     try {
       const uploadedUrls: string[] = [];
+      // Upload tuần tự để dễ kiểm soát lỗi từng file.
       for (const file of files) {
         const url = await uploadImage(file);
         uploadedUrls.push(url);
       }
 
       setGalleryImages((current) => {
+        // Loại bỏ item rỗng rồi gộp thêm các ảnh mới.
         const normalizedCurrent = current.map((item) => item.trim()).filter(Boolean);
         const next = [...normalizedCurrent, ...uploadedUrls];
         return next.length ? next : [""];
@@ -133,7 +138,9 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    // FormData giúp gom dữ liệu từ input native đơn giản.
     const formData = new FormData(event.currentTarget);
+    // Gallery được quản lý bằng state riêng, nên normalize trước khi gửi.
     const normalizedGalleryImages = galleryImages.map((item) => item.trim()).filter(Boolean);
 
     const itineraryDrafts = itineraries.map((item, index) => ({
@@ -145,6 +152,7 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
     const incompleteItinerary = itineraryDrafts.find(
       (item) => (item.title && !item.description) || (!item.title && item.description),
     );
+    // Chặn trạng thái "điền nửa vời" để tránh tạo dữ liệu lịch trình bẩn.
     if (incompleteItinerary) {
       toast.error(
         `Vui lòng nhập đủ tiêu đề và mô tả cho ngày ${incompleteItinerary.dayNumber}.`,
@@ -166,6 +174,8 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
       return;
     }
 
+    // Payload gửi lên API admin/tours sau khi normalize dữ liệu form.
+    // Các field số ép Number ở client để route validate rõ ràng hơn.
     const payload = {
       title: String(formData.get("title") ?? "").trim(),
       slug: String(formData.get("slug") ?? "").trim(),
@@ -188,6 +198,7 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
 
     startTransition(async () => {
       try {
+        // Gọi API tạo tour và reset form khi thành công.
         const response = await fetch("/api/admin/tours", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -201,10 +212,12 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
 
         toast.success(data.message ?? "Tạo tour thành công.");
         (event.currentTarget as HTMLFormElement).reset();
+        // Reset state local để lần tạo tiếp theo không dính dữ liệu cũ.
         setFeatured(false);
         setStatus("ACTIVE");
         setFeaturedImage("");
         setGalleryImages([""]);
+        // Sau khi tạo tour xong, reset lịch trình về 1 dòng rỗng.
         setItineraries([{ title: "", description: "" }]);
         router.refresh();
       } catch {
@@ -509,3 +522,5 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
     </form>
   );
 }
+
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { Loader2, Trash2 } from "lucide-react";
@@ -23,6 +23,7 @@ export function AdminTourActions({ tourId, status, featured }: AdminTourActionsP
   function handleSave() {
     startTransition(async () => {
       try {
+        // Lưu nhanh trạng thái + featured ngay trên danh sách.
         const response = await fetch(`/api/admin/tours/${tourId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -47,8 +48,9 @@ export function AdminTourActions({ tourId, status, featured }: AdminTourActionsP
   }
 
   async function handleDeleteTour() {
+    // Xác nhận trước khi xóa tour chưa phát sinh đơn.
     const confirmed = window.confirm(
-      "Bạn có chắc muốn xóa tour này? Hành động này sẽ xóa cả booking/review/favorite liên quan.",
+      "Chỉ nên xóa tour chưa phát sinh đơn đặt. Nếu tour đã có đơn, hệ thống sẽ từ chối và bạn nên chuyển sang 'Ngừng hoạt động'. Bạn vẫn muốn tiếp tục?",
     );
     if (!confirmed) return;
 
@@ -130,3 +132,4 @@ export function AdminTourActions({ tourId, status, featured }: AdminTourActionsP
     </div>
   );
 }
+

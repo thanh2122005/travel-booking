@@ -1,4 +1,4 @@
-import { ShieldCheck } from "lucide-react";
+﻿import { ShieldCheck } from "lucide-react";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { SiteHeader } from "@/components/layout/site-header";
 import { requireAdmin } from "@/lib/auth/session";
@@ -29,3 +29,4 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     </div>
   );
 }
+

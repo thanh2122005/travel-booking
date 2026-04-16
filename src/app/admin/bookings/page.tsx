@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { AdminBookingsTable } from "@/components/admin/admin-bookings-table";
 import { EmptyState } from "@/components/common/empty-state";
 import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
@@ -366,3 +366,4 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
     </div>
   );
 }
+

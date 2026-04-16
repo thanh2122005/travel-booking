@@ -52,6 +52,13 @@ const process = [
   },
 ];
 
+const cancellationPolicy = [
+  "Khách hàng được hủy online khi đơn ở trạng thái Chờ xác nhận/Đã xác nhận và chưa thanh toán.",
+  "Thời hạn hủy: phải trước ngày khởi hành tối thiểu 2 ngày.",
+  "Nếu sát ngày khởi hành (dưới 2 ngày), hệ thống sẽ khóa hủy trực tuyến.",
+  "Với trường hợp sát giờ hoặc cần hỗ trợ đặc biệt, vui lòng liên hệ bộ phận tư vấn để được hỗ trợ thủ công.",
+];
+
 export default async function AboutPage() {
   const data = await getHomePublicData().catch(() => ({
     stats: {
@@ -185,6 +192,22 @@ export default async function AboutPage() {
             </article>
           ))}
         </div>
+      </section>
+
+      <section className="space-y-5 rounded-3xl border bg-card p-6 md:p-8">
+        <h2 className="text-2xl font-black tracking-tight">Chính Sách Hủy Tour</h2>
+        <p className="text-sm leading-7 text-slate-600 md:text-base">
+          Để đảm bảo vận hành ổn định và giữ chỗ công bằng cho các đoàn khách khác, hệ thống áp dụng chính sách hủy
+          tour minh bạch như sau:
+        </p>
+        <ul className="space-y-2 text-sm leading-7 text-slate-700 md:text-base">
+          {cancellationPolicy.map((item) => (
+            <li key={item} className="flex gap-2">
+              <span className="mt-[0.55rem] h-1.5 w-1.5 shrink-0 rounded-full bg-teal-600" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="space-y-5">

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -81,3 +81,4 @@ export function MobileQuickActions({
     </div>
   );
 }
+

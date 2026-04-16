@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/admin/locations/[id]/route.ts
+// Phạm vi: API quản trị (admin).
+// Luồng chính: kiểm tra quyền -> parse body -> validate -> xử lý DB -> trả response.
+
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
@@ -13,6 +17,7 @@ type LocationRouteContext = {
   params: Promise<{ id: string }>;
 };
 
+// FLOW: PATCH - cập nhật nhanh trạng thái nổi bật của điểm đến.
 export async function PATCH(request: Request, context: LocationRouteContext) {
   const guard = await requireAdminApi();
   if (guard) return guard;
@@ -40,6 +45,7 @@ export async function PATCH(request: Request, context: LocationRouteContext) {
   }
 }
 
+// FLOW: DELETE - xóa điểm đến theo id (nếu không còn tour liên kết).
 export async function DELETE(_request: Request, context: LocationRouteContext) {
   const guard = await requireAdminApi();
   if (guard) return guard;
@@ -48,7 +54,6 @@ export async function DELETE(_request: Request, context: LocationRouteContext) {
 
   try {
     const removed = await deleteAdminLocation(id);
-
     if (removed === "HAS_TOURS") {
       return NextResponse.json(
         { message: "Không thể xóa điểm đến đang có tour. Vui lòng xử lý tour trước." },
@@ -68,3 +73,4 @@ export async function DELETE(_request: Request, context: LocationRouteContext) {
     return NextResponse.json({ message: "Không thể xóa điểm đến." }, { status: 500 });
   }
 }
+

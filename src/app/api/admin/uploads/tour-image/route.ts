@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/admin/uploads/tour-image/route.ts
+// Phạm vi: API quản trị (admin).
+// Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
+
 import { randomUUID } from "crypto";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
@@ -12,7 +16,13 @@ const EXTENSION_BY_TYPE: Record<string, string> = {
   "image/webp": ".webp",
 };
 
+// FLOW: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function POST(request: Request) {
+  // STEP 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
+  // STEP 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
+  // STEP 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
+  // STEP 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
+  // Chỉ admin mới được upload ảnh vào thư viện tour.
   const guard = await requireAdminApi();
   if (guard) return guard;
 
@@ -24,6 +34,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Chưa chọn ảnh để tải lên." }, { status: 400 });
     }
 
+    // Validate MIME type để tránh upload file không phải ảnh.
     if (!ALLOWED_TYPES.has(file.type)) {
       return NextResponse.json(
         { message: "Chỉ hỗ trợ ảnh JPG, PNG hoặc WEBP." },
@@ -31,6 +42,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate dung lượng để giới hạn tài nguyên server.
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         { message: "Ảnh vượt quá giới hạn 5MB." },
@@ -45,6 +57,7 @@ export async function POST(request: Request) {
     const absolutePath = path.join(publicDir, fileName);
     const buffer = Buffer.from(await file.arrayBuffer());
 
+    // Lưu ảnh vào thư mục public để Next/Image truy cập trực tiếp.
     await mkdir(publicDir, { recursive: true });
     await writeFile(absolutePath, buffer);
 
@@ -62,3 +75,10 @@ export async function POST(request: Request) {
     );
   }
 }
+
+
+
+
+
+
+

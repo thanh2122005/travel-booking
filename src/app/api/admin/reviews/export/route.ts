@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/admin/reviews/export/route.ts
+// Phạm vi: API quản trị (admin).
+// Luồng chính: kiểm tra quyền -> đọc bộ lọc query -> truy vấn DB -> xuất CSV.
+
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
 import { exportAdminReviews } from "@/lib/db/admin-queries";
@@ -59,14 +63,13 @@ export async function GET(request: NextRequest) {
   const createdToRaw = normalizeParam(request.nextUrl.searchParams.get("createdTo"));
 
   let items: Awaited<ReturnType<typeof exportAdminReviews>> | null = null;
-
   try {
     items = await exportAdminReviews({
-    search: search || undefined,
-    isVisible: parseVisibleFilter(isVisibleRaw),
-    createdFrom: parseDateAtBoundary(createdFromRaw, "start"),
-    createdTo: parseDateAtBoundary(createdToRaw, "end"),
-  });
+      search: search || undefined,
+      isVisible: parseVisibleFilter(isVisibleRaw),
+      createdFrom: parseDateAtBoundary(createdFromRaw, "start"),
+      createdTo: parseDateAtBoundary(createdToRaw, "end"),
+    });
   } catch {
     return NextResponse.json({ message: "Không thể xuất dữ liệu đánh giá lúc này." }, { status: 500 });
   }
@@ -95,3 +98,4 @@ export async function GET(request: NextRequest) {
     },
   });
 }
+

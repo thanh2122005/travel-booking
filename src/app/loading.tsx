@@ -1,4 +1,4 @@
-export default function RootLoading() {
+﻿export default function RootLoading() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
@@ -8,3 +8,4 @@ export default function RootLoading() {
     </div>
   );
 }
+

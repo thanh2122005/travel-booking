@@ -1,7 +1,8 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 function isHttpUrl(value: string) {
   try {
+    // Cho phép ảnh remote nhưng chỉ nhận protocol http/https.
     const parsed = new URL(value);
     return parsed.protocol === "http:" || parsed.protocol === "https:";
   } catch {
@@ -10,6 +11,7 @@ function isHttpUrl(value: string) {
 }
 
 function isLocalPath(value: string) {
+  // Cho phép đường dẫn ảnh local trong thư mục public.
   return /^\/(?!\/)\S+$/.test(value);
 }
 
@@ -24,6 +26,7 @@ export function requiredMediaUrlSchema(
   requiredMessage: string,
   invalidMessage = "URL ảnh không hợp lệ.",
 ) {
+  // Schema dùng cho trường bắt buộc có ảnh.
   return z
     .string()
     .trim()
@@ -32,6 +35,7 @@ export function requiredMediaUrlSchema(
 }
 
 export function optionalMediaUrlSchema(invalidMessage = "URL ảnh không hợp lệ.") {
+  // Schema dùng cho trường ảnh optional (nếu có thì phải hợp lệ).
   return z
     .string()
     .trim()
@@ -41,6 +45,7 @@ export function optionalMediaUrlSchema(invalidMessage = "URL ảnh không hợp 
 }
 
 export function optionalNullableMediaUrlSchema(invalidMessage = "URL ảnh không hợp lệ.") {
+  // Dùng cho field có thể null, ví dụ avatarUrl.
   return z
     .preprocess(
       (value) => {

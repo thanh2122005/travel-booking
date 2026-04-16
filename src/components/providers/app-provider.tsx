@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
@@ -11,7 +11,7 @@ export function AppProvider({ children }: AppProviderProps) {
   return (
     <SessionProvider>
       {children}
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="top-right" expand={true} />
     </SessionProvider>
   );
 }

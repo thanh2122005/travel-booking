@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/admin/users/[id]/content/route.ts
+// Phạm vi: API quản trị (admin).
+// Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
+
 import { Prisma, UserRole, UserStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
@@ -20,7 +24,13 @@ type UserContentRouteContext = {
   params: Promise<{ id: string }>;
 };
 
+// FLOW: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function PATCH(request: Request, context: UserContentRouteContext) {
+  // STEP 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
+  // STEP 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
+  // STEP 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
+  // STEP 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
+  // Dùng auth chi tiết để có userId hiện tại (phục vụ rule tự khóa/tự hạ quyền).
   const auth = await requireAdminApiAuth();
   if (auth.response) return auth.response;
 
@@ -40,6 +50,7 @@ export async function PATCH(request: Request, context: UserContentRouteContext) 
   }
 
   if (id === auth.userId && (parsed.data.role !== UserRole.ADMIN || parsed.data.status === UserStatus.BLOCKED)) {
+    // Không cho admin tự biến mình thành non-admin hoặc blocked.
     return NextResponse.json(
       { message: "Bạn không thể tự hạ quyền hoặc tự khóa tài khoản quản trị." },
       { status: 400 },
@@ -47,6 +58,7 @@ export async function PATCH(request: Request, context: UserContentRouteContext) 
   }
 
   try {
+    // Update profile + role + status trong 1 endpoint.
     const updated = await updateAdminUserContent(id, {
       fullName: parsed.data.fullName,
       email: parsed.data.email,
@@ -73,6 +85,7 @@ export async function PATCH(request: Request, context: UserContentRouteContext) 
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      // Trùng email unique.
       return NextResponse.json(
         { message: "Email đã tồn tại. Vui lòng chọn email khác." },
         { status: 409 },
@@ -86,3 +99,11 @@ export async function PATCH(request: Request, context: UserContentRouteContext) 
     return NextResponse.json({ message: "Không thể cập nhật người dùng." }, { status: 500 });
   }
 }
+
+
+
+
+
+
+
+

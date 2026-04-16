@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/newsletter/route.ts
+// Phạm vi: API public hoặc user đã đăng nhập.
+// Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
+
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db/prisma";
@@ -6,7 +10,13 @@ import { saveNewsletterSubscriber, demoGetNewsletterSubscribers } from "@/lib/de
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { newsletterSchema } from "@/lib/validations/newsletter";
 
+// FLOW: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function POST(request: Request) {
+  // STEP 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
+  // STEP 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
+  // STEP 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
+  // STEP 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
+  // Rate limit cho endpoint public đăng ký newsletter.
   const ip = getClientIp(request);
   const rate = consumeRateLimit(`public:newsletter:${ip}`, {
     windowMs: 15 * 60 * 1000,
@@ -48,6 +58,7 @@ export async function POST(request: Request) {
   const normalizedEmail = parsed.data.email.trim().toLowerCase();
 
   try {
+    // Lưu email dạng normalized để tránh trùng do khác hoa/thường.
     await db.newsletterSubscriber.create({
       data: { email: normalizedEmail },
     });
@@ -61,6 +72,7 @@ export async function POST(request: Request) {
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
+      // P2002: email đã tồn tại trong danh sách.
       return NextResponse.json({
         message: "Email này đã đăng ký nhận tin trước đó.",
       });
@@ -88,8 +100,14 @@ export async function POST(request: Request) {
   }
 }
 
+// FLOW: GET - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function GET() {
+  // STEP 1: Kiểm tra quyền truy cập (nếu endpoint có yêu cầu auth/admin).
+  // STEP 2: Đọc query params và chuẩn hóa bộ lọc/sắp xếp.
+  // STEP 3: Gọi service/DB để lấy dữ liệu hoặc tạo file export.
+  // STEP 4: Trả response thành công hoặc mã lỗi phù hợp (400/401/403/404/500).
   try {
+    // Endpoint đọc nhanh danh sách subscriber mới nhất.
     const subscribers = await db.newsletterSubscriber.findMany({
       orderBy: { createdAt: "desc" },
     });
@@ -105,3 +123,10 @@ export async function GET() {
     );
   }
 }
+
+
+
+
+
+
+

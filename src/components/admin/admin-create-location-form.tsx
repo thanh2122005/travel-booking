@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
@@ -127,3 +127,4 @@ export function AdminCreateLocationForm() {
     </form>
   );
 }
+

@@ -1,6 +1,7 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 export const newsletterSchema = z.object({
+  // Email bắt buộc đúng định dạng để phục vụ gửi bản tin.
   email: z
     .string()
     .trim()

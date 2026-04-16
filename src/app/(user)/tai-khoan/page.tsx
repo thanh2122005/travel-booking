@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Form from "next/form";
 import { BookingStatus, PaymentStatus } from "@prisma/client";
 import {
@@ -21,7 +21,7 @@ import { ReviewRemoveButton } from "@/components/review/review-remove-button";
 import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth/session";
 import { getUserDashboardData } from "@/lib/db/user-queries";
-import { canCancelBooking } from "@/lib/utils/booking-actions";
+import { canCancelBooking, evaluateCancelBooking } from "@/lib/utils/booking-actions";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
@@ -112,6 +112,13 @@ const reviewSortLabels: Record<ReviewSortValue, string> = {
   "rating-desc": "Điểm cao đến thấp",
   "rating-asc": "Điểm thấp đến cao",
 };
+
+function getCancelBlockedLabel(status: string, paymentStatus: string, departureDate?: string | Date | null) {
+  const decision = evaluateCancelBooking(status, paymentStatus, departureDate);
+  if (decision.allowed) return null;
+  if (decision.reason === "TOO_CLOSE_TO_DEPARTURE") return "Quá hạn hủy";
+  return "Không thể hủy";
+}
 
 function normalizeParam(value?: string | string[]) {
   if (!value) return "";
@@ -735,13 +742,17 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                     >
                       Chi tiết đơn
                     </Link>
-                    {canCancelBooking(booking.status, booking.paymentStatus) ? (
+                    {canCancelBooking(booking.status, booking.paymentStatus, booking.departureDate) ? (
                       <BookingCancelButton
                         bookingId={booking.id}
                         bookingCode={booking.bookingCode}
                         className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
                       />
-                    ) : null}
+                    ) : (
+                      <span className="text-xs text-slate-400">
+                        {getCancelBlockedLabel(booking.status, booking.paymentStatus, booking.departureDate)}
+                      </span>
+                    )}
                   </div>
                 </article>
               ))}
@@ -792,14 +803,16 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                           >
                             Chi tiết
                           </Link>
-                          {canCancelBooking(booking.status, booking.paymentStatus) ? (
+                          {canCancelBooking(booking.status, booking.paymentStatus, booking.departureDate) ? (
                             <BookingCancelButton
                               bookingId={booking.id}
                               bookingCode={booking.bookingCode}
                               className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
                             />
                           ) : (
-                            <span className="text-xs text-slate-400">-</span>
+                            <span className="text-xs text-slate-400">
+                              {getCancelBlockedLabel(booking.status, booking.paymentStatus, booking.departureDate)}
+                            </span>
                           )}
                         </div>
                       </td>
@@ -1212,4 +1225,5 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     </div>
   );
 }
+
 

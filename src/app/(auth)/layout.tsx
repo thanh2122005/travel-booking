@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { Compass } from "lucide-react";
 
 type AuthLayoutProps = {
@@ -24,3 +24,4 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
     </main>
   );
 }
+

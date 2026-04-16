@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
@@ -31,7 +31,7 @@ export function HomeVideoShowcase() {
         playsInline
         preload="metadata"
         className="h-[460px] w-full object-cover opacity-85 md:h-[560px]"
-        poster="/immerse-vietnam/images/thumbnail.png"
+        poster="/immerse-vietnam/images/header-bg.jpg"
         onClick={toggleVideo}
       >
         <source src="/immerse-vietnam/videos/chonoi.mp4" type="video/mp4" />
@@ -57,3 +57,4 @@ export function HomeVideoShowcase() {
     </section>
   );
 }
+

@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/reviews/route.ts
+// Phạm vi: API public hoặc user đã đăng nhập.
+// Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
+
 import { BookingStatus, TourStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
@@ -8,7 +12,13 @@ import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { favoriteSchema, reviewSchema } from "@/lib/validations/tour-interactions";
 
+// FLOW: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function POST(request: Request) {
+  // STEP 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
+  // STEP 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
+  // STEP 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
+  // STEP 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
+  // Guard: chỉ user đăng nhập mới được gửi/cập nhật review.
   const guard = await requireActiveUserApi({
     unauthorizedMessage: "Vui lòng đăng nhập để gửi đánh giá.",
   });
@@ -75,6 +85,7 @@ export async function POST(request: Request) {
     });
 
     if (!confirmedBookingCount) {
+      // Chỉ cho review nếu user từng có booking confirmed/completed.
       return NextResponse.json(
         {
           message: "Bạn cần có đơn đã xác nhận hoặc đã hoàn thành để đánh giá tour này.",
@@ -83,6 +94,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // Upsert để 1 user chỉ có 1 review cho 1 tour.
     const review = await db.review.upsert({
       where: {
         userId_tourId: {
@@ -141,7 +153,13 @@ export async function POST(request: Request) {
   }
 }
 
+// FLOW: DELETE - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function DELETE(request: Request) {
+  // STEP 1: Kiểm tra quyền truy cập để tránh xóa trái phép.
+  // STEP 2: Phân tích input cần thiết (id/body/query) và kiểm tra hợp lệ.
+  // STEP 3: Kiểm tra tồn tại + ràng buộc nghiệp vụ trước khi xóa.
+  // STEP 4: Xóa dữ liệu và trả kết quả/thông báo lỗi phù hợp.
+  // Xóa review của chính user hiện tại trên tour được chỉ định.
   const guard = await requireActiveUserApi({
     unauthorizedMessage: "Vui lòng đăng nhập để xóa đánh giá.",
   });
@@ -224,3 +242,10 @@ export async function DELETE(request: Request) {
     );
   }
 }
+
+
+
+
+
+
+

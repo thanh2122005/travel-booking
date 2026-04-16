@@ -10,6 +10,7 @@ type AdminApiAuthResult = {
 };
 
 export async function requireAdminApiAuth(): Promise<AdminApiAuthResult> {
+  // Lấy session hiện tại từ NextAuth.
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
@@ -28,6 +29,7 @@ export async function requireAdminApiAuth(): Promise<AdminApiAuthResult> {
   }
 
   if (access.role !== UserRole.ADMIN) {
+    // Chỉ ADMIN mới được gọi API quản trị.
     return {
       response: NextResponse.json({ message: "Bạn không có quyền truy cập." }, { status: 403 }),
       userId: session.user.id,
@@ -42,9 +44,13 @@ export async function requireAdminApiAuth(): Promise<AdminApiAuthResult> {
 
 export async function requireAdminApi() {
   try {
+    // Wrapper trả response lỗi sẵn để route dùng nhanh.
     const auth = await requireAdminApiAuth();
     return auth.response;
   } catch {
-    return NextResponse.json({ message: "Hệ thống tạm thời gián đoạn, vui lòng thử lại." }, { status: 503 });
+    return NextResponse.json(
+      { message: "Hệ thống tạm thời gián đoạn, vui lòng thử lại." },
+      { status: 503 },
+    );
   }
 }

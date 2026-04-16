@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 import {
   BookOpen,
@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import { DashboardHeader } from "@/components/admin/dashboard/dashboard-header";
 import { StatsCards } from "@/components/admin/dashboard/stats-cards";
 import { TopToursTable } from "@/components/admin/dashboard/top-tours-table";
+import { TopCustomersTable } from "@/components/admin/dashboard/top-customers-table";
 import { RecentOrders } from "@/components/admin/dashboard/recent-orders";
 import { LatestReviews } from "@/components/admin/dashboard/latest-reviews";
 import { NewConsultations } from "@/components/admin/dashboard/new-consultations";
@@ -25,6 +26,7 @@ import type {
   DashboardRecentInquiry,
   DashboardRecentReview,
   DashboardSubscriber,
+  DashboardTopCustomerItem,
   DashboardTopTourItem,
 } from "@/components/admin/dashboard/types";
 import { adminLabels, getAdminDashboardData } from "@/lib/db/admin-queries";
@@ -52,6 +54,7 @@ function normalizeParam(value?: string | string[]) {
 }
 
 function parseRangeDays(value: string) {
+  // Chỉ cho phép các mốc đã định nghĩa để giữ truy vấn ổn định.
   const number = Number(value || "30");
   if (!Number.isFinite(number)) return 30;
   const valid = rangeOptions.some((option) => option.value === number);
@@ -97,6 +100,7 @@ function buildQuery(
   currentParams: Record<string, string | string[] | undefined>,
   patch: Record<string, string>,
 ) {
+  // Giữ lại query cũ rồi merge patch để UX lọc mượt hơn.
   const nextQuery: Record<string, string> = {};
 
   for (const [key, rawValue] of Object.entries(currentParams)) {
@@ -170,6 +174,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   let dashboardLoadFailed = false;
 
   try {
+    // Tải dữ liệu dashboard ở server để có số liệu mới nhất.
     data = await getAdminDashboardData({
       ...(hasCustomDateRange
         ? {
@@ -186,6 +191,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   }
 
   if (!data) {
+    // Trạng thái rỗng/lỗi tải dashboard.
     return (
       <EmptyState
         title={dashboardLoadFailed ? "Không thể tải dữ liệu quản trị" : "Dữ liệu quản trị chưa sẵn sàng"}
@@ -215,6 +221,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   );
 
   const statsCards = [
+    // Card KPI chính hiển thị đầu trang dashboard.
     {
       key: "revenue",
       label: "Doanh thu",
@@ -380,7 +387,10 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         />
       </section>
 
-      <TopToursTable items={data.topRevenueTours as DashboardTopTourItem[]} />
+      <section className="grid gap-4 xl:grid-cols-2">
+        <TopToursTable items={data.topRevenueTours as DashboardTopTourItem[]} />
+        <TopCustomersTable items={data.topCustomers as DashboardTopCustomerItem[]} />
+      </section>
 
       <section id="du-lieu-moi" className="grid scroll-mt-24 gap-4 xl:grid-cols-2">
         <RecentOrders
@@ -406,6 +416,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     </div>
   );
 }
+
 
 
 

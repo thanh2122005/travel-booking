@@ -1,4 +1,8 @@
-﻿import { Prisma } from "@prisma/client";
+﻿// API SUMMARY: src/app/api/admin/tours/[id]/itineraries/route.ts
+// Phạm vi: API quản trị (admin).
+// Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
+
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
@@ -15,7 +19,12 @@ type ItineraryRouteContext = {
   params: Promise<{ id: string }>;
 };
 
+// FLOW: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function POST(request: Request, context: ItineraryRouteContext) {
+  // STEP 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
+  // STEP 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
+  // STEP 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
+  // STEP 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
   const guard = await requireAdminApi();
   if (guard) return guard;
 
@@ -68,3 +77,10 @@ export async function POST(request: Request, context: ItineraryRouteContext) {
     return NextResponse.json({ message: "Không thể thêm lịch trình." }, { status: 500 });
   }
 }
+
+
+
+
+
+
+

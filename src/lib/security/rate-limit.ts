@@ -1,4 +1,4 @@
-type RateLimitOptions = {
+﻿type RateLimitOptions = {
   windowMs: number;
   max: number;
 };
@@ -22,6 +22,7 @@ function getStore() {
   };
 
   if (!globalObject[GLOBAL_STORE_KEY]) {
+    // Store in-memory theo process, phù hợp dev/single-instance.
     globalObject[GLOBAL_STORE_KEY] = new Map<string, RateLimitBucket>();
   }
 
@@ -29,6 +30,7 @@ function getStore() {
 }
 
 function cleanupExpiredBuckets(store: Map<string, RateLimitBucket>, now: number) {
+  // Chỉ dọn dẹp khi store lớn để giảm chi phí lặp.
   if (store.size < 2000) return;
 
   for (const [key, bucket] of store.entries()) {
@@ -39,6 +41,7 @@ function cleanupExpiredBuckets(store: Map<string, RateLimitBucket>, now: number)
 }
 
 export function getClientIp(request: { headers: Headers }) {
+  // Ưu tiên header chuẩn reverse proxy.
   const forwardedFor =
     request.headers.get("x-forwarded-for") ??
     request.headers.get("cf-connecting-ip") ??
@@ -60,6 +63,7 @@ export function consumeRateLimit(key: string, options: RateLimitOptions): RateLi
   const existing = store.get(key);
 
   if (!existing || existing.resetAt <= now) {
+    // Cửa sổ mới: reset count về 1.
     const nextBucket: RateLimitBucket = {
       count: 1,
       resetAt: now + options.windowMs,
@@ -74,6 +78,7 @@ export function consumeRateLimit(key: string, options: RateLimitOptions): RateLi
   }
 
   if (existing.count >= options.max) {
+    // Hết quota trong window hiện tại.
     return {
       allowed: false,
       retryAfterSeconds: Math.max(1, Math.ceil((existing.resetAt - now) / 1000)),
@@ -90,4 +95,3 @@ export function consumeRateLimit(key: string, options: RateLimitOptions): RateLi
     remaining: Math.max(0, options.max - existing.count),
   };
 }
-

@@ -28,6 +28,16 @@ export type DashboardTopTourItem = {
   confirmedRevenue: number;
 };
 
+export type DashboardTopCustomerItem = {
+  userId: string;
+  fullName: string;
+  email: string;
+  bookings: number;
+  confirmedBookings: number;
+  paidBookings: number;
+  confirmedRevenue: number;
+};
+
 export type DashboardRecentBooking = {
   id: string;
   bookingCode: string;

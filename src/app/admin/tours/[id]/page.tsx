@@ -1,6 +1,7 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, MapPin } from "lucide-react";
+import { AdminTourAvailabilityPanel } from "@/components/admin/admin-tour-availability-panel";
 import { AdminItineraryManager } from "@/components/admin/admin-itinerary-manager";
 import { AdminTourContentForm } from "@/components/admin/admin-tour-content-form";
 import { AdminTourImagesManager } from "@/components/admin/admin-tour-images-manager";
@@ -95,6 +96,8 @@ export default async function AdminTourDetailPage({ params }: AdminTourDetailPag
           </div>
         </div>
       </section>
+
+      <AdminTourAvailabilityPanel tourId={tour.id} />
 
       <div id="noi-dung-tour-admin" className="scroll-mt-24">
         <AdminTourContentForm tour={tour} locations={locationOptions} />

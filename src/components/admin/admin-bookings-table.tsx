@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AdminBookingDetailDialog } from "@/components/admin/admin-booking-detail-dialog";
 import { Badge } from "@/components/ui/badge";
+import { resolveBookingGuestBreakdown } from "@/lib/utils/booking-breakdown";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
 type BookingStatusValue = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
@@ -19,6 +20,9 @@ type BookingItem = {
   email: string;
   phone: string;
   numberOfGuests: number;
+  guestsFrom8?: number | null;
+  child5To7Guests?: number | null;
+  childUnder5Guests?: number | null;
   note?: string | null;
   paymentMethod?: string;
   departureDate?: Date | string | null;
@@ -42,6 +46,18 @@ type BookingItem = {
   };
 };
 
+function getBookingGuestBreakdown(booking: BookingItem) {
+  const unitPrice = booking.tour.discountPrice ?? booking.tour.price;
+  return resolveBookingGuestBreakdown({
+    numberOfGuests: booking.numberOfGuests,
+    totalPrice: booking.totalPrice,
+    unitPrice,
+    guestsFrom8: booking.guestsFrom8,
+    child5To7Guests: booking.child5To7Guests,
+    childUnder5Guests: booking.childUnder5Guests,
+  });
+}
+
 type AdminBookingsTableProps = {
   items: BookingItem[];
   statusLabels: Record<BookingStatusValue, string>;
@@ -60,6 +76,12 @@ const paymentStatusOptions: Array<{ value: PaymentStatusValue; label: string }> 
   { value: "PAID", label: "Đã thanh toán" },
 ];
 
+/**
+ * Component table booking trong admin:
+ * - Có 2 chế độ hiển thị: mobile (card) và desktop (table).
+ * - Hỗ trợ bulk action trên scope "trang hiện tại".
+ * - Sau mỗi action thành công sẽ refresh route để đồng bộ data server.
+ */
 export function AdminBookingsTable({ items, statusLabels, paymentLabels }: AdminBookingsTableProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -67,7 +89,12 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
   const [bulkPaymentStatus, setBulkPaymentStatus] = useState("");
   const [isPending, startTransition] = useTransition();
 
+  // Selection strategy:
+  // - selectedIds giữ trạng thái tổng.
+  // - selectedIdsInPage chỉ là phần selection thuộc page đang xem.
+  // Cách này giúp bulk action "an toàn theo trang".
   const itemIds = useMemo(() => items.map((item) => item.id), [items]);
+  // Chỉ giữ selection đang nằm trong trang hiện tại để tránh thao tác nhầm.
   const selectedIdsInPage = useMemo(
     () => selectedIds.filter((id) => itemIds.includes(id)),
     [itemIds, selectedIds],
@@ -75,6 +102,8 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
   const isAllSelected = itemIds.length > 0 && selectedIdsInPage.length === itemIds.length;
 
   function toggleSelectAll(checked: boolean) {
+    // checked=true: thêm tất cả id page hiện tại vào selection.
+    // checked=false: chỉ xóa id của page hiện tại, không ảnh hưởng page khác.
     setSelectedIds((prev) => {
       if (checked) return Array.from(new Set([...prev, ...itemIds]));
       return prev.filter((id) => !itemIds.includes(id));
@@ -82,6 +111,7 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
   }
 
   function toggleItem(id: string, checked: boolean) {
+    // Toggle row-level selection.
     setSelectedIds((prev) => {
       if (checked) return prev.includes(id) ? prev : [...prev, id];
       return prev.filter((item) => item !== id);
@@ -89,6 +119,7 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
   }
 
   function handleBulkUpdate() {
+    // Validate trước khi gọi API để giảm request lỗi không cần thiết.
     if (!selectedIdsInPage.length) {
       toast.error("Vui lòng chọn ít nhất một đơn để cập nhật.");
       return;
@@ -101,6 +132,7 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
 
     startTransition(async () => {
       try {
+        // Bulk update status/paymentStatus cho các dòng đang chọn.
         const response = await fetch("/api/admin/bookings/bulk", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -204,6 +236,7 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
       </div>
 
       <div className="space-y-3 xl:hidden">
+        {/* Mobile: render theo card de de doc, thao tac nhanh tren man hinh hep. */}
         {items.map((booking) => (
           <article key={booking.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
@@ -219,10 +252,17 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
                     <p className="text-sm font-semibold text-slate-800">{booking.bookingCode}</p>
                     <p className="text-xs text-slate-500">{formatDate(new Date(booking.createdAt))}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-slate-800">{formatPrice(booking.totalPrice)}</p>
-                    <p className="text-xs text-slate-500">{booking.numberOfGuests} khách</p>
-                  </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-slate-800">{formatPrice(booking.totalPrice)}</p>
+                  {(() => {
+                    const breakdown = getBookingGuestBreakdown(booking);
+                    return (
+                      <p className="text-xs text-slate-500">
+                        {booking.numberOfGuests} khách (NL: {breakdown.adults}, TE 5-7: {breakdown.child5To7}, dưới 5: {breakdown.childUnder5})
+                      </p>
+                    );
+                  })()}
+                </div>
                 </div>
 
                 <div>
@@ -252,6 +292,7 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
       </div>
 
       <div className="hidden overflow-x-auto rounded-[1.25rem] border border-slate-200/60 bg-white shadow-[0_14px_35px_rgba(15,23,42,0.06)] xl:block">
+        {/* Desktop: render table de theo doi nhieu cot cung luc. */}
         <div className="p-4 pb-2">
           <table className="w-full text-sm">
             <thead>
@@ -291,10 +332,29 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
                     <Link href={`/tours/${booking.tour.slug}`} className="line-clamp-2 font-medium text-teal-700 hover:text-teal-800">
                       {booking.tour.title}
                     </Link>
-                    <p className="mt-1 text-xs text-slate-500">{booking.numberOfGuests} khách</p>
+                    {(() => {
+                      const breakdown = getBookingGuestBreakdown(booking);
+                      return (
+                        <p className="mt-1 text-xs text-slate-500">
+                          {booking.numberOfGuests} khách (NL: {breakdown.adults}, TE 5-7: {breakdown.child5To7}, dưới 5: {breakdown.childUnder5})
+                        </p>
+                      );
+                    })()}
                   </td>
                   <td className="min-w-[150px] px-2 py-3">
                     <p className="font-medium text-slate-800">{formatPrice(booking.totalPrice)}</p>
+                    {(() => {
+                      const breakdown = getBookingGuestBreakdown(booking);
+                      const unitPrice = booking.tour.discountPrice ?? booking.tour.price;
+                      const adultTotal = breakdown.adults * unitPrice;
+                      const child5To7Total = Math.round(breakdown.child5To7 * unitPrice * 0.5);
+                      const childUnder5Total = 0;
+                      return (
+                        <p className="mt-1 text-xs text-slate-500">
+                          NL: {formatPrice(adultTotal)} • TE 5-7: {formatPrice(child5To7Total)} • dưới 5: {formatPrice(childUnder5Total)}
+                        </p>
+                      );
+                    })()}
                     <p className="mt-1 text-xs text-slate-500">{booking.paymentMethod || "Thanh toán tiêu chuẩn"}</p>
                   </td>
                   <td className="min-w-[150px] px-2 py-3">
@@ -320,3 +380,5 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
     </div>
   );
 }
+
+

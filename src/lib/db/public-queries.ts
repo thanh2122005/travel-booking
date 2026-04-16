@@ -1,4 +1,4 @@
-import { Prisma, TourStatus } from "@prisma/client";
+﻿import { Prisma, TourStatus } from "@prisma/client";
 import {
   demoGetPublicLocationBySlug,
   demoGetPublicLocations,
@@ -8,6 +8,13 @@ import {
 } from "@/lib/demo/admin-demo-store";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { db } from "@/lib/db/prisma";
+
+/**
+ * Ý đồ file này:
+ * - Chứa toàn bộ query cho khu public (home, list, detail, review...).
+ * - Tách riêng khỏi admin để tránh lẫn quyền và giảm độ phức tạp từng route.
+ * - Một số hàm trả thêm dữ liệu "viewer" khi có userId (favorite/review của chính user).
+ */
 
 export type TourFilterInput = {
   search?: string;
@@ -22,6 +29,7 @@ export type TourFilterInput = {
   pageSize?: number;
 };
 
+// Map rating đã tính sẵn theo tourId để tránh query lặp mỗi card.
 type RatingMap = Record<string, { avgRating: number; reviewCount: number }>;
 type TourViewerData = {
   isFavorite: boolean;
@@ -37,6 +45,7 @@ async function getTourRatings(tourIds: string[]): Promise<RatingMap> {
     return {};
   }
 
+  // Group theo tourId để lấy avg rating + tổng review trong 1 query.
   const grouped = await db.review.groupBy({
     by: ["tourId"],
     where: {
@@ -63,6 +72,7 @@ async function getTourRatings(tourIds: string[]): Promise<RatingMap> {
 }
 
 function buildDurationWhere(duration?: TourFilterInput["duration"]): Prisma.TourWhereInput {
+  // Convert filter thời lượng từ UI sang Prisma where.
   if (!duration) {
     return {};
   }
@@ -80,6 +90,7 @@ function buildDurationWhere(duration?: TourFilterInput["duration"]): Prisma.Tour
 
 export async function getHomePublicData() {
   try {
+    // Trang chủ lấy dữ liệu song song để giảm tổng thời gian chờ.
     const [
       featuredLocations,
       featuredTours,
@@ -221,6 +232,7 @@ export async function getTours(filters: TourFilterInput) {
     const page = Math.max(filters.page ?? 1, 1);
     const pageSize = filters.pageSize ?? 9;
 
+    // Tổng hợp bộ lọc tìm kiếm thành 1 where object.
     const where: Prisma.TourWhereInput = {
       status: TourStatus.ACTIVE,
       ...(filters.search
@@ -260,7 +272,8 @@ export async function getTours(filters: TourFilterInput) {
     ]);
 
     if (filters.sort === "danh-gia-cao") {
-      // Sorting by rating must happen before pagination to avoid incorrect ranking per page.
+      // Sort theo rating phải làm trước pagination để không sai thứ hạng.
+      // Trade-off: cần query tập dữ liệu lớn hơn. Hiện tại ưu tiên dùng ranking.
       const allTours = await db.tour.findMany({
         where,
         include: {
@@ -376,6 +389,11 @@ export async function getTourBySlug(slug: string, userId?: string) {
 
     let viewer: TourViewerData | null = null;
     if (userId) {
+      // Khi có userId thì trả thêm dữ liệu cá nhân hóa cho trang chi tiết tour.
+      // Chạy song song 3 query để giảm thời gian chờ:
+      // - favorite
+      // - review cua chinh user
+      // - Phone profile để prefill form
       const [favorite, ownReview, ownProfile] = await Promise.all([
         db.favorite.findUnique({
           where: {
@@ -627,4 +645,5 @@ export async function getPublicReviews(limit = 24) {
     throw error;
   }
 }
+
 

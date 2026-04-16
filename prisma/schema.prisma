@@ -1,12 +1,15 @@
 generator client {
+  // Sinh Prisma Client để gọi DB bằng TypeScript type-safe.
   provider = "prisma-client-js"
 }
 
 datasource db {
+  // Kết nối CSDL MySQL từ biến môi trường.
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
+// Enum quyền và trạng thái người dùng cho phân quyền toàn hệ thống.
 enum UserRole {
   USER
   ADMIN
@@ -17,11 +20,13 @@ enum UserStatus {
   BLOCKED
 }
 
+// Trạng thái hiển thị tour để bật/tắt nhận đặt.
 enum TourStatus {
   ACTIVE
   INACTIVE
 }
 
+// Trạng thái đơn đặt tour theo vòng đời xử lý.
 enum BookingStatus {
   PENDING
   CONFIRMED
@@ -29,6 +34,7 @@ enum BookingStatus {
   COMPLETED
 }
 
+// Trạng thái thanh toán của booking.
 enum PaymentStatus {
   UNPAID
   PAID
@@ -46,6 +52,7 @@ model User {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
+  // Quan hệ 1-n với các tương tác của người dùng.
   bookings  Booking[]
   reviews   Review[]
   favorites Favorite[]
@@ -68,6 +75,7 @@ model Location {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  // Một địa điểm có nhiều tour.
   tours Tour[]
 
   @@index([featured])
@@ -93,6 +101,7 @@ model Tour {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
+  // Tour thuộc về 1 location; xóa location sẽ xóa tour liên quan.
   location    Location    @relation(fields: [locationId], references: [id], onDelete: Cascade)
   images      TourImage[]
   itineraries Itinerary[]
@@ -133,6 +142,7 @@ model Itinerary {
 
 model Booking {
   id             String        @id @default(cuid())
+  // Mã đơn dùng cho tra cứu nghiệp vụ và hiển thị cho khách.
   bookingCode    String        @unique
   userId         String
   tourId         String
@@ -140,6 +150,9 @@ model Booking {
   email          String
   phone          String
   numberOfGuests Int
+  guestsFrom8    Int?
+  child5To7Guests Int?
+  childUnder5Guests Int?
   note           String?
   totalPrice     Int
   status         BookingStatus @default(PENDING)
@@ -171,6 +184,7 @@ model Review {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   tour Tour @relation(fields: [tourId], references: [id], onDelete: Cascade)
 
+  // Mỗi user chỉ được review 1 lần cho 1 tour.
   @@unique([userId, tourId])
   @@index([tourId])
   @@index([isVisible])
@@ -185,6 +199,7 @@ model Favorite {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   tour Tour @relation(fields: [tourId], references: [id], onDelete: Cascade)
 
+  // Mỗi user chỉ lưu yêu thích 1 tour 1 lần.
   @@unique([userId, tourId])
   @@index([userId])
   @@index([tourId])
@@ -204,6 +219,7 @@ model ContactInquiry {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
+  // Inquiry có thể không gắn tour; khi tour bị xóa thì đặt null.
   tour Tour? @relation(fields: [tourId], references: [id], onDelete: SetNull)
 
   @@index([status])

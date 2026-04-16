@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { Ban, Home, LogIn, MessageCircle } from "lucide-react";
 import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
 
@@ -66,3 +66,4 @@ export default function UnauthorizedPage() {
     </div>
   );
 }
+

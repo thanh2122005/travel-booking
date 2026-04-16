@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ChangeEvent, useRef, useState } from "react";
 import { ImageIcon, Loader2, Upload, X } from "lucide-react";
@@ -129,6 +129,7 @@ export function AdminImagePicker({ name, value, onChange, required }: AdminImage
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   function handleSelect(imagePath: string) {
+    // Chọn ảnh từ thư viện local và đóng modal.
     onChange(imagePath);
     setOpen(false);
   }
@@ -142,6 +143,7 @@ export function AdminImagePicker({ name, value, onChange, required }: AdminImage
     setIsUploading(true);
 
     try {
+      // Upload ảnh mới lên server và nhận URL trả về.
       const response = await fetch("/api/admin/uploads/tour-image", {
         method: "POST",
         body: formData,
@@ -169,6 +171,7 @@ export function AdminImagePicker({ name, value, onChange, required }: AdminImage
 
   return (
     <>
+      {/* Hidden input để form submit vẫn gửi được URL ảnh đã chọn. */}
       <input type="hidden" name={name} value={value} />
 
       <div className="md:col-span-3">
@@ -306,3 +309,4 @@ export function AdminImagePicker({ name, value, onChange, required }: AdminImage
     </>
   );
 }
+

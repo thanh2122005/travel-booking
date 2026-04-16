@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { Clock3, MapPin, Users } from "lucide-react";
 import { SafeImage } from "@/components/common/safe-image";
 import { getTourDisplayPrice, formatDuration, formatPrice } from "@/lib/utils/format";
@@ -81,3 +81,4 @@ export function TourCard({ tour }: TourCardProps) {
     </article>
   );
 }
+

@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/admin/newsletter/bulk/route.ts
+// Phạm vi: API quản trị (admin).
+// Luồng chính: kiểm tra quyền -> parse body -> validate -> xóa hàng loạt.
+
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
@@ -36,3 +40,4 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ message: "Không thể xử lý yêu cầu lúc này." }, { status: 500 });
   }
 }
+

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+﻿import type { ReactNode } from "react";
 import { CalendarRange } from "lucide-react";
 
 type DashboardHeaderProps = {
@@ -37,3 +37,4 @@ export function DashboardHeader({ periodLabel, actions, quickStats }: DashboardH
     </section>
   );
 }
+

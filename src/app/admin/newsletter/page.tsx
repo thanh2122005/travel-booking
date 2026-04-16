@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { AdminNewsletterTable } from "@/components/admin/admin-newsletter-table";
 import { EmptyState } from "@/components/common/empty-state";
 import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
@@ -303,3 +303,4 @@ export default async function AdminNewsletterPage({ searchParams }: AdminNewslet
     </div>
   );
 }
+

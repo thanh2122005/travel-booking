@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/admin/tours/[id]/content/route.ts
+// Phạm vi: API quản trị (admin).
+// Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
+
 import { Prisma, TourStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
@@ -29,7 +33,13 @@ type TourContentRouteContext = {
   params: Promise<{ id: string }>;
 };
 
+// FLOW: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function PATCH(request: Request, context: TourContentRouteContext) {
+  // STEP 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
+  // STEP 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
+  // STEP 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
+  // STEP 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
+  // Guard admin cho màn chỉnh sửa nội dung tour.
   const guard = await requireAdminApi();
   if (guard) return guard;
 
@@ -49,6 +59,7 @@ export async function PATCH(request: Request, context: TourContentRouteContext) 
   }
 
   try {
+    // Route chỉ kiểm tra hợp lệ + map lại; logic update nằm trong lớp service.
     const updated = await updateAdminTourContent(id, parsed.data);
     return NextResponse.json({
       message: "Đã cập nhật nội dung tour.",
@@ -56,6 +67,7 @@ export async function PATCH(request: Request, context: TourContentRouteContext) 
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      // Slug trùng unique.
       return NextResponse.json(
         { message: "Slug tour đã tồn tại. Vui lòng chọn slug khác." },
         { status: 409 },
@@ -69,3 +81,11 @@ export async function PATCH(request: Request, context: TourContentRouteContext) 
     return NextResponse.json({ message: "Không thể cập nhật nội dung tour." }, { status: 500 });
   }
 }
+
+
+
+
+
+
+
+

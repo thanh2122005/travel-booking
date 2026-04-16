@@ -1,4 +1,4 @@
-import "server-only";
+﻿import "server-only";
 
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
@@ -17,7 +17,7 @@ import {
   catalogTravelerProfiles,
   localAvatarPool,
 } from "@/lib/content/vietnam-catalog";
-import { canCancelBooking } from "@/lib/utils/booking-actions";
+import { evaluateCancelBooking } from "@/lib/utils/booking-actions";
 import { demoGetContactInquiries } from "@/lib/demo/contact-inquiry-store";
 import { demoGetNewsletterSubscribers } from "@/lib/demo/newsletter-subscriber-store";
 
@@ -94,6 +94,9 @@ type DemoBooking = {
   email: string;
   phone: string;
   numberOfGuests: number;
+  guestsFrom8?: number;
+  child5To7Guests?: number;
+  childUnder5Guests?: number;
   note?: string | null;
   totalPrice: number;
   status: BookingStatus;
@@ -330,6 +333,9 @@ function createInitialDemoState(): DemoState {
       email: user.email,
       phone: catalogTravelerProfiles[index % catalogTravelerProfiles.length]?.phone ?? "0909009999",
       numberOfGuests: guests,
+      guestsFrom8: guests,
+      child5To7Guests: 0,
+      childUnder5Guests: 0,
       note: "Ưu tiên vị trí ngồi gần nhau và hỗ trợ check-in nhanh.",
       totalPrice: (tour.discountPrice ?? tour.price) * guests,
       status,
@@ -460,6 +466,9 @@ async function readDemo(): Promise<DemoState> {
     paymentMethod: booking.paymentMethod ?? "Chuyển khoản ngân hàng",
     note: booking.note ?? null,
     departureDate: booking.departureDate ?? null,
+    guestsFrom8: booking.guestsFrom8 ?? booking.numberOfGuests,
+    child5To7Guests: booking.child5To7Guests ?? 0,
+    childUnder5Guests: booking.childUnder5Guests ?? 0,
   }));
   return state;
 }
@@ -846,6 +855,52 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
       return b.bookings - a.bookings;
     })
     .slice(0, 6);
+  const topCustomersMap = bookingsInRange.reduce<
+    Map<
+      string,
+      {
+        userId: string;
+        fullName: string;
+        email: string;
+        bookings: number;
+        confirmedBookings: number;
+        paidBookings: number;
+        confirmedRevenue: number;
+      }
+    >
+  >((acc, booking) => {
+    const user = userMap.get(booking.userId);
+    const current = acc.get(booking.userId) ?? {
+      userId: booking.userId,
+      fullName: user?.fullName ?? booking.fullName,
+      email: user?.email ?? booking.email,
+      bookings: 0,
+      confirmedBookings: 0,
+      paidBookings: 0,
+      confirmedRevenue: 0,
+    };
+    current.bookings += 1;
+    if (booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED) {
+      current.confirmedBookings += 1;
+      current.confirmedRevenue += booking.totalPrice;
+    }
+    if (booking.paymentStatus === PaymentStatus.PAID) {
+      current.paidBookings += 1;
+    }
+    acc.set(booking.userId, current);
+    return acc;
+  }, new Map());
+  const topCustomers = Array.from(topCustomersMap.values())
+    .sort((a, b) => {
+      if (b.bookings !== a.bookings) {
+        return b.bookings - a.bookings;
+      }
+      if (b.confirmedRevenue !== a.confirmedRevenue) {
+        return b.confirmedRevenue - a.confirmedRevenue;
+      }
+      return b.confirmedBookings - a.confirmedBookings;
+    })
+    .slice(0, 6);
   return {
     metrics: {
       totalUsers: state.users.length,
@@ -864,6 +919,7 @@ export async function demoGetDashboardData(options?: DemoDashboardOptions) {
     timeRangeStats,
     previousTimeRangeStats,
     topRevenueTours,
+    topCustomers,
     monthCount: timelineOptions.monthCount,
     rangeDays: timelineOptions.rangeDays,
     timelineGranularity: timelineOptions.granularity,
@@ -1561,6 +1617,9 @@ export async function demoUpdateBookingDetail(
   if (payload.phone) booking.phone = payload.phone;
   if (typeof payload.numberOfGuests === "number" && Number.isFinite(payload.numberOfGuests)) {
     booking.numberOfGuests = Math.max(1, Math.trunc(payload.numberOfGuests));
+    booking.guestsFrom8 = booking.numberOfGuests;
+    booking.child5To7Guests = 0;
+    booking.childUnder5Guests = 0;
   }
   if (payload.note === null || typeof payload.note === "string") {
     booking.note = payload.note;
@@ -1573,7 +1632,9 @@ export async function demoUpdateBookingDetail(
   if (payload.paymentStatus) booking.paymentStatus = payload.paymentStatus;
 
   const unitPrice = tour.discountPrice ?? tour.price;
-  booking.totalPrice = unitPrice * booking.numberOfGuests;
+  const guestsFrom8 = booking.guestsFrom8 ?? booking.numberOfGuests;
+  const child5To7Guests = booking.child5To7Guests ?? 0;
+  booking.totalPrice = Math.round(unitPrice * (guestsFrom8 + child5To7Guests * 0.5));
   booking.updatedAt = nowIso();
   await writeDemo(state);
   return booking;
@@ -1643,6 +1704,10 @@ export async function demoDeleteTour(id: string) {
   const state = await readDemo();
   const tourIndex = state.tours.findIndex((item) => item.id === id);
   if (tourIndex < 0) return null;
+
+  // Nghiệp vụ demo đồng bộ với DB thật: đã có booking thì không cho xóa tour.
+  const hasBookings = state.bookings.some((item) => item.tourId === id);
+  if (hasBookings) return "HAS_BOOKINGS";
 
   const [removedTour] = state.tours.splice(tourIndex, 1);
   if (!removedTour) return null;
@@ -2410,6 +2475,9 @@ export async function demoCreatePublicBooking(input: {
   email: string;
   phone: string;
   numberOfGuests: number;
+  guestsFrom8?: number;
+  child5To7Guests?: number;
+  childUnder5Guests?: number;
   note?: string;
   departureDate?: string;
 }) {
@@ -2417,9 +2485,42 @@ export async function demoCreatePublicBooking(input: {
   const tour = state.tours.find((item) => item.id === input.tourId && item.status === TourStatus.ACTIVE);
   if (!tour) return null;
   if (input.numberOfGuests > tour.maxGuests) return "MAX_GUEST_EXCEEDED";
+  if (!input.departureDate) return "MISSING_DEPARTURE_DATE";
+  const guestsFrom8 = input.guestsFrom8 ?? input.numberOfGuests;
+  const child5To7Guests = input.child5To7Guests ?? 0;
+  const childUnder5Guests = input.childUnder5Guests ?? 0;
+  const totalGuests = guestsFrom8 + child5To7Guests + childUnder5Guests;
+  if (totalGuests !== input.numberOfGuests) return "INVALID_GUEST_BREAKDOWN";
 
   await ensureDemoUser(state, input.userId, { fullName: input.fullName, email: input.email });
   const departureDateObj = input.departureDate ? new Date(input.departureDate) : null;
+  if (!departureDateObj || Number.isNaN(departureDateObj.getTime())) {
+    return "MISSING_DEPARTURE_DATE";
+  }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const departureDay = startOfDay(departureDateObj);
+  if (departureDay < today) {
+    return "PAST_DEPARTURE_DATE";
+  }
+
+  const departureDateKey = getDateKey(departureDay);
+  const bookedGuests = state.bookings
+    .filter((booking) => {
+      if (booking.tourId !== tour.id) return false;
+      if (booking.status === BookingStatus.CANCELLED) return false;
+      if (!booking.departureDate) return false;
+      const bookingDate = new Date(booking.departureDate);
+      if (Number.isNaN(bookingDate.getTime())) return false;
+      return getDateKey(startOfDay(bookingDate)) === departureDateKey;
+    })
+    .reduce((sum, booking) => sum + booking.numberOfGuests, 0);
+
+  const remainingBeforeBooking = Math.max(tour.maxGuests - bookedGuests, 0);
+  if (remainingBeforeBooking <= 0) return "TOUR_FULL";
+  if (totalGuests > remainingBeforeBooking) {
+    return { code: "INSUFFICIENT_SEATS" as const, remainingSeats: remainingBeforeBooking };
+  }
 
   const booking: DemoBooking = {
     id: `bk_${randomUUID().slice(0, 8)}`,
@@ -2429,22 +2530,66 @@ export async function demoCreatePublicBooking(input: {
     fullName: input.fullName,
     email: input.email,
     phone: input.phone,
-    numberOfGuests: input.numberOfGuests,
+    numberOfGuests: totalGuests,
+    guestsFrom8,
+    child5To7Guests,
+    childUnder5Guests,
     note: input.note ?? null,
-    totalPrice: (tour.discountPrice ?? tour.price) * input.numberOfGuests,
+    totalPrice: Math.round(
+      (tour.discountPrice ?? tour.price) * (guestsFrom8 + child5To7Guests * 0.5 + childUnder5Guests * 0),
+    ),
     status: BookingStatus.PENDING,
     paymentMethod: "Thanh toán khi xác nhận",
     paymentStatus: PaymentStatus.UNPAID,
-    departureDate:
-      departureDateObj && !Number.isNaN(departureDateObj.getTime())
-        ? departureDateObj.toISOString()
-        : null,
+    departureDate: departureDateObj.toISOString(),
     createdAt: nowIso(),
     updatedAt: nowIso(),
   };
   state.bookings.push(booking);
   await writeDemo(state);
-  return booking;
+  return {
+    ...booking,
+    remainingSeats: Math.max(remainingBeforeBooking - totalGuests, 0),
+  };
+}
+
+export async function demoGetTourAvailability(input: {
+  tourId: string;
+  departureDate: string;
+}) {
+  const state = await readDemo();
+  const tour = state.tours.find((item) => item.id === input.tourId);
+  if (!tour) {
+    return null;
+  }
+
+  const date = new Date(input.departureDate);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const departureDateKey = getDateKey(startOfDay(date));
+  const bookedGuests = state.bookings
+    .filter((booking) => {
+      if (booking.tourId !== tour.id) return false;
+      if (booking.status === BookingStatus.CANCELLED) return false;
+      if (!booking.departureDate) return false;
+      const bookingDate = new Date(booking.departureDate);
+      if (Number.isNaN(bookingDate.getTime())) return false;
+      return getDateKey(startOfDay(bookingDate)) === departureDateKey;
+    })
+    .reduce((sum, booking) => sum + booking.numberOfGuests, 0);
+
+  const remainingSeats = Math.max(tour.maxGuests - bookedGuests, 0);
+
+  return {
+    tourId: tour.id,
+    maxGuests: tour.maxGuests,
+    bookedGuests,
+    remainingSeats,
+    isFull: remainingSeats <= 0,
+    departureDate: startOfDay(date).toISOString(),
+  };
 }
 
 export async function demoTogglePublicFavorite(input: { userId: string; tourId: string; email?: string }) {
@@ -2469,6 +2614,23 @@ export async function demoTogglePublicFavorite(input: { userId: string; tourId: 
   return { isFavorite: true };
 }
 
+export async function demoRemovePublicFavorite(input: { userId: string; tourId: string; email?: string }) {
+  const state = await readDemo();
+  await ensureDemoUser(state, input.userId, { email: input.email });
+
+  const existing = state.favorites.find(
+    (favorite) => favorite.userId === input.userId && favorite.tourId === input.tourId,
+  );
+
+  if (!existing) {
+    return { removed: false };
+  }
+
+  state.favorites = state.favorites.filter((favorite) => favorite.id !== existing.id);
+  await writeDemo(state);
+  return { removed: true };
+}
+
 export async function demoCancelPublicBooking(input: { bookingId: string; userId: string }) {
   const state = await readDemo();
   const booking = state.bookings.find(
@@ -2479,7 +2641,11 @@ export async function demoCancelPublicBooking(input: { bookingId: string; userId
     return "NOT_FOUND" as const;
   }
 
-  if (!canCancelBooking(booking.status, booking.paymentStatus)) {
+  const decision = evaluateCancelBooking(booking.status, booking.paymentStatus, booking.departureDate);
+  if (!decision.allowed) {
+    if (decision.reason === "TOO_CLOSE_TO_DEPARTURE") {
+      return "TOO_CLOSE_TO_DEPARTURE" as const;
+    }
     return "NOT_ALLOWED" as const;
   }
 
@@ -2540,5 +2706,6 @@ export async function demoDeletePublicReview(input: { userId: string; tourId: st
   await writeDemo(state);
   return existing;
 }
+
 
 

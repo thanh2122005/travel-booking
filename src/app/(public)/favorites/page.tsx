@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { Heart, List, ListFilter, UserCircle2 } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
@@ -405,3 +405,4 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
     </div>
   );
 }
+

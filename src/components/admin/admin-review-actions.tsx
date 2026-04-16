@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
@@ -68,3 +68,4 @@ export function AdminReviewActions({ reviewId, isVisible, compact = false }: Adm
     </div>
   );
 }
+

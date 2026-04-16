@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/admin/users/export/route.ts
+// Phạm vi: API quản trị (admin).
+// Luồng chính: kiểm tra quyền -> đọc bộ lọc query -> truy vấn DB -> xuất CSV.
+
 import { UserRole, UserStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin-api";
@@ -47,6 +51,7 @@ function buildFileName(prefix: string) {
   return `${prefix}_${date}_${time}.csv`;
 }
 
+// FLOW: GET - kiểm tra quyền -> đọc query params -> export dữ liệu user.
 export async function GET(request: NextRequest) {
   const guard = await requireAdminApi();
   if (guard) return guard;
@@ -61,15 +66,14 @@ export async function GET(request: NextRequest) {
   const status = statusValues.includes(statusRaw as UserStatus) ? (statusRaw as UserStatus) : undefined;
 
   let items: Awaited<ReturnType<typeof exportAdminUsers>> | null = null;
-
   try {
     items = await exportAdminUsers({
-    search: search || undefined,
-    role,
-    status,
-    createdFrom: parseDateAtBoundary(createdFromRaw, "start"),
-    createdTo: parseDateAtBoundary(createdToRaw, "end"),
-  });
+      search: search || undefined,
+      role,
+      status,
+      createdFrom: parseDateAtBoundary(createdFromRaw, "start"),
+      createdTo: parseDateAtBoundary(createdToRaw, "end"),
+    });
   } catch {
     return NextResponse.json({ message: "Không thể xuất dữ liệu người dùng lúc này." }, { status: 500 });
   }
@@ -110,3 +114,4 @@ export async function GET(request: NextRequest) {
     },
   });
 }
+

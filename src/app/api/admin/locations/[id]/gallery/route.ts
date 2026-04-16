@@ -1,3 +1,7 @@
+﻿// API SUMMARY: src/app/api/admin/locations/[id]/gallery/route.ts
+// Phạm vi: API quản trị (admin).
+// Luồng chính: kiểm tra quyền -> parse body -> validate -> cập nhật gallery.
+
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminApi } from "@/lib/auth/admin-api";
@@ -51,3 +55,4 @@ export async function PATCH(request: Request, context: LocationGalleryRouteConte
     return NextResponse.json({ message: "Không thể cập nhật gallery điểm đến." }, { status: 500 });
   }
 }
+

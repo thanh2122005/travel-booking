@@ -1,4 +1,4 @@
-export type CatalogLocation = {
+﻿export type CatalogLocation = {
   name: string;
   slug: string;
   provinceOrCity: string;
@@ -873,3 +873,4 @@ export const catalogReviewComments = [
   "Giá tốt so với chất lượng, đáng để giới thiệu bạn bè.",
   "Đội ngũ chăm sóc khách hàng phản hồi nhanh và rất thân thiện.",
 ] as const;
+

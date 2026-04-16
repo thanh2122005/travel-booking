@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { Route } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { HomeSectionHeading } from "@/components/home/home-section-heading";
@@ -89,3 +89,4 @@ export function HomeItineraryPreview({ tours }: HomeItineraryPreviewProps) {
     </section>
   );
 }
+

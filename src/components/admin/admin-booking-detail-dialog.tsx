@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useMemo, useState, useTransition } from "react";
 import { Loader2, PencilLine } from "lucide-react";
@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { resolveBookingGuestBreakdown } from "@/lib/utils/booking-breakdown";
 import { formatPrice } from "@/lib/utils/format";
 
 type BookingStatusValue = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
@@ -25,6 +26,10 @@ type AdminBookingDetailDialogProps = {
     email: string;
     phone: string;
     numberOfGuests: number;
+    totalPrice: number;
+    guestsFrom8?: number | null;
+    child5To7Guests?: number | null;
+    childUnder5Guests?: number | null;
     note?: string | null;
     paymentMethod?: string;
     departureDate?: Date | string | null;
@@ -38,6 +43,9 @@ type AdminBookingDetailDialogProps = {
     };
   };
 };
+
+const CHILD_5_TO_7_PRICE_RATIO = 0.5;
+const CHILD_UNDER_5_PRICE_RATIO = 0;
 
 function toDateInputValue(value: Date | string | null | undefined) {
   if (!value) return "";
@@ -63,11 +71,56 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatusValue>(booking.paymentStatus);
 
   const unitPrice = booking.tour.discountPrice ?? booking.tour.price;
-  const estimatedTotal = useMemo(() => {
+  const guestBreakdown = useMemo(() => {
+    const baseBreakdown = resolveBookingGuestBreakdown({
+      numberOfGuests: booking.numberOfGuests,
+      totalPrice: booking.totalPrice,
+      unitPrice,
+      guestsFrom8: booking.guestsFrom8,
+      child5To7Guests: booking.child5To7Guests,
+      childUnder5Guests: booking.childUnder5Guests,
+    });
     const guests = Number(numberOfGuests);
-    if (!Number.isFinite(guests) || guests <= 0) return unitPrice;
-    return unitPrice * Math.trunc(guests);
-  }, [numberOfGuests, unitPrice]);
+    if (!Number.isFinite(guests) || guests <= 0) {
+      return baseBreakdown;
+    }
+
+    const nextGuests = Math.trunc(guests);
+    if (nextGuests !== booking.numberOfGuests) {
+      // Khi admin sửa nhanh tổng số khách thì preview quy về nhóm người lớn.
+      return {
+        adults: nextGuests,
+        child5To7: 0,
+        childUnder5: 0,
+        total: nextGuests,
+      };
+    }
+
+    return baseBreakdown;
+  }, [
+    booking.child5To7Guests,
+    booking.childUnder5Guests,
+    booking.guestsFrom8,
+    booking.numberOfGuests,
+    booking.totalPrice,
+    numberOfGuests,
+    unitPrice,
+  ]);
+
+  const estimatedTotal = useMemo(
+    () =>
+      Math.round(
+        unitPrice *
+          (guestBreakdown.adults +
+            guestBreakdown.child5To7 * CHILD_5_TO_7_PRICE_RATIO +
+            guestBreakdown.childUnder5 * CHILD_UNDER_5_PRICE_RATIO),
+      ),
+    [guestBreakdown.adults, guestBreakdown.child5To7, guestBreakdown.childUnder5, unitPrice],
+  );
+
+  const adultTotal = guestBreakdown.adults * unitPrice;
+  const child5To7Total = Math.round(guestBreakdown.child5To7 * unitPrice * CHILD_5_TO_7_PRICE_RATIO);
+  const childUnder5Total = Math.round(guestBreakdown.childUnder5 * unitPrice * CHILD_UNDER_5_PRICE_RATIO);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -215,8 +268,22 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
             />
           </div>
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 md:col-span-2">
-            Tổng tạm tính theo số khách hiện tại:{" "}
-            <span className="font-semibold text-slate-900">{formatPrice(estimatedTotal)}</span>
+            <p className="font-semibold text-slate-700">Chi tiết đơn giá theo nhóm tuổi</p>
+            <p className="mt-1">
+              Người lớn (từ 8 tuổi): {guestBreakdown.adults} x {formatPrice(unitPrice)} ={" "}
+              <span className="font-semibold text-slate-900">{formatPrice(adultTotal)}</span>
+            </p>
+            <p>
+              Trẻ em 5-7 tuổi: {guestBreakdown.child5To7} x {formatPrice(Math.round(unitPrice * CHILD_5_TO_7_PRICE_RATIO))} ={" "}
+              <span className="font-semibold text-slate-900">{formatPrice(child5To7Total)}</span>
+            </p>
+            <p>
+              Trẻ em dưới 5 tuổi: {guestBreakdown.childUnder5} x {formatPrice(0)} ={" "}
+              <span className="font-semibold text-slate-900">{formatPrice(childUnder5Total)}</span>
+            </p>
+            <p className="mt-1">
+              Tổng tạm tính: <span className="font-semibold text-slate-900">{formatPrice(estimatedTotal)}</span>
+            </p>
           </div>
           <button
             type="submit"
@@ -237,3 +304,4 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
     </Dialog>
   );
 }
+

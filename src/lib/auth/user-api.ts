@@ -33,6 +33,7 @@ type RequireActiveUserApiResult =
 export async function requireActiveUserApi(
   options: RequireActiveUserApiOptions = {},
 ): Promise<RequireActiveUserApiResult> {
+  // Guard chung cho API phía người dùng: phải đăng nhập.
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
@@ -47,6 +48,7 @@ export async function requireActiveUserApi(
 
   const access = await resolveAccessState(session.user);
   if (access.status === UserStatus.BLOCKED) {
+    // User bị khóa sẽ bị chặn mọi thao tác ghi dữ liệu.
     return {
       session: null,
       response: NextResponse.json(
@@ -57,6 +59,7 @@ export async function requireActiveUserApi(
   }
 
   return {
+    // Trả lại session khi pass guard để route xử lý nghiệp vụ.
     session: session as ActiveUserSession,
     response: null,
   };

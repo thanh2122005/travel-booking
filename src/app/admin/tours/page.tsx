@@ -1,4 +1,4 @@
-import { TourStatus } from "@prisma/client";
+﻿import { TourStatus } from "@prisma/client";
 import Link from "next/link";
 import { AdminCreateTourForm } from "@/components/admin/admin-create-tour-form";
 import { AdminTourActions } from "@/components/admin/admin-tour-actions";
@@ -276,3 +276,4 @@ export default async function AdminToursPage({ searchParams }: AdminToursPagePro
     </div>
   );
 }
+

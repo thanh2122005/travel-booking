@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { Heart, List, ListFilter, Search } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
@@ -454,3 +454,4 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
     </div>
   );
 }
+

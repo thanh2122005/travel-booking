@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 import { List, ListFilter, MessageSquareText, Star, UserCircle2 } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
@@ -487,3 +487,4 @@ export default async function ReviewsPage({ searchParams }: ReviewsPageProps) {
     </div>
   );
 }
+

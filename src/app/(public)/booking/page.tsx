@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Form from "next/form";
 import { CalendarCheck2, CreditCard, FileCheck2, List, ListFilter, UserCircle2, UserRoundCheck } from "lucide-react";
 import { PageHeroBanner } from "@/components/common/page-hero-banner";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { getAuthSession } from "@/lib/auth/session";
 import { getUserDashboardData } from "@/lib/db/user-queries";
 import { buildAliasRedirectPath } from "@/lib/utils/alias-redirect";
-import { canCancelBooking } from "@/lib/utils/booking-actions";
+import { canCancelBooking, evaluateCancelBooking } from "@/lib/utils/booking-actions";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
@@ -146,6 +146,13 @@ function buildDateRangeLabel(createdFrom: string, createdTo: string) {
     return `Đến ngày: ${formatInputDate(createdTo)}`;
   }
   return "";
+}
+
+function getCancelBlockedLabel(status: string, paymentStatus: string, departureDate?: string | Date | null) {
+  const decision = evaluateCancelBooking(status, paymentStatus, departureDate);
+  if (decision.allowed) return null;
+  if (decision.reason === "TOO_CLOSE_TO_DEPARTURE") return "Quá hạn hủy";
+  return "Không thể hủy";
 }
 
 export default async function BookingPage({ searchParams }: BookingPageProps) {
@@ -567,13 +574,17 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                     >
                       Xem tour
                     </Link>
-                    {canCancelBooking(booking.status, booking.paymentStatus) ? (
+                    {canCancelBooking(booking.status, booking.paymentStatus, booking.departureDate) ? (
                       <BookingCancelButton
                         bookingId={booking.id}
                         bookingCode={booking.bookingCode}
                         className="inline-flex h-9 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
                       />
-                    ) : null}
+                    ) : (
+                      <span className="text-xs text-slate-400">
+                        {getCancelBlockedLabel(booking.status, booking.paymentStatus, booking.departureDate)}
+                      </span>
+                    )}
                   </div>
                 </article>
               ))}
@@ -627,13 +638,17 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                             >
                               Xem tour
                             </Link>
-                            {canCancelBooking(booking.status, booking.paymentStatus) ? (
+                            {canCancelBooking(booking.status, booking.paymentStatus, booking.departureDate) ? (
                               <BookingCancelButton
                                 bookingId={booking.id}
                                 bookingCode={booking.bookingCode}
                                 className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
                               />
-                            ) : null}
+                            ) : (
+                              <span className="text-xs text-slate-400">
+                                {getCancelBlockedLabel(booking.status, booking.paymentStatus, booking.departureDate)}
+                              </span>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -711,3 +726,4 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
     </div>
   );
 }
+

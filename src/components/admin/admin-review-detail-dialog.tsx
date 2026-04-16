@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useState, useTransition } from "react";
 import { Loader2, PencilLine } from "lucide-react";
@@ -135,3 +135,4 @@ export function AdminReviewDetailDialog({ review }: AdminReviewDetailDialogProps
     </Dialog>
   );
 }
+
