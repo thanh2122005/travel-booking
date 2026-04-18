@@ -114,6 +114,34 @@ function getPagination(filter: AdminListFilter) {
   return { page, pageSize, skip: (page - 1) * pageSize };
 }
 
+async function getTourSingleRoomSurcharge(tourId: string) {
+  const rows = (await db.$queryRawUnsafe(
+    "SELECT `singleRoomSurchargePerAdult` FROM `Tour` WHERE `id` = ? LIMIT 1",
+    tourId,
+  )) as Array<{ singleRoomSurchargePerAdult?: number | bigint | null }>;
+  return Number(rows[0]?.singleRoomSurchargePerAdult ?? 0);
+}
+
+async function setTourSingleRoomSurcharge(tourId: string, surcharge: number) {
+  await db.$executeRawUnsafe(
+    "UPDATE `Tour` SET `singleRoomSurchargePerAdult` = ? WHERE `id` = ?",
+    Math.max(0, Math.trunc(surcharge)),
+    tourId,
+  );
+}
+
+function isLegacyBookingFieldError(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  return (
+    message.includes("Unknown argument `roomType`") ||
+    message.includes("Unknown argument `baseGuestTotal`") ||
+    message.includes("Unknown argument `roomSurchargeTotal`") ||
+    message.includes("Unknown argument `guestsFrom8`") ||
+    message.includes("Unknown argument `child5To7Guests`") ||
+    message.includes("Unknown argument `childUnder5Guests`")
+  );
+}
+
 function normalizeDateRange(
   from?: Date,
   to?: Date,
@@ -626,6 +654,7 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
           phone: true,
           numberOfGuests: true,
           departureDate: true,
+          message: true,
           status: true,
           createdAt: true,
           tour: {
@@ -789,6 +818,7 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
           phone: booking.phone,
           numberOfGuests: booking.numberOfGuests,
           departureDate: booking.departureDate,
+          message: "Yeu cau tu van tu he thong dat tour.",
           status: index % 3 === 0 ? InquiryStatus.RESOLVED : InquiryStatus.PENDING,
           createdAt: booking.createdAt,
           tour: {
@@ -1026,7 +1056,7 @@ export async function getAdminTours(filter: AdminTourListFilter = {}) {
 
 export async function getAdminTourDetail(tourId: string) {
   try {
-    return await db.tour.findUnique({
+    const tour = await db.tour.findUnique({
       where: { id: tourId },
       include: {
         location: {
@@ -1055,6 +1085,12 @@ export async function getAdminTourDetail(tourId: string) {
         },
       },
     });
+    if (!tour) return null;
+    const singleRoomSurchargePerAdult = await getTourSingleRoomSurcharge(tour.id);
+    return {
+      ...tour,
+      singleRoomSurchargePerAdult,
+    };
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoGetTourDetail(tourId);
@@ -1391,12 +1427,13 @@ export async function updateAdminBookingDetail(
     note?: string | null;
     departureDate?: string | null;
     paymentMethod?: string;
+    roomType?: "DOUBLE" | "SINGLE";
     status?: BookingStatus;
     paymentStatus?: PaymentStatus;
   },
 ) {
   try {
-    const current = await db.booking.findUnique({
+    const current = (await db.booking.findUnique({
       where: { id: bookingId },
       select: {
         id: true,
@@ -1404,16 +1441,52 @@ export async function updateAdminBookingDetail(
         guestsFrom8: true,
         child5To7Guests: true,
         childUnder5Guests: true,
+        roomType: true,
+        baseGuestTotal: true,
+        roomSurchargeTotal: true,
+        unitPriceSnapshot: true,
+        child5To7RatioSnapshot: true,
+        childUnder5RatioSnapshot: true,
+        singleRoomSurchargePerAdultSnapshot: true,
+        durationNightsSnapshot: true,
         totalPrice: true,
         tour: {
           select: {
             price: true,
             discountPrice: true,
             maxGuests: true,
+            durationNights: true,
+            singleRoomSurchargePerAdult: true,
           },
         },
       },
-    });
+    } as unknown as Prisma.BookingFindUniqueArgs)) as unknown as
+      | (Prisma.BookingGetPayload<{
+          include: {
+            tour: {
+              select: {
+                price: true;
+                discountPrice: true;
+                maxGuests: true;
+                durationNights: true;
+                singleRoomSurchargePerAdult: true;
+              };
+            };
+          };
+        }> & {
+          guestsFrom8?: number | null;
+          child5To7Guests?: number | null;
+          childUnder5Guests?: number | null;
+          roomType?: "DOUBLE" | "SINGLE" | null;
+          baseGuestTotal?: number | null;
+          roomSurchargeTotal?: number | null;
+          unitPriceSnapshot?: number | null;
+          child5To7RatioSnapshot?: number | null;
+          childUnder5RatioSnapshot?: number | null;
+          singleRoomSurchargePerAdultSnapshot?: number | null;
+          durationNightsSnapshot?: number | null;
+        })
+      | null;
     if (!current) return "NOT_FOUND" as const;
 
     const nextGuests =
@@ -1444,8 +1517,42 @@ export async function updateAdminBookingDetail(
       nextChildUnder5Guests = 0;
     }
 
-    const unitPrice = current.tour.discountPrice ?? current.tour.price;
-    const weightedGuests = Math.max(nextGuestsFrom8, 0) + Math.max(nextChild5To7Guests, 0) * 0.5;
+    const unitPrice =
+      typeof current.unitPriceSnapshot === "number" && Number.isFinite(current.unitPriceSnapshot) && current.unitPriceSnapshot > 0
+        ? current.unitPriceSnapshot
+        : current.tour.discountPrice ?? current.tour.price;
+    const child5To7Ratio =
+      typeof current.child5To7RatioSnapshot === "number" && Number.isFinite(current.child5To7RatioSnapshot)
+        ? current.child5To7RatioSnapshot
+        : 0.5;
+    const childUnder5Ratio =
+      typeof current.childUnder5RatioSnapshot === "number" && Number.isFinite(current.childUnder5RatioSnapshot)
+        ? current.childUnder5RatioSnapshot
+        : 0;
+    const singleRoomSurchargePerAdult =
+      typeof current.singleRoomSurchargePerAdultSnapshot === "number" &&
+      Number.isFinite(current.singleRoomSurchargePerAdultSnapshot)
+        ? current.singleRoomSurchargePerAdultSnapshot
+        : current.tour.singleRoomSurchargePerAdult;
+    const durationNights =
+      typeof current.durationNightsSnapshot === "number" &&
+      Number.isFinite(current.durationNightsSnapshot) &&
+      current.durationNightsSnapshot >= 0
+        ? current.durationNightsSnapshot
+        : current.tour.durationNights;
+    const nextRoomType = payload.roomType ?? (current.roomType === "SINGLE" ? "SINGLE" : "DOUBLE");
+    if (nextRoomType === "SINGLE" && durationNights <= 0) {
+      return "INVALID_ROOM_TYPE" as const;
+    }
+    const weightedGuests =
+      Math.max(nextGuestsFrom8, 0) +
+      Math.max(nextChild5To7Guests, 0) * child5To7Ratio +
+      Math.max(nextChildUnder5Guests, 0) * childUnder5Ratio;
+    const baseGuestTotal = Math.round(unitPrice * weightedGuests);
+    const roomSurchargeTotal =
+      nextRoomType === "SINGLE"
+        ? Math.round(Math.max(nextGuestsFrom8, 0) * singleRoomSurchargePerAdult * durationNights)
+        : 0;
     const nextDepartureDate =
       payload.departureDate === null
         ? null
@@ -1453,9 +1560,7 @@ export async function updateAdminBookingDetail(
           ? new Date(payload.departureDate)
           : undefined;
 
-      return await db.booking.update({
-      where: { id: bookingId },
-      data: {
+    const updateData = {
         ...(payload.fullName ? { fullName: payload.fullName } : {}),
         ...(payload.email ? { email: payload.email } : {}),
         ...(payload.phone ? { phone: payload.phone } : {}),
@@ -1465,12 +1570,40 @@ export async function updateAdminBookingDetail(
         ...(nextDepartureDate !== undefined ? { departureDate: nextDepartureDate } : {}),
         ...(payload.status ? { status: payload.status } : {}),
         ...(payload.paymentStatus ? { paymentStatus: payload.paymentStatus } : {}),
+        roomType: nextRoomType,
         guestsFrom8: nextGuestsFrom8,
         child5To7Guests: nextChild5To7Guests,
         childUnder5Guests: nextChildUnder5Guests,
-        totalPrice: Math.round(unitPrice * weightedGuests),
-      },
-    });
+        baseGuestTotal,
+        roomSurchargeTotal,
+        totalPrice: baseGuestTotal + roomSurchargeTotal,
+      } as unknown as Prisma.BookingUncheckedUpdateInput;
+    try {
+      return await db.booking.update({
+        where: { id: bookingId },
+        data: updateData,
+      });
+    } catch (updateError) {
+      if (!isLegacyBookingFieldError(updateError)) {
+        throw updateError;
+      }
+      const updateDataLegacy = {
+        ...(payload.fullName ? { fullName: payload.fullName } : {}),
+        ...(payload.email ? { email: payload.email } : {}),
+        ...(payload.phone ? { phone: payload.phone } : {}),
+        ...(typeof payload.numberOfGuests === "number" ? { numberOfGuests: nextGuests } : {}),
+        ...(payload.note === null || typeof payload.note === "string" ? { note: payload.note } : {}),
+        ...(payload.paymentMethod ? { paymentMethod: payload.paymentMethod } : {}),
+        ...(nextDepartureDate !== undefined ? { departureDate: nextDepartureDate } : {}),
+        ...(payload.status ? { status: payload.status } : {}),
+        ...(payload.paymentStatus ? { paymentStatus: payload.paymentStatus } : {}),
+        totalPrice: baseGuestTotal + roomSurchargeTotal,
+      } as unknown as Prisma.BookingUncheckedUpdateInput;
+      return await db.booking.update({
+        where: { id: bookingId },
+        data: updateDataLegacy,
+      });
+    }
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoUpdateBookingDetail(bookingId, payload);
@@ -1607,6 +1740,7 @@ export async function updateAdminTourContent(
     discountPrice?: number | null;
     durationDays?: number;
     durationNights?: number;
+    singleRoomSurchargePerAdult?: number;
     maxGuests?: number;
     transportation?: string;
     departureLocation?: string;
@@ -1617,28 +1751,37 @@ export async function updateAdminTourContent(
   },
 ) {
   try {
+    const updateData = {
+      ...(payload.title ? { title: payload.title } : {}),
+      ...(payload.slug ? { slug: payload.slug } : {}),
+      ...(payload.shortDescription ? { shortDescription: payload.shortDescription } : {}),
+      ...(payload.description ? { description: payload.description } : {}),
+      ...(typeof payload.price === "number" ? { price: payload.price } : {}),
+      ...(payload.discountPrice === null || typeof payload.discountPrice === "number"
+        ? { discountPrice: payload.discountPrice }
+        : {}),
+      ...(typeof payload.durationDays === "number" ? { durationDays: payload.durationDays } : {}),
+      ...(typeof payload.durationNights === "number" ? { durationNights: payload.durationNights } : {}),
+      ...(typeof payload.maxGuests === "number" ? { maxGuests: payload.maxGuests } : {}),
+      ...(payload.transportation ? { transportation: payload.transportation } : {}),
+      ...(payload.departureLocation ? { departureLocation: payload.departureLocation } : {}),
+      ...(payload.featuredImage ? { featuredImage: payload.featuredImage } : {}),
+      ...(payload.locationId ? { locationId: payload.locationId } : {}),
+      ...(payload.status ? { status: payload.status } : {}),
+      ...(typeof payload.featured === "boolean" ? { featured: payload.featured } : {}),
+    } as unknown as Prisma.TourUncheckedUpdateInput;
     const updated = await db.tour.update({
       where: { id: tourId },
-      data: {
-        ...(payload.title ? { title: payload.title } : {}),
-        ...(payload.slug ? { slug: payload.slug } : {}),
-        ...(payload.shortDescription ? { shortDescription: payload.shortDescription } : {}),
-        ...(payload.description ? { description: payload.description } : {}),
-        ...(typeof payload.price === "number" ? { price: payload.price } : {}),
-        ...(payload.discountPrice === null || typeof payload.discountPrice === "number"
-          ? { discountPrice: payload.discountPrice }
-          : {}),
-        ...(typeof payload.durationDays === "number" ? { durationDays: payload.durationDays } : {}),
-        ...(typeof payload.durationNights === "number" ? { durationNights: payload.durationNights } : {}),
-        ...(typeof payload.maxGuests === "number" ? { maxGuests: payload.maxGuests } : {}),
-        ...(payload.transportation ? { transportation: payload.transportation } : {}),
-        ...(payload.departureLocation ? { departureLocation: payload.departureLocation } : {}),
-        ...(payload.featuredImage ? { featuredImage: payload.featuredImage } : {}),
-        ...(payload.locationId ? { locationId: payload.locationId } : {}),
-        ...(payload.status ? { status: payload.status } : {}),
-        ...(typeof payload.featured === "boolean" ? { featured: payload.featured } : {}),
-      },
+      data: updateData,
     });
+
+    if (typeof payload.singleRoomSurchargePerAdult === "number") {
+      await setTourSingleRoomSurcharge(updated.id, payload.singleRoomSurchargePerAdult);
+      return {
+        ...updated,
+        singleRoomSurchargePerAdult: payload.singleRoomSurchargePerAdult,
+      };
+    }
 
     return updated;
   } catch (error) {
@@ -2008,6 +2151,7 @@ export async function createAdminTour(input: {
   discountPrice?: number | null;
   durationDays: number;
   durationNights: number;
+  singleRoomSurchargePerAdult?: number;
   maxGuests: number;
   transportation: string;
   departureLocation: string;
@@ -2024,8 +2168,7 @@ export async function createAdminTour(input: {
 }) {
   try {
     return await db.$transaction(async (tx) => {
-      const created = await tx.tour.create({
-        data: {
+      const createData = {
           title: input.title,
           slug: input.slug,
           shortDescription: input.shortDescription,
@@ -2041,8 +2184,18 @@ export async function createAdminTour(input: {
           status: input.status ?? TourStatus.ACTIVE,
           featured: Boolean(input.featured),
           locationId: input.locationId,
-        },
+      } as unknown as Prisma.TourUncheckedCreateInput;
+      const created = await tx.tour.create({
+        data: createData,
       });
+
+      if (typeof input.singleRoomSurchargePerAdult === "number") {
+        await tx.$executeRawUnsafe(
+          "UPDATE `Tour` SET `singleRoomSurchargePerAdult` = ? WHERE `id` = ?",
+          Math.max(0, Math.trunc(input.singleRoomSurchargePerAdult)),
+          created.id,
+        );
+      }
 
       const galleryImages = Array.from(new Set((input.images ?? []).map((item) => item.trim()).filter(Boolean)));
       if (galleryImages.length) {
@@ -2070,9 +2223,13 @@ export async function createAdminTour(input: {
         });
       }
 
-      return tx.tour.findUniqueOrThrow({
+      const tour = await tx.tour.findUniqueOrThrow({
         where: { id: created.id },
       });
+      return {
+        ...tour,
+        singleRoomSurchargePerAdult: input.singleRoomSurchargePerAdult ?? 0,
+      };
     });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {

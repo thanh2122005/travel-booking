@@ -82,6 +82,7 @@ export type DashboardRecentInquiry = {
   phone: string;
   numberOfGuests: number;
   departureDate: Date | null;
+  message: string;
   status: InquiryStatus;
   createdAt: Date;
   tour: {

@@ -6,6 +6,10 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AdminInquiryActions } from "@/components/admin/admin-inquiry-actions";
+import {
+  isCapacityShortageMessage,
+  parseCapacityShortageMessage,
+} from "@/lib/utils/capacity-shortage-inquiry";
 import { formatDate } from "@/lib/utils/format";
 
 type InquiryStatusValue = "PENDING" | "RESOLVED";
@@ -152,36 +156,63 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
       </div>
 
       <div className="space-y-3 xl:hidden">
-        {items.map((inquiry) => (
-          <article key={inquiry.id} className="iv-card p-4">
-            <div className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={selectedIdsInPage.includes(inquiry.id)}
-                onChange={(event) => toggleItem(inquiry.id, event.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
-              />
-              <div className="flex-1 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="font-mono text-xs text-slate-600">{inquiry.referenceCode}</p>
-                  {inquiry.status === "RESOLVED" ? (
-                    <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Đã xử lý</span>
+        {items.map((inquiry) => {
+          const isCapacityShortage = isCapacityShortageMessage(inquiry.message);
+          const parsedCapacityShortage = parseCapacityShortageMessage(inquiry.message);
+          return (
+            <article key={inquiry.id} className="iv-card p-4">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={selectedIdsInPage.includes(inquiry.id)}
+                  onChange={(event) => toggleItem(inquiry.id, event.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-slate-300 accent-teal-600"
+                />
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-mono text-xs text-slate-600">{inquiry.referenceCode}</p>
+                    <div className="flex flex-wrap justify-end gap-1">
+                      {isCapacityShortage ? (
+                        <span className="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-700">
+                          Thiếu chỗ
+                        </span>
+                      ) : null}
+                      {inquiry.status === "RESOLVED" ? (
+                        <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Đã xử lý</span>
+                      ) : (
+                        <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Chờ xử lý</span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-sm font-semibold text-slate-800">{inquiry.fullName}</p>
+                  <p className="text-xs text-slate-500">{inquiry.phone} · {inquiry.email}</p>
+                  {parsedCapacityShortage ? (
+                    <div className="rounded-lg border border-rose-100 bg-rose-50/70 px-2.5 py-2 text-xs text-rose-800">
+                      <p>
+                        Tour:{" "}
+                        <span className="font-semibold">
+                          {parsedCapacityShortage.tourTitle || inquiry.tour?.title || "Chưa rõ"}
+                        </span>
+                      </p>
+                      <p className="mt-1">
+                        Ngày đi: {parsedCapacityShortage.departureDate || "-"} • Yêu cầu{" "}
+                        {parsedCapacityShortage.requestedGuests ?? inquiry.numberOfGuests} khách • Còn{" "}
+                        {parsedCapacityShortage.remainingSeats ?? 0} chỗ
+                      </p>
+                    </div>
                   ) : (
-                    <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Chờ xử lý</span>
+                    <p className="line-clamp-3 text-xs text-slate-600">{inquiry.message || "Không có nội dung"}</p>
                   )}
-                </div>
-                <p className="text-sm font-semibold text-slate-800">{inquiry.fullName}</p>
-                <p className="text-xs text-slate-500">{inquiry.phone} · {inquiry.email}</p>
-                <p className="line-clamp-3 text-xs text-slate-600">{inquiry.message || "Không có nội dung"}</p>
-                <p className="text-xs text-slate-500">Ngày gửi: {formatDate(new Date(inquiry.createdAt))}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">{inquiry.numberOfGuests} khách</span>
-                  <AdminInquiryActions inquiryId={inquiry.id} status={inquiry.status} />
+                  <p className="text-xs text-slate-500">Ngày gửi: {formatDate(new Date(inquiry.createdAt))}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-500">{inquiry.numberOfGuests} khách</span>
+                    <AdminInquiryActions inquiryId={inquiry.id} status={inquiry.status} />
+                  </div>
                 </div>
               </div>
-            </div>
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </div>
 
       <div className="iv-card hidden xl:block">
@@ -208,7 +239,10 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
               </tr>
             </thead>
             <tbody>
-              {items.map((inquiry) => (
+              {items.map((inquiry) => {
+                const isCapacityShortage = isCapacityShortageMessage(inquiry.message);
+                const parsedCapacityShortage = parseCapacityShortageMessage(inquiry.message);
+                return (
                 <tr key={inquiry.id} className="border-b border-slate-100 last:border-0 align-top">
                   <td className="px-2 py-3 align-top">
                     <input
@@ -240,16 +274,39 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                     <p className="mt-1">{inquiry.numberOfGuests} khách</p>
                     {inquiry.departureDate ? <p className="mt-1">Khởi hành: {formatDate(new Date(inquiry.departureDate))}</p> : null}
                   </td>
-                  <td className="min-w-[180px] px-2 py-3">
-                    <p className="line-clamp-3 text-xs text-slate-700">{inquiry.message || "Không có nội dung"}</p>
+                  <td className="min-w-[240px] px-2 py-3">
+                    {parsedCapacityShortage ? (
+                      <div className="rounded-lg border border-rose-100 bg-rose-50/70 px-2.5 py-2 text-xs text-rose-800">
+                        <p>
+                          Tour:{" "}
+                          <span className="font-semibold">
+                            {parsedCapacityShortage.tourTitle || inquiry.tour?.title || "Chưa rõ"}
+                          </span>
+                        </p>
+                        <p className="mt-1">
+                          Ngày đi: {parsedCapacityShortage.departureDate || "-"} • Yêu cầu{" "}
+                          {parsedCapacityShortage.requestedGuests ?? inquiry.numberOfGuests} khách • Còn{" "}
+                          {parsedCapacityShortage.remainingSeats ?? 0} chỗ
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="line-clamp-3 text-xs text-slate-700">{inquiry.message || "Không có nội dung"}</p>
+                    )}
                   </td>
                   <td className="px-2 py-3 whitespace-nowrap text-xs text-slate-500">{formatDate(new Date(inquiry.createdAt))}</td>
                   <td className="px-2 py-3 whitespace-nowrap">
-                    {inquiry.status === "RESOLVED" ? (
-                      <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Đã xử lý</span>
-                    ) : (
-                      <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Chờ xử lý</span>
-                    )}
+                    <div className="flex flex-wrap gap-1">
+                      {isCapacityShortage ? (
+                        <span className="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-700">
+                          Thiếu chỗ
+                        </span>
+                      ) : null}
+                      {inquiry.status === "RESOLVED" ? (
+                        <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Đã xử lý</span>
+                      ) : (
+                        <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Chờ xử lý</span>
+                      )}
+                    </div>
                   </td>
                   <td className="min-w-[168px] px-2 py-3 text-right">
                     <div className="ml-auto w-fit">
@@ -257,7 +314,8 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

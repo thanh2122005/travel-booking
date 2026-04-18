@@ -15,6 +15,20 @@ function parseDateParam(value: string | null) {
   return date;
 }
 
+function toDateKeyUtc7(value: Date) {
+  const shifted = new Date(value.getTime() + 7 * 60 * 60 * 1000);
+  return shifted.toISOString().slice(0, 10);
+}
+
+function getUtc7DayRange(date: Date) {
+  const dayKey = toDateKeyUtc7(date);
+  const [year, month, day] = dayKey.split("-").map(Number);
+  const start = new Date(Date.UTC(year, month - 1, day, -7, 0, 0, 0));
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 1);
+  return { start, end };
+}
+
 export async function GET(request: Request, context: RouteContext) {
   const { id } = await context.params;
   const { searchParams } = new URL(request.url);
@@ -52,18 +66,14 @@ export async function GET(request: Request, context: RouteContext) {
     today.setHours(0, 0, 0, 0);
     const actualStart = rangeStart < today ? today : rangeStart;
 
-    const actualStartUtc = new Date(actualStart);
-    actualStartUtc.setUTCHours(0, 0, 0, 0);
-    const rangeEndUtc = new Date(rangeEnd);
-    rangeEndUtc.setUTCDate(rangeEndUtc.getUTCDate() + 1);
-
-    // Group bookings by date
+    const { start: rangeStartUtc7 } = getUtc7DayRange(actualStart);
+    const { end: rangeEndUtc7Exclusive } = getUtc7DayRange(rangeEnd);
     const bookings = await db.booking.groupBy({
       by: ["departureDate"],
       where: {
         tourId: id,
         status: { not: BookingStatus.CANCELLED },
-        departureDate: { gte: actualStartUtc, lt: rangeEndUtc },
+        departureDate: { gte: rangeStartUtc7, lt: rangeEndUtc7Exclusive },
       },
       _sum: { numberOfGuests: true },
     });
@@ -71,14 +81,14 @@ export async function GET(request: Request, context: RouteContext) {
     const bookedMap = new Map<string, number>();
     for (const b of bookings) {
       if (!b.departureDate) continue;
-      const dateKey = b.departureDate.toISOString().slice(0, 10);
+      const dateKey = toDateKeyUtc7(b.departureDate);
       bookedMap.set(dateKey, b._sum.numberOfGuests ?? 0);
     }
 
     const alternatives: { date: string; remainingSeats: number }[] = [];
     
     // Check everyday in the range
-    let current = new Date(actualStart);
+    const current = new Date(actualStart);
     while (current <= rangeEnd) {
       const dateStr = current.toISOString().slice(0, 10);
       const booked = bookedMap.get(dateStr) ?? 0;

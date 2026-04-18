@@ -18,7 +18,7 @@ function parseDepartureDate(value: string | null) {
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
-  const date = new Date(year, month - 1, day);
+  const date = new Date(Date.UTC(year, month - 1, day));
 
   if (
     Number.isNaN(date.getTime()) ||
@@ -29,17 +29,20 @@ function parseDepartureDate(value: string | null) {
     return null;
   }
 
-  date.setHours(0, 0, 0, 0);
   return date;
 }
 
-function getUtcDayRange(date: Date) {
-  const start = new Date(date);
-  start.setUTCHours(0, 0, 0, 0);
+function toDateKeyUtc7(value: Date) {
+  const shifted = new Date(value.getTime() + 7 * 60 * 60 * 1000);
+  return shifted.toISOString().slice(0, 10);
+}
 
+function getUtc7DayRange(date: Date) {
+  const dayKey = toDateKeyUtc7(date);
+  const [year, month, day] = dayKey.split("-").map(Number);
+  const start = new Date(Date.UTC(year, month - 1, day, -7, 0, 0, 0));
   const end = new Date(start);
   end.setUTCDate(end.getUTCDate() + 1);
-
   return { start, end };
 }
 
@@ -78,7 +81,7 @@ export async function GET(request: Request, context: RouteContext) {
       return NextResponse.json({ message: "Không tìm thấy tour." }, { status: 404 });
     }
 
-    const { start, end } = getUtcDayRange(departureDate);
+    const { start, end } = getUtc7DayRange(departureDate);
     const occupied = await db.booking.aggregate({
       where: {
         tourId: tour.id,
@@ -94,13 +97,12 @@ export async function GET(request: Request, context: RouteContext) {
         numberOfGuests: true,
       },
     });
-
     const bookedGuests = occupied._sum.numberOfGuests ?? 0;
     const remainingSeats = Math.max(tour.maxGuests - bookedGuests, 0);
 
     return NextResponse.json({
       tourId: tour.id,
-      departureDate: start.toISOString(),
+      departureDate: departureDate.toISOString(),
       maxGuests: tour.maxGuests,
       bookedGuests,
       remainingSeats,

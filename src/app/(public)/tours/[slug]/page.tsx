@@ -20,13 +20,33 @@ type TourDetailPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-const pricePolicyItems = [
-  "Giá hiển thị là đơn giá chuẩn cho khách từ 8 tuổi trở lên.",
-  "Tổng tiền đơn = (khách từ 8 tuổi x 100%) + (khách 5-7 tuổi x 50%) + (khách dưới 5 tuổi x 0%).",
-  "Chính sách trẻ em: từ 5 đến 7 tuổi tính 50% đơn giá, dưới 5 tuổi miễn phí (0%).",
-  "Phụ thu phòng đơn hoặc phụ thu dịp lễ/tết (nếu có) sẽ được tư vấn và xác nhận trước khi chốt đơn.",
-  "Các dịch vụ phát sinh ngoài chương trình (chi tiêu cá nhân, nâng hạng dịch vụ...) không nằm trong giá cơ bản.",
-];
+function buildPricePolicyItems(tour: {
+  durationNights: number;
+  singleRoomSurchargePerAdult?: number;
+}) {
+  const items = [
+    "Giá hiển thị là đơn giá chuẩn cho khách từ 8 tuổi trở lên.",
+    "Tổng tiền đơn = (khách từ 8 tuổi x 100%) + (khách 5-7 tuổi x 50%) + (khách dưới 5 tuổi x 0%).",
+    "Chính sách trẻ em: từ 5 đến 7 tuổi tính 50% đơn giá, dưới 5 tuổi miễn phí (0%).",
+    "Các dịch vụ phát sinh ngoài chương trình (chi tiêu cá nhân, nâng hạng dịch vụ...) không nằm trong giá cơ bản.",
+  ];
+
+  if (tour.durationNights > 0) {
+    if ((tour.singleRoomSurchargePerAdult ?? 0) > 0) {
+      items.splice(
+        3,
+        0,
+        `Phòng đơn phụ thu ${formatPrice(
+          tour.singleRoomSurchargePerAdult ?? 0,
+        )}/người lớn/đêm và được cộng trực tiếp vào tổng tạm tính.`,
+      );
+    } else {
+      items.splice(3, 0, "Phụ thu phòng đơn sẽ được tính tự động theo dữ liệu của tour khi xác nhận đơn.");
+    }
+  }
+
+  return items;
+}
 
 function buildIncludedItems(tour: {
   transportation: string;
@@ -105,6 +125,10 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
 
   const { tour, relatedTours, viewer } = data;
   const finalPrice = getTourDisplayPrice(tour.price, tour.discountPrice);
+  const pricePolicyItems = buildPricePolicyItems({
+    durationNights: tour.durationNights,
+    singleRoomSurchargePerAdult: (tour as { singleRoomSurchargePerAdult?: number }).singleRoomSurchargePerAdult,
+  });
   const dedicatedImages = Array.from(
     new Set(
       [tour.featuredImage, ...tour.images.map((item) => item.imageUrl)].filter(
@@ -385,10 +409,13 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
           <div id="dat-tour" className="scroll-mt-24">
             <TourBookingCard
               tourId={tour.id}
+              tourTitle={tour.title}
               tourSlug={tour.slug}
               shortDescription={tour.shortDescription}
               unitPrice={finalPrice}
               originalPrice={tour.price}
+              durationNights={tour.durationNights}
+              singleRoomSurchargePerAdult={(tour as { singleRoomSurchargePerAdult?: number }).singleRoomSurchargePerAdult ?? 0}
               maxGuests={tour.maxGuests}
               initialIsFavorite={viewer?.isFavorite ?? false}
               initialPhone={viewer?.phone ?? ""}

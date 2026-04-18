@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { buildCallbackUrl } from "@/lib/auth/callback-url";
+import { resolveSingleRoomSurchargePerAdult } from "@/lib/pricing/single-room-surcharge";
+import { buildCapacityShortageMessage } from "@/lib/utils/capacity-shortage-inquiry";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/utils/format";
 import { bookingSchema, type BookingInput } from "@/lib/validations/booking";
@@ -29,10 +31,13 @@ const bookingPolicies = [
 
 type TourBookingCardProps = {
   tourId: string;
+  tourTitle: string;
   tourSlug: string;
   shortDescription: string;
   unitPrice: number;
   originalPrice: number;
+  durationNights: number;
+  singleRoomSurchargePerAdult: number;
   maxGuests: number;
   initialIsFavorite: boolean;
   initialPhone: string;
@@ -61,6 +66,9 @@ const STEP_FIELDS: Record<BookingStep, (keyof BookingInput)[]> = {
   3: [],
 };
 
+const fieldBlockClass = "space-y-1.5";
+const helperTextClass = "min-h-4 text-[11px] leading-4";
+
 function normalizeGuestCount(value: unknown, fallback: number, min = 0) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return fallback;
@@ -73,10 +81,13 @@ function isIsoDateInput(value: unknown): value is string {
 
 export function TourBookingCard({
   tourId,
+  tourTitle,
   tourSlug,
   shortDescription,
   unitPrice,
   originalPrice,
+  durationNights,
+  singleRoomSurchargePerAdult,
   maxGuests,
   initialIsFavorite,
   initialPhone,
@@ -109,6 +120,7 @@ export function TourBookingCard({
     getValues,
     reset,
     trigger,
+    clearErrors,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<BookingInput>({
@@ -122,6 +134,7 @@ export function TourBookingCard({
       guestsFrom8: 1,
       child5To7Guests: 0,
       childUnder5Guests: 0,
+      roomType: durationNights > 0 ? "DOUBLE" : undefined,
       note: "",
       departureDate: "",
     },
@@ -133,15 +146,39 @@ export function TourBookingCard({
 
   useEffect(() => {
     if (initialPhone) {
-      setValue("phone", initialPhone);
+      setValue("phone", initialPhone, {
+        shouldDirty: false,
+        shouldTouch: false,
+        shouldValidate: true,
+      });
+      clearErrors("phone");
     }
-  }, [initialPhone, setValue]);
+  }, [clearErrors, initialPhone, setValue]);
 
   useEffect(() => {
     if (!session?.user) return;
-    setValue("fullName", session.user.name ?? "");
-    setValue("email", session.user.email ?? "");
-  }, [session, setValue]);
+    setValue("fullName", session.user.name ?? "", {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: true,
+    });
+    setValue("email", session.user.email ?? "", {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: true,
+    });
+
+    const phoneFromSession = typeof session.user.phone === "string" ? session.user.phone.trim() : "";
+    const resolvedPhone = phoneFromSession || initialPhone.trim();
+    if (resolvedPhone) {
+      setValue("phone", resolvedPhone, {
+        shouldDirty: false,
+        shouldTouch: false,
+        shouldValidate: true,
+      });
+      clearErrors("phone");
+    }
+  }, [clearErrors, initialPhone, session, setValue]);
 
   useEffect(() => {
     setIsFavorite(initialIsFavorite);
@@ -150,7 +187,8 @@ export function TourBookingCard({
   useEffect(() => {
     setActiveStep(1);
     setIsConfirmChecked(false);
-  }, [tourId]);
+    setValue("roomType", durationNights > 0 ? "DOUBLE" : undefined);
+  }, [durationNights, setValue, tourId]);
 
   const guestsFrom8Raw = useWatch({
     control,
@@ -179,6 +217,21 @@ export function TourBookingCard({
     control,
     name: "departureDate",
   });
+  const roomTypeRaw = useWatch({
+    control,
+    name: "roomType",
+  });
+  const shouldShowRoomType = durationNights > 0;
+  const effectiveSingleRoomSurchargePerAdult = resolveSingleRoomSurchargePerAdult({
+    durationNights,
+    unitPrice,
+    configuredSurcharge: singleRoomSurchargePerAdult,
+  });
+  const roomType = shouldShowRoomType
+    ? roomTypeRaw === "SINGLE"
+      ? "SINGLE"
+      : "DOUBLE"
+    : "DOUBLE";
 
   useEffect(() => {
     if (!departureDate) {
@@ -244,10 +297,15 @@ export function TourBookingCard({
     }
   }, [computedTotalGuests, numberOfGuests, setValue]);
 
-  const totalPrice = Math.round(
+  const baseGuestTotal = Math.round(
     unitPrice *
       (guestsFrom8 + child5To7Guests * CHILD_5_TO_7_PRICE_RATIO + childUnder5Guests * CHILD_UNDER_5_PRICE_RATIO),
   );
+  const roomSurchargeTotal =
+    shouldShowRoomType && roomType === "SINGLE"
+      ? Math.round(guestsFrom8 * effectiveSingleRoomSurchargePerAdult * durationNights)
+      : 0;
+  const totalPrice = baseGuestTotal + roomSurchargeTotal;
   const adultUnitPrice = unitPrice;
   const child5To7UnitPrice = Math.round(unitPrice * CHILD_5_TO_7_PRICE_RATIO);
   const childUnder5UnitPrice = Math.round(unitPrice * CHILD_UNDER_5_PRICE_RATIO);
@@ -259,6 +317,7 @@ export function TourBookingCard({
     email: getValues("email"),
     phone: getValues("phone"),
     departureDate: getValues("departureDate"),
+    roomType,
     note: getValues("note"),
   };
 
@@ -325,6 +384,7 @@ export function TourBookingCard({
           guestsFrom8,
           child5To7Guests,
           childUnder5Guests,
+          roomType,
         }),
       });
 
@@ -382,6 +442,7 @@ export function TourBookingCard({
         guestsFrom8: 1,
         child5To7Guests: 0,
         childUnder5Guests: 0,
+        roomType: durationNights > 0 ? "DOUBLE" : undefined,
         note: "",
         departureDate: "",
       });
@@ -448,12 +509,12 @@ export function TourBookingCard({
       return null;
     }
 
-    const message = [
-      "Khách đặt tour vượt số chỗ còn lại.",
-      `Số khách yêu cầu: ${input.requestedGuests}.`,
-      `Số chỗ còn lại: ${input.remainingSeats}.`,
-      "Nhờ admin liên hệ để thương lượng đổi ngày hoặc điều chỉnh số khách.",
-    ].join(" ");
+    const message = buildCapacityShortageMessage({
+      tourTitle,
+      departureDate,
+      requestedGuests: input.requestedGuests,
+      remainingSeats: input.remainingSeats,
+    });
 
     try {
       const response = await fetch("/api/contact-inquiries", {
@@ -512,6 +573,16 @@ export function TourBookingCard({
           <li>Khách người lớn (từ 8 tuổi): 100% đơn giá.</li>
           <li>Khách từ 5 đến 7 tuổi: 50% đơn giá.</li>
           <li>Khách dưới 5 tuổi: miễn phí (0%).</li>
+          {shouldShowRoomType ? (
+            <li>
+              Phụ thu phòng đơn (tour này):{" "}
+              {`+${formatPrice(effectiveSingleRoomSurchargePerAdult)}/người lớn/đêm`}
+              .
+            </li>
+          ) : null}
+          {shouldShowRoomType ? (
+            <li>Công thức phụ thu phòng đơn: số người lớn x phụ thu x số đêm.</li>
+          ) : null}
         </ul>
       </details>
 
@@ -546,8 +617,8 @@ export function TourBookingCard({
       ) : null}
 
       {isLoggedIn ? (
-        <form onSubmit={onSubmitBooking} className="space-y-3 border-t pt-4">
-          <div className="grid grid-cols-3 gap-2">
+        <form onSubmit={onSubmitBooking} className="space-y-4 border-t pt-4">
+          <div className="grid grid-cols-3 gap-1.5">
             {BOOKING_STEPS.map((step) => {
               const isActive = step.key === activeStep;
               const isDone = step.key < activeStep;
@@ -555,7 +626,7 @@ export function TourBookingCard({
                 <div
                   key={step.key}
                   className={cn(
-                    "rounded-lg border px-2 py-2 text-center text-xs font-medium",
+                    "flex h-9 items-center justify-center rounded-lg border px-2 text-center text-xs font-medium",
                     isDone && "border-teal-200 bg-teal-50 text-teal-700",
                     isActive && "border-primary bg-primary/10 text-primary",
                     !isActive && !isDone && "border-slate-200 bg-slate-50 text-slate-500",
@@ -580,31 +651,37 @@ export function TourBookingCard({
           ) : null}
 
           {activeStep === 1 ? (
-            <div className="space-y-3">
-              <div className="space-y-1.5">
+            <div className="space-y-3 rounded-xl border border-slate-200/80 bg-slate-50/40 p-3">
+              <div className={fieldBlockClass}>
                 <Label htmlFor={`fullName-${tourId}`}>Họ và tên</Label>
                 <Input id={`fullName-${tourId}`} placeholder="Nguyễn Văn A" {...register("fullName")} />
-                {errors.fullName ? <p className="text-xs text-destructive">{errors.fullName.message}</p> : null}
+                <p className={cn(helperTextClass, errors.fullName ? "text-destructive" : "text-transparent")}>
+                  {errors.fullName?.message ?? "."}
+                </p>
               </div>
 
-              <div className="space-y-1.5">
+              <div className={fieldBlockClass}>
                 <Label htmlFor={`email-${tourId}`}>Email</Label>
                 <Input id={`email-${tourId}`} type="email" placeholder="ban@example.com" {...register("email")} />
-                {errors.email ? <p className="text-xs text-destructive">{errors.email.message}</p> : null}
+                <p className={cn(helperTextClass, errors.email ? "text-destructive" : "text-transparent")}>
+                  {errors.email?.message ?? "."}
+                </p>
               </div>
 
-              <div className="space-y-1.5">
+              <div className={fieldBlockClass}>
                 <Label htmlFor={`phone-${tourId}`}>Số điện thoại</Label>
                 <Input id={`phone-${tourId}`} type="tel" placeholder="0909123456" {...register("phone")} />
-                {errors.phone ? <p className="text-xs text-destructive">{errors.phone.message}</p> : null}
+                <p className={cn(helperTextClass, errors.phone ? "text-destructive" : "text-transparent")}>
+                  {errors.phone?.message ?? "."}
+                </p>
               </div>
             </div>
           ) : null}
 
           {activeStep === 2 ? (
-            <div className="space-y-3">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
+            <div className="space-y-3 rounded-xl border border-slate-200/80 bg-slate-50/40 p-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className={fieldBlockClass}>
                   <Label htmlFor={`guests-from-8-${tourId}`}>Khách người lớn (từ 8 tuổi)</Label>
                   <Input
                     id={`guests-from-8-${tourId}`}
@@ -614,13 +691,15 @@ export function TourBookingCard({
                     {...register("guestsFrom8", { valueAsNumber: true })}
                   />
                   {errors.guestsFrom8 ? (
-                    <p className="text-xs text-destructive">{errors.guestsFrom8.message}</p>
+                    <p className="min-h-8 text-[11px] leading-4 text-destructive">{errors.guestsFrom8.message}</p>
                   ) : (
-                    <p className="text-xs text-muted-foreground">Tối đa {maxGuests} khách cho một đơn.</p>
+                    <p className="min-h-8 text-[11px] leading-4 text-muted-foreground">
+                      Tối đa {maxGuests} khách cho một đơn.
+                    </p>
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className={fieldBlockClass}>
                   <Label htmlFor={`child-5-to-7-${tourId}`}>Trẻ em 5-7 tuổi</Label>
                   <Input
                     id={`child-5-to-7-${tourId}`}
@@ -630,13 +709,15 @@ export function TourBookingCard({
                     {...register("child5To7Guests", { valueAsNumber: true })}
                   />
                   {errors.child5To7Guests ? (
-                    <p className="text-xs text-destructive">{errors.child5To7Guests.message}</p>
-                  ) : null}
+                    <p className="min-h-8 text-[11px] leading-4 text-destructive">{errors.child5To7Guests.message}</p>
+                  ) : (
+                    <p className="min-h-8 text-[11px] leading-4 text-muted-foreground">Giá trẻ em 5-7 tuổi tính 50%.</p>
+                  )}
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
+              <div className="grid grid-cols-2 gap-3">
+                <div className={fieldBlockClass}>
                   <Label htmlFor={`child-under-5-${tourId}`}>Trẻ em dưới 5 tuổi</Label>
                   <Input
                     id={`child-under-5-${tourId}`}
@@ -646,29 +727,52 @@ export function TourBookingCard({
                     {...register("childUnder5Guests", { valueAsNumber: true })}
                   />
                   {errors.childUnder5Guests ? (
-                    <p className="text-xs text-destructive">{errors.childUnder5Guests.message}</p>
-                  ) : null}
+                    <p className="min-h-8 text-[11px] leading-4 text-destructive">{errors.childUnder5Guests.message}</p>
+                  ) : (
+                    <p className="min-h-8 text-[11px] leading-4 text-muted-foreground">Trẻ dưới 5 tuổi tính 0%.</p>
+                  )}
                 </div>
-                <div className="space-y-1.5">
+                <div className={fieldBlockClass}>
                   <Label htmlFor={`total-guests-${tourId}`}>Tổng số khách</Label>
                   <Input id={`total-guests-${tourId}`} type="number" value={computedTotalGuests} readOnly />
                   {errors.numberOfGuests ? (
-                    <p className="text-xs text-destructive">{errors.numberOfGuests.message}</p>
+                    <p className="min-h-8 text-[11px] leading-4 text-destructive">{errors.numberOfGuests.message}</p>
                   ) : (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="min-h-8 text-[11px] leading-4 text-muted-foreground">
                       Bao gồm cả người lớn và trẻ em.
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              {shouldShowRoomType ? (
+                <div className={fieldBlockClass}>
+                  <Label htmlFor={`room-type-${tourId}`}>Loại phòng</Label>
+                  <select
+                    id={`room-type-${tourId}`}
+                    className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
+                    {...register("roomType")}
+                  >
+                    <option value="DOUBLE">Phòng đôi (mặc định)</option>
+                    <option value="SINGLE">
+                      {`Phòng đơn (+${formatPrice(
+                        effectiveSingleRoomSurchargePerAdult,
+                      )}/người lớn/đêm)`}
+                    </option>
+                  </select>
+                  <p className="min-h-8 text-[11px] leading-4 text-muted-foreground">
+                    {`Phụ thu phòng đơn áp dụng cho khách người lớn trong ${durationNights} đêm.`}
+                  </p>
+                </div>
+              ) : null}
+
+              <div className={fieldBlockClass}>
                 <Label htmlFor={`departure-${tourId}`}>Ngày đi</Label>
                 <Input id={`departure-${tourId}`} type="date" min={minDepartureDate} {...register("departureDate")} />
                 {errors.departureDate ? (
-                  <p className="text-xs text-destructive">{errors.departureDate.message}</p>
+                  <p className="min-h-8 text-[11px] leading-4 text-destructive">{errors.departureDate.message}</p>
                 ) : isLoadingAvailability ? (
-                  <p className="text-xs text-muted-foreground">Đang kiểm tra số chỗ trống...</p>
+                  <p className="min-h-8 text-[11px] leading-4 text-muted-foreground">Đang kiểm tra số chỗ trống...</p>
                 ) : availability ? (
                   <div className="space-y-1">
                     {(() => {
@@ -692,23 +796,26 @@ export function TourBookingCard({
                     })()}
                   </div>
                 ) : availabilityError ? (
-                  <p className="text-xs text-destructive">{availabilityError}</p>
+                  <p className="min-h-8 text-[11px] leading-4 text-destructive">{availabilityError}</p>
                 ) : (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="min-h-8 text-[11px] leading-4 text-muted-foreground">
                     Chọn ngày đi để xem số chỗ còn lại theo dữ liệu thực tế.
                   </p>
                 )}
               </div>
 
-              <div className="space-y-1.5">
+              <div className={fieldBlockClass}>
                 <Label htmlFor={`note-${tourId}`}>Ghi chú</Label>
                 <Textarea
                   id={`note-${tourId}`}
                   placeholder="Ví dụ: cần hỗ trợ suất ăn chay, ghế gần nhau..."
                   rows={3}
+                  className="resize-none"
                   {...register("note")}
                 />
-                {errors.note ? <p className="text-xs text-destructive">{errors.note.message}</p> : null}
+                <p className={cn(helperTextClass, errors.note ? "text-destructive" : "text-transparent")}>
+                  {errors.note?.message ?? "."}
+                </p>
               </div>
             </div>
           ) : null}
@@ -785,21 +892,21 @@ export function TourBookingCard({
             </div>
           ) : null}
 
-          <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm">
+          <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
             <p className="font-semibold text-primary">Tổng tạm tính: {formatPrice(totalPrice)}</p>
           </div>
 
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" className="h-10 flex-1" onClick={goToPreviousStep} disabled={activeStep === 1 || isSubmitting}>
+          <div className="grid grid-cols-2 gap-2">
+            <Button type="button" variant="outline" className="h-10 w-full" onClick={goToPreviousStep} disabled={activeStep === 1 || isSubmitting}>
               Quay lại
             </Button>
 
             {activeStep < 3 ? (
-              <Button type="button" className="h-10 flex-1" onClick={goToNextStep} disabled={isSubmitting}>
+              <Button type="button" className="h-10 w-full" onClick={goToNextStep} disabled={isSubmitting}>
                 Tiếp tục
               </Button>
             ) : (
-              <Button type="submit" className="h-10 flex-1" disabled={isSubmitting || !isConfirmChecked}>
+              <Button type="submit" className="h-10 w-full" disabled={isSubmitting || !isConfirmChecked}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

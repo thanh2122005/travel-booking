@@ -11,10 +11,22 @@ import { requireActiveUserApi } from "@/lib/auth/user-api";
 import { db } from "@/lib/db/prisma";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
+import { resolveSingleRoomSurchargePerAdult } from "@/lib/pricing/single-room-surcharge";
+import { buildCapacityShortageMessage } from "@/lib/utils/capacity-shortage-inquiry";
 import { bookingSchema } from "@/lib/validations/booking";
 
 const CHILD_5_TO_7_PRICE_RATIO = 0.5;
 const CHILD_UNDER_5_PRICE_RATIO = 0;
+
+type BookingTourPricing = {
+  id: string;
+  title: string;
+  status: TourStatus;
+  price: number;
+  discountPrice: number | null;
+  durationNights: number;
+  maxGuests: number;
+};
 
 function isGuestBreakdownPersistenceError(error: unknown) {
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
@@ -25,6 +37,15 @@ function isGuestBreakdownPersistenceError(error: unknown) {
     message.includes("Unknown argument `guestsFrom8`") ||
     message.includes("Unknown argument `child5To7Guests`") ||
     message.includes("Unknown argument `childUnder5Guests`") ||
+    message.includes("Unknown argument `roomType`") ||
+    message.includes("Unknown argument `baseGuestTotal`") ||
+    message.includes("Unknown argument `roomSurchargeTotal`") ||
+    message.includes("Unknown argument `unitPriceSnapshot`") ||
+    message.includes("Unknown argument `discountPriceSnapshot`") ||
+    message.includes("Unknown argument `child5To7RatioSnapshot`") ||
+    message.includes("Unknown argument `childUnder5RatioSnapshot`") ||
+    message.includes("Unknown argument `singleRoomSurchargePerAdultSnapshot`") ||
+    message.includes("Unknown argument `durationNightsSnapshot`") ||
     message.includes("The column") && message.includes("does not exist")
   );
 }
@@ -70,16 +91,17 @@ async function createCapacityShortageInquiry(input: {
   email: string;
   phone: string;
   tourId: string;
+  tourTitle?: string;
   departureDate: Date;
   numberOfGuests: number;
   remainingSeats: number;
 }) {
-  const message = [
-    "Khách đặt tour nhưng không đủ chỗ trống theo ngày đã chọn.",
-    `Số khách yêu cầu: ${input.numberOfGuests}.`,
-    `Số chỗ còn lại: ${input.remainingSeats}.`,
-    "Vui lòng admin liên hệ để tư vấn đổi ngày/điều chỉnh số khách.",
-  ].join(" ");
+  const message = buildCapacityShortageMessage({
+    tourTitle: input.tourTitle ?? "",
+    departureDate: input.departureDate,
+    requestedGuests: input.numberOfGuests,
+    remainingSeats: input.remainingSeats,
+  });
 
   try {
     for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -153,7 +175,7 @@ function parseDateInput(value?: string) {
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
-  const date = new Date(year, month - 1, day);
+  const date = new Date(Date.UTC(year, month - 1, day));
 
   if (
     Number.isNaN(date.getTime()) ||
@@ -164,7 +186,6 @@ function parseDateInput(value?: string) {
     return null;
   }
 
-  date.setHours(0, 0, 0, 0);
   return date;
 }
 
@@ -184,14 +205,17 @@ function parseDepartureDate(value?: string) {
   return date;
 }
 
-function getUtcDayRange(date: Date) {
-  // Gom booking theo đúng ngày khởi hành (UTC) để tính tồn chỗ.
-  const start = new Date(date);
-  start.setUTCHours(0, 0, 0, 0);
+function toDateKeyUtc7(value: Date) {
+  const shifted = new Date(value.getTime() + 7 * 60 * 60 * 1000);
+  return shifted.toISOString().slice(0, 10);
+}
 
+function getUtc7DayRange(date: Date) {
+  const dayKey = toDateKeyUtc7(date);
+  const [year, month, day] = dayKey.split("-").map(Number);
+  const start = new Date(Date.UTC(year, month - 1, day, -7, 0, 0, 0));
   const end = new Date(start);
   end.setUTCDate(end.getUTCDate() + 1);
-
   return { start, end };
 }
 
@@ -246,6 +270,7 @@ export async function POST(request: Request) {
   const guestsFrom8 = parsed.data.guestsFrom8 ?? parsed.data.numberOfGuests;
   const child5To7Guests = parsed.data.child5To7Guests ?? 0;
   const childUnder5Guests = parsed.data.childUnder5Guests ?? 0;
+  const roomType = parsed.data.roomType ?? "DOUBLE";
   const totalGuests = guestsFrom8 + child5To7Guests + childUnder5Guests;
   if (totalGuests !== parsed.data.numberOfGuests) {
     return NextResponse.json(
@@ -269,7 +294,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const tour = await db.tour.findUnique({
+    const tourRaw = await db.tour.findUnique({
       where: { id: parsed.data.tourId },
       select: {
         id: true,
@@ -277,9 +302,11 @@ export async function POST(request: Request) {
         status: true,
         price: true,
         discountPrice: true,
+        durationNights: true,
         maxGuests: true,
-      },
+      } as unknown as Prisma.TourSelect,
     });
+    const tour = tourRaw as unknown as BookingTourPricing | null;
 
     if (!tour || tour.status !== TourStatus.ACTIVE) {
       // Không cho đặt tour đã ẩn/ngừng hoạt động.
@@ -300,13 +327,36 @@ export async function POST(request: Request) {
     }
 
     const unitPrice = tour.discountPrice ?? tour.price;
-    const totalPrice = Math.round(
+    const surchargeRows = (await db.$queryRawUnsafe(
+      "SELECT `singleRoomSurchargePerAdult` FROM `Tour` WHERE `id` = ? LIMIT 1",
+      tour.id,
+    )) as Array<{ singleRoomSurchargePerAdult?: number | bigint | null }>;
+    const singleRoomSurchargePerAdult = resolveSingleRoomSurchargePerAdult({
+      durationNights: tour.durationNights,
+      unitPrice,
+      configuredSurcharge: surchargeRows[0]?.singleRoomSurchargePerAdult ?? 0,
+    });
+
+    if (roomType === "SINGLE" && tour.durationNights <= 0) {
+      return NextResponse.json(
+        { message: "Tour không áp dụng loại phòng đơn." },
+        { status: 400 },
+      );
+    }
+    const baseGuestTotal = Math.round(
       unitPrice *
-        (guestsFrom8 + child5To7Guests * CHILD_5_TO_7_PRICE_RATIO + childUnder5Guests * CHILD_UNDER_5_PRICE_RATIO),
+        (guestsFrom8 +
+          child5To7Guests * CHILD_5_TO_7_PRICE_RATIO +
+          childUnder5Guests * CHILD_UNDER_5_PRICE_RATIO),
     );
+    const roomSurchargeTotal =
+      roomType === "SINGLE"
+        ? Math.round(guestsFrom8 * singleRoomSurchargePerAdult * tour.durationNights)
+        : 0;
+    const totalPrice = baseGuestTotal + roomSurchargeTotal;
     const booking = await db.$transaction(
       async (tx) => {
-        const { start, end } = getUtcDayRange(departureDate);
+        const { start, end } = getUtc7DayRange(departureDate);
         const occupied = await tx.booking.aggregate({
           where: {
             tourId: tour.id,
@@ -322,7 +372,6 @@ export async function POST(request: Request) {
             numberOfGuests: true,
           },
         });
-
         const bookedGuests = occupied._sum.numberOfGuests ?? 0;
         const remainingBeforeBooking = Math.max(tour.maxGuests - bookedGuests, 0);
         if (totalGuests > remainingBeforeBooking) {
@@ -342,18 +391,40 @@ export async function POST(request: Request) {
           phone: parsed.data.phone,
           numberOfGuests: totalGuests,
           note: parsed.data.note || null,
+          roomType,
+          baseGuestTotal,
+          roomSurchargeTotal,
+          unitPriceSnapshot: unitPrice,
+          discountPriceSnapshot: tour.discountPrice,
+          child5To7RatioSnapshot: CHILD_5_TO_7_PRICE_RATIO,
+          childUnder5RatioSnapshot: CHILD_UNDER_5_PRICE_RATIO,
+          singleRoomSurchargePerAdultSnapshot: singleRoomSurchargePerAdult,
+          durationNightsSnapshot: tour.durationNights,
           totalPrice,
           departureDate,
         };
+        const createDataWithBreakdown = {
+          ...baseCreateData,
+          guestsFrom8,
+          child5To7Guests,
+          childUnder5Guests,
+        } as unknown as Prisma.BookingUncheckedCreateInput;
+        const createDataLegacy = {
+          bookingCode,
+          userId: session.user.id,
+          tourId: tour.id,
+          fullName: parsed.data.fullName,
+          email: parsed.data.email,
+          phone: parsed.data.phone,
+          numberOfGuests: totalGuests,
+          note: parsed.data.note || null,
+          totalPrice,
+          departureDate,
+        } as unknown as Prisma.BookingUncheckedCreateInput;
         let created: { id: string; bookingCode: string; totalPrice: number };
         try {
           created = await tx.booking.create({
-            data: {
-              ...baseCreateData,
-              guestsFrom8,
-              child5To7Guests,
-              childUnder5Guests,
-            },
+            data: createDataWithBreakdown,
             select: {
               id: true,
               bookingCode: true,
@@ -366,7 +437,7 @@ export async function POST(request: Request) {
           }
           // Tương thích ngược: DB/Prisma cũ chưa có 3 cột breakdown vẫn cho đặt tour.
           created = await tx.booking.create({
-            data: baseCreateData,
+            data: createDataLegacy,
             select: {
               id: true,
               bookingCode: true,
@@ -392,6 +463,7 @@ export async function POST(request: Request) {
         email: parsed.data.email,
         phone: parsed.data.phone,
         tourId: tour.id,
+        tourTitle: tour.title,
         departureDate,
         numberOfGuests: totalGuests,
         remainingSeats: booking.remainingSeats,
@@ -415,6 +487,12 @@ export async function POST(request: Request) {
         message: `Đặt tour thành công. Mã đơn của bạn là ${booking.booking.bookingCode}.`,
         booking: booking.booking,
         remainingSeats: booking.remainingSeats,
+        pricing: {
+          roomType,
+          baseGuestTotal,
+          roomSurchargeTotal,
+          totalPrice,
+        },
       },
       { status: 201 },
     );
@@ -431,6 +509,7 @@ export async function POST(request: Request) {
         guestsFrom8,
         child5To7Guests,
         childUnder5Guests,
+        roomType,
         note: parsed.data.note,
         departureDate: parsed.data.departureDate,
       });
@@ -459,12 +538,19 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       }
+      if (duPhongBooking === "INVALID_ROOM_TYPE") {
+        return NextResponse.json(
+          { message: "Tour không áp dụng loại phòng đơn." },
+          { status: 400 },
+        );
+      }
       if (duPhongBooking === "TOUR_FULL") {
         const inquiryReferenceCode = await createCapacityShortageInquiry({
           fullName: parsed.data.fullName,
           email: parsed.data.email,
           phone: parsed.data.phone,
           tourId: parsed.data.tourId,
+          tourTitle: "Khong ro tour",
           departureDate,
           numberOfGuests: totalGuests,
           remainingSeats: 0,
@@ -490,6 +576,7 @@ export async function POST(request: Request) {
           email: parsed.data.email,
           phone: parsed.data.phone,
           tourId: parsed.data.tourId,
+          tourTitle: "Khong ro tour",
           departureDate,
           numberOfGuests: totalGuests,
           remainingSeats: duPhongBooking.remainingSeats,
