@@ -185,6 +185,7 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
       discountPrice: formData.get("discountPrice") ? Number(formData.get("discountPrice")) : null,
       durationDays: Number(formData.get("durationDays") ?? 0),
       durationNights: Number(formData.get("durationNights") ?? 0),
+      singleRoomSurchargePerAdult: Number(formData.get("singleRoomSurchargePerAdult") ?? 0),
       maxGuests: Number(formData.get("maxGuests") ?? 0),
       transportation: String(formData.get("transportation") ?? "").trim(),
       departureLocation: String(formData.get("departureLocation") ?? "").trim(),
@@ -195,6 +196,11 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
       status,
       featured,
     };
+
+    if (payload.durationNights > 0 && payload.singleRoomSurchargePerAdult <= 0) {
+      toast.error("Tour có lưu trú phải nhập phụ thu phòng đơn lớn hơn 0.");
+      return;
+    }
 
     startTransition(async () => {
       try {
@@ -427,6 +433,18 @@ export function AdminCreateTourForm({ locations }: AdminCreateTourFormProps) {
         placeholder="Số đêm"
         className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
       />
+      <input
+        name="singleRoomSurchargePerAdult"
+        required
+        type="number"
+        min={0}
+        defaultValue={0}
+        placeholder="Phụ thu phòng đơn / người lớn / đêm"
+        className="h-10 rounded-xl border border-slate-200 px-3 text-sm"
+      />
+      <p className="text-xs text-slate-500 md:col-span-3">
+        Gợi ý: nhập lớn hơn 0 để bật tùy chọn phòng đơn trong form đặt tour.
+      </p>
       <select
         value={status}
         onChange={(event) => setStatus(event.target.value as TourStatusValue)}

@@ -55,6 +55,7 @@ type TourDetailForForm = {
   discountPrice: number | null;
   durationDays: number;
   durationNights: number;
+  singleRoomSurchargePerAdult?: number;
   maxGuests: number;
   transportation: string;
   departureLocation: string;
@@ -115,6 +116,7 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
       discountPrice: discountRaw.length ? Number(discountRaw) : null,
       durationDays: Number(formData.get("durationDays") ?? 0),
       durationNights: Number(formData.get("durationNights") ?? 0),
+      singleRoomSurchargePerAdult: Number(formData.get("singleRoomSurchargePerAdult") ?? 0),
       maxGuests: Number(formData.get("maxGuests") ?? 0),
       transportation: String(formData.get("transportation") ?? "").trim(),
       departureLocation: String(formData.get("departureLocation") ?? "").trim(),
@@ -130,6 +132,10 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
     }
     if (payload.discountPrice !== null && (!Number.isFinite(payload.discountPrice) || payload.discountPrice <= 0)) {
       toast.error("Giá khuyến mãi không hợp lệ.");
+      return;
+    }
+    if (payload.durationNights > 0 && payload.singleRoomSurchargePerAdult <= 0) {
+      toast.error("Tour có lưu trú phải nhập phụ thu phòng đơn lớn hơn 0.");
       return;
     }
 
@@ -309,6 +315,18 @@ export function AdminTourContentForm({ tour, locations }: AdminTourContentFormPr
           placeholder="Số đêm"
           className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
         />
+        <input
+          name="singleRoomSurchargePerAdult"
+          required
+          type="number"
+          min={0}
+          defaultValue={tour.singleRoomSurchargePerAdult ?? 0}
+          placeholder="Phụ thu phòng đơn / người lớn / đêm"
+          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
+        />
+        <p className="text-xs text-slate-500 md:col-span-3">
+          Đặt giá trị lớn hơn 0 để cho phép khách chọn phòng đơn và cộng phụ thu tự động.
+        </p>
         <select
           value={status}
           onChange={(event) => setStatus(event.target.value as TourStatusValue)}

@@ -21,6 +21,7 @@ const createTourSchema = z.object({
   discountPrice: z.number().int().positive().nullable().optional(),
   durationDays: z.number().int().positive("Số ngày phải lớn hơn 0."),
   durationNights: z.number().int().min(0, "Số đêm không hợp lệ."),
+  singleRoomSurchargePerAdult: z.number().int().min(0, "Phụ thu phòng đơn không hợp lệ.").optional().default(0),
   maxGuests: z.number().int().positive("Số khách tối đa phải lớn hơn 0."),
   transportation: z.string().trim().min(1, "Phương tiện là bắt buộc."),
   departureLocation: z.string().trim().min(1, "Điểm khởi hành là bắt buộc."),
@@ -39,6 +40,14 @@ const createTourSchema = z.object({
   status: z.nativeEnum(TourStatus).optional(),
   featured: z.boolean().optional(),
   locationId: z.string().trim().min(1, "Điểm đến là bắt buộc."),
+}).superRefine((value, ctx) => {
+  if (value.durationNights > 0 && value.singleRoomSurchargePerAdult <= 0) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["singleRoomSurchargePerAdult"],
+      message: "Tour có lưu trú phải cấu hình phụ thu phòng đơn lớn hơn 0.",
+    });
+  }
 });
 
 // FLOW: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.

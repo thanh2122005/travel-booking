@@ -26,7 +26,7 @@ function parseDateInput(value: string) {
 const departureDateSchema = z
   .string()
   .trim()
-  .max(30, "Ngày khởi hành không hợp lệ")
+  .max(30, "Ngay khoi hanh khong hop le")
   .refine((value) => {
     const trimmed = value.trim();
     if (!trimmed) return true;
@@ -37,53 +37,54 @@ const departureDateSchema = z
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return selectedDate >= today;
-  }, "Ngày khởi hành phải từ hôm nay trở đi")
+  }, "Ngay khoi hanh phai tu hom nay tro di")
   .optional()
   .or(z.literal(""));
 
 export const bookingSchema = z
   .object({
-    tourId: z.string().trim().min(1, "Thiếu thông tin tour"),
+    tourId: z.string().trim().min(1, "Thieu thong tin tour"),
     fullName: z
       .string()
       .trim()
-      .min(2, "Họ và tên phải có ít nhất 2 ký tự")
-      .max(80, "Họ và tên không hợp lệ"),
+      .min(2, "Ho va ten phai co it nhat 2 ky tu")
+      .max(80, "Ho va ten khong hop le"),
     email: z
       .string()
       .trim()
-      .min(1, "Email là bắt buộc")
-      .email("Email không đúng định dạng")
+      .min(1, "Email la bat buoc")
+      .email("Email khong dung dinh dang")
       .toLowerCase(),
     phone: z
       .string()
       .trim()
-      .min(8, "Số điện thoại phải có ít nhất 8 ký tự")
-      .max(20, "Số điện thoại không hợp lệ"),
+      .min(8, "So dien thoai phai co it nhat 8 ky tu")
+      .max(20, "So dien thoai khong hop le"),
     numberOfGuests: z
-      .number({ message: "Số lượng khách không hợp lệ" })
-      .int("Số lượng khách phải là số nguyên")
-      .min(1, "Số lượng khách tối thiểu là 1")
-      .max(100, "Số lượng khách tối đa cho một đơn là 100"),
+      .number({ message: "So luong khach khong hop le" })
+      .int("So luong khach phai la so nguyen")
+      .min(1, "So luong khach toi thieu la 1")
+      .max(100, "So luong khach toi da cho mot don la 100"),
     guestsFrom8: z
-      .number({ message: "Số khách từ 8 tuổi trở lên không hợp lệ" })
-      .int("Số khách từ 8 tuổi trở lên phải là số nguyên")
-      .min(1, "Cần ít nhất 1 khách từ 8 tuổi trở lên")
-      .max(100, "Số khách từ 8 tuổi trở lên không hợp lệ")
+      .number({ message: "So khach tu 8 tuoi tro len khong hop le" })
+      .int("So khach tu 8 tuoi tro len phai la so nguyen")
+      .min(1, "Can it nhat 1 khach tu 8 tuoi tro len")
+      .max(100, "So khach tu 8 tuoi tro len khong hop le")
       .optional(),
     child5To7Guests: z
-      .number({ message: "Số khách từ 5 đến 7 tuổi không hợp lệ" })
-      .int("Số khách từ 5 đến 7 tuổi phải là số nguyên")
-      .min(0, "Số khách từ 5 đến 7 tuổi không hợp lệ")
-      .max(100, "Số khách từ 5 đến 7 tuổi không hợp lệ")
+      .number({ message: "So khach tu 5 den 7 tuoi khong hop le" })
+      .int("So khach tu 5 den 7 tuoi phai la so nguyen")
+      .min(0, "So khach tu 5 den 7 tuoi khong hop le")
+      .max(100, "So khach tu 5 den 7 tuoi khong hop le")
       .optional(),
     childUnder5Guests: z
-      .number({ message: "Số khách dưới 5 tuổi không hợp lệ" })
-      .int("Số khách dưới 5 tuổi phải là số nguyên")
-      .min(0, "Số khách dưới 5 tuổi không hợp lệ")
-      .max(100, "Số khách dưới 5 tuổi không hợp lệ")
+      .number({ message: "So khach duoi 5 tuoi khong hop le" })
+      .int("So khach duoi 5 tuoi phai la so nguyen")
+      .min(0, "So khach duoi 5 tuoi khong hop le")
+      .max(100, "So khach duoi 5 tuoi khong hop le")
       .optional(),
-    note: z.string().trim().max(500, "Ghi chú tối đa 500 ký tự").optional().or(z.literal("")),
+    roomType: z.enum(["DOUBLE", "SINGLE"]).optional(),
+    note: z.string().trim().max(500, "Ghi chu toi da 500 ky tu").optional().or(z.literal("")),
     departureDate: departureDateSchema,
   })
   .superRefine((value, ctx) => {
@@ -98,7 +99,7 @@ export const bookingSchema = z
       if (from8 + from5To7 + under5 !== value.numberOfGuests) {
         ctx.addIssue({
           code: "custom",
-          message: "Tổng số khách không khớp với cơ cấu độ tuổi.",
+          message: "Tong so khach khong khop voi co cau do tuoi.",
           path: ["numberOfGuests"],
         });
       }

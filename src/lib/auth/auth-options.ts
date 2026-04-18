@@ -86,6 +86,7 @@ export const authOptions: NextAuthOptions = {
             image: user.avatarUrl,
             role: user.role,
             status: user.status,
+            phone: user.phone,
           };
         } catch (error) {
           console.error("Lỗi authorize credentials:", error);
@@ -105,6 +106,7 @@ export const authOptions: NextAuthOptions = {
               image: null,
               role: UserRole.ADMIN,
               status: UserStatus.ACTIVE,
+              phone: "0909000001",
             };
           }
 
@@ -119,6 +121,7 @@ export const authOptions: NextAuthOptions = {
         // Gắn role/status vào JWT ngay tại thời điểm đăng nhập.
         token.role = user.role ?? UserRole.USER;
         token.status = user.status ?? UserStatus.ACTIVE;
+        token.phone = user.phone ?? null;
         token.syncedAt = Date.now();
       }
 
@@ -126,7 +129,7 @@ export const authOptions: NextAuthOptions = {
         typeof token.syncedAt !== "number" || Date.now() - token.syncedAt > 60_000;
 
       if (shouldSync && token.sub && token.sub !== "dev-admin") {
-        let currentUser: { role: UserRole; status: UserStatus } | null = null;
+        let currentUser: { role: UserRole; status: UserStatus; phone: string | null } | null = null;
 
         try {
           currentUser = await db.user.findUnique({
@@ -134,6 +137,7 @@ export const authOptions: NextAuthOptions = {
             select: {
               role: true,
               status: true,
+              phone: true,
             },
           });
         } catch {
@@ -144,10 +148,12 @@ export const authOptions: NextAuthOptions = {
           // Đồng bộ lại quyền hiện tại từ DB để tránh token cũ sai quyền.
           token.role = currentUser.role;
           token.status = currentUser.status;
+          token.phone = currentUser.phone;
         } else {
           // Nếu user không còn tồn tại thì hạ quyền và khóa phiên.
           token.role = UserRole.USER;
           token.status = UserStatus.BLOCKED;
+          token.phone = null;
         }
         token.syncedAt = Date.now();
       }
@@ -160,6 +166,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub ?? "";
         session.user.role = (token.role as UserRole | undefined) ?? UserRole.USER;
         session.user.status = (token.status as UserStatus | undefined) ?? UserStatus.ACTIVE;
+        session.user.phone = typeof token.phone === "string" ? token.phone : null;
       }
 
       return session;

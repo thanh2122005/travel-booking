@@ -17,6 +17,7 @@ import {
   catalogTravelerProfiles,
   localAvatarPool,
 } from "@/lib/content/vietnam-catalog";
+import { resolveSingleRoomSurchargePerAdult } from "@/lib/pricing/single-room-surcharge";
 import { evaluateCancelBooking } from "@/lib/utils/booking-actions";
 import { demoGetContactInquiries } from "@/lib/demo/contact-inquiry-store";
 import { demoGetNewsletterSubscribers } from "@/lib/demo/newsletter-subscriber-store";
@@ -58,6 +59,7 @@ type DemoTour = {
   discountPrice: number | null;
   durationDays: number;
   durationNights: number;
+  singleRoomSurchargePerAdult: number;
   maxGuests: number;
   transportation: string;
   departureLocation: string;
@@ -97,7 +99,16 @@ type DemoBooking = {
   guestsFrom8?: number;
   child5To7Guests?: number;
   childUnder5Guests?: number;
+  roomType?: "DOUBLE" | "SINGLE";
   note?: string | null;
+  baseGuestTotal?: number;
+  roomSurchargeTotal?: number;
+  unitPriceSnapshot?: number;
+  discountPriceSnapshot?: number | null;
+  child5To7RatioSnapshot?: number;
+  childUnder5RatioSnapshot?: number;
+  singleRoomSurchargePerAdultSnapshot?: number;
+  durationNightsSnapshot?: number;
   totalPrice: number;
   status: BookingStatus;
   paymentMethod: string;
@@ -284,6 +295,11 @@ function createInitialDemoState(): DemoState {
     discountPrice: tour.discountPrice ?? null,
     durationDays: tour.durationDays,
     durationNights: tour.durationNights,
+    singleRoomSurchargePerAdult: resolveSingleRoomSurchargePerAdult({
+      durationNights: tour.durationNights,
+      unitPrice: tour.discountPrice ?? tour.price,
+      configuredSurcharge: 0,
+    }),
     maxGuests: tour.maxGuests,
     transportation: tour.transportation,
     departureLocation: tour.departureLocation,
@@ -442,6 +458,11 @@ async function readDemo(): Promise<DemoState> {
   }));
   state.tours = state.tours.map((tour) => ({
     ...tour,
+    singleRoomSurchargePerAdult: resolveSingleRoomSurchargePerAdult({
+      durationNights: tour.durationNights,
+      unitPrice: tour.discountPrice ?? tour.price,
+      configuredSurcharge: tour.singleRoomSurchargePerAdult,
+    }),
     gallery: Array.isArray((tour as Partial<DemoTour>).gallery)
       ? (tour as Partial<DemoTour>).gallery!.filter((image): image is string => Boolean(image))
       : [tour.featuredImage],
@@ -1602,6 +1623,7 @@ export async function demoUpdateBookingDetail(
     note?: string | null;
     departureDate?: string | null;
     paymentMethod?: string;
+    roomType?: "DOUBLE" | "SINGLE";
     status?: BookingStatus;
     paymentStatus?: PaymentStatus;
   },
@@ -1628,13 +1650,31 @@ export async function demoUpdateBookingDetail(
     booking.departureDate = payload.departureDate;
   }
   if (payload.paymentMethod) booking.paymentMethod = payload.paymentMethod;
+  if (payload.roomType) {
+    booking.roomType = payload.roomType;
+  }
   if (payload.status) booking.status = payload.status;
   if (payload.paymentStatus) booking.paymentStatus = payload.paymentStatus;
 
-  const unitPrice = tour.discountPrice ?? tour.price;
+  const unitPrice = booking.unitPriceSnapshot ?? tour.discountPrice ?? tour.price;
   const guestsFrom8 = booking.guestsFrom8 ?? booking.numberOfGuests;
   const child5To7Guests = booking.child5To7Guests ?? 0;
-  booking.totalPrice = Math.round(unitPrice * (guestsFrom8 + child5To7Guests * 0.5));
+  const childUnder5Guests = booking.childUnder5Guests ?? 0;
+  const child5To7Ratio = booking.child5To7RatioSnapshot ?? 0.5;
+  const childUnder5Ratio = booking.childUnder5RatioSnapshot ?? 0;
+  const singleRoomSurchargePerAdult = booking.singleRoomSurchargePerAdultSnapshot ?? tour.singleRoomSurchargePerAdult;
+  const durationNights = Math.max(booking.durationNightsSnapshot ?? tour.durationNights, 0);
+  if (booking.roomType === "SINGLE" && durationNights <= 0) {
+    return "INVALID_ROOM_TYPE" as const;
+  }
+  booking.baseGuestTotal = Math.round(
+    unitPrice * (guestsFrom8 + child5To7Guests * child5To7Ratio + childUnder5Guests * childUnder5Ratio),
+  );
+  booking.roomSurchargeTotal =
+    booking.roomType === "SINGLE"
+      ? Math.round(guestsFrom8 * singleRoomSurchargePerAdult * durationNights)
+      : 0;
+  booking.totalPrice = booking.baseGuestTotal + booking.roomSurchargeTotal;
   booking.updatedAt = nowIso();
   await writeDemo(state);
   return booking;
@@ -1733,6 +1773,7 @@ export async function demoUpdateTourContent(
     discountPrice?: number | null;
     durationDays?: number;
     durationNights?: number;
+    singleRoomSurchargePerAdult?: number;
     maxGuests?: number;
     transportation?: string;
     departureLocation?: string;
@@ -1771,6 +1812,12 @@ export async function demoUpdateTourContent(
   if (typeof payload.durationNights === "number" && Number.isFinite(payload.durationNights)) {
     tour.durationNights = Math.max(0, Math.trunc(payload.durationNights));
   }
+  if (
+    typeof payload.singleRoomSurchargePerAdult === "number" &&
+    Number.isFinite(payload.singleRoomSurchargePerAdult)
+  ) {
+    tour.singleRoomSurchargePerAdult = Math.max(0, Math.trunc(payload.singleRoomSurchargePerAdult));
+  }
   if (typeof payload.maxGuests === "number" && Number.isFinite(payload.maxGuests)) {
     tour.maxGuests = Math.max(1, Math.trunc(payload.maxGuests));
   }
@@ -1779,6 +1826,12 @@ export async function demoUpdateTourContent(
   if (payload.locationId) tour.locationId = payload.locationId;
   if (payload.status) tour.status = payload.status;
   if (typeof payload.featured === "boolean") tour.featured = payload.featured;
+
+  tour.singleRoomSurchargePerAdult = resolveSingleRoomSurchargePerAdult({
+    durationNights: tour.durationNights,
+    unitPrice: tour.discountPrice ?? tour.price,
+    configuredSurcharge: tour.singleRoomSurchargePerAdult,
+  });
 
   if (payload.featuredImage) {
     tour.featuredImage = payload.featuredImage;
@@ -2102,6 +2155,7 @@ export async function demoCreateTour(input: {
   discountPrice?: number | null;
   durationDays: number;
   durationNights: number;
+  singleRoomSurchargePerAdult?: number;
   maxGuests: number;
   transportation: string;
   departureLocation: string;
@@ -2124,6 +2178,11 @@ export async function demoCreateTour(input: {
     discountPrice: input.discountPrice ?? null,
     durationDays: input.durationDays,
     durationNights: input.durationNights,
+    singleRoomSurchargePerAdult: resolveSingleRoomSurchargePerAdult({
+      durationNights: input.durationNights,
+      unitPrice: input.discountPrice ?? input.price,
+      configuredSurcharge: input.singleRoomSurchargePerAdult ?? 0,
+    }),
     maxGuests: input.maxGuests,
     transportation: input.transportation,
     departureLocation: input.departureLocation,
@@ -2478,6 +2537,7 @@ export async function demoCreatePublicBooking(input: {
   guestsFrom8?: number;
   child5To7Guests?: number;
   childUnder5Guests?: number;
+  roomType?: "DOUBLE" | "SINGLE";
   note?: string;
   departureDate?: string;
 }) {
@@ -2489,8 +2549,12 @@ export async function demoCreatePublicBooking(input: {
   const guestsFrom8 = input.guestsFrom8 ?? input.numberOfGuests;
   const child5To7Guests = input.child5To7Guests ?? 0;
   const childUnder5Guests = input.childUnder5Guests ?? 0;
+  const roomType = input.roomType ?? "DOUBLE";
   const totalGuests = guestsFrom8 + child5To7Guests + childUnder5Guests;
   if (totalGuests !== input.numberOfGuests) return "INVALID_GUEST_BREAKDOWN";
+  if (tour.durationNights <= 0 && roomType === "SINGLE") {
+    return "INVALID_ROOM_TYPE";
+  }
 
   await ensureDemoUser(state, input.userId, { fullName: input.fullName, email: input.email });
   const departureDateObj = input.departureDate ? new Date(input.departureDate) : null;
@@ -2522,6 +2586,16 @@ export async function demoCreatePublicBooking(input: {
     return { code: "INSUFFICIENT_SEATS" as const, remainingSeats: remainingBeforeBooking };
   }
 
+  const unitPrice = tour.discountPrice ?? tour.price;
+  const baseGuestTotal = Math.round(
+    unitPrice * (guestsFrom8 + child5To7Guests * 0.5 + childUnder5Guests * 0),
+  );
+  const roomSurchargeTotal =
+    roomType === "SINGLE"
+      ? Math.round(guestsFrom8 * tour.singleRoomSurchargePerAdult * tour.durationNights)
+      : 0;
+  const totalPrice = baseGuestTotal + roomSurchargeTotal;
+
   const booking: DemoBooking = {
     id: `bk_${randomUUID().slice(0, 8)}`,
     bookingCode: `TB${Date.now().toString().slice(-8)}`,
@@ -2534,10 +2608,17 @@ export async function demoCreatePublicBooking(input: {
     guestsFrom8,
     child5To7Guests,
     childUnder5Guests,
+    roomType,
     note: input.note ?? null,
-    totalPrice: Math.round(
-      (tour.discountPrice ?? tour.price) * (guestsFrom8 + child5To7Guests * 0.5 + childUnder5Guests * 0),
-    ),
+    baseGuestTotal,
+    roomSurchargeTotal,
+    unitPriceSnapshot: unitPrice,
+    discountPriceSnapshot: tour.discountPrice,
+    child5To7RatioSnapshot: 0.5,
+    childUnder5RatioSnapshot: 0,
+    singleRoomSurchargePerAdultSnapshot: tour.singleRoomSurchargePerAdult,
+    durationNightsSnapshot: tour.durationNights,
+    totalPrice,
     status: BookingStatus.PENDING,
     paymentMethod: "Thanh toán khi xác nhận",
     paymentStatus: PaymentStatus.UNPAID,

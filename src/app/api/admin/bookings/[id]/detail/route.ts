@@ -17,6 +17,7 @@ const bookingDetailUpdateSchema = z.object({
   note: z.string().trim().nullable().optional(),
   departureDate: z.string().trim().nullable().optional(),
   paymentMethod: z.string().trim().min(1, "Phương thức thanh toán là bắt buộc."),
+  roomType: z.enum(["DOUBLE", "SINGLE"]).optional(),
   status: z.nativeEnum(BookingStatus).optional(),
   paymentStatus: z.nativeEnum(PaymentStatus).optional(),
 });
@@ -66,6 +67,7 @@ export async function PATCH(request: Request, context: BookingDetailRouteContext
       note: parsed.data.note ?? null,
       departureDate: departureDate ? departureDate.toISOString() : null,
       paymentMethod: parsed.data.paymentMethod,
+      roomType: parsed.data.roomType,
       status: parsed.data.status,
       paymentStatus: parsed.data.paymentStatus,
     });
@@ -77,6 +79,12 @@ export async function PATCH(request: Request, context: BookingDetailRouteContext
       return NextResponse.json(
         { message: "Không thể cập nhật đơn. Vui lòng kiểm tra số khách tối đa của tour." },
         { status: 409 },
+      );
+    }
+    if (updated === "INVALID_ROOM_TYPE") {
+      return NextResponse.json(
+        { message: "Tour không áp dụng loại phòng đơn." },
+        { status: 400 },
       );
     }
 

@@ -30,6 +30,14 @@ type AdminBookingDetailDialogProps = {
     guestsFrom8?: number | null;
     child5To7Guests?: number | null;
     childUnder5Guests?: number | null;
+    roomType?: "DOUBLE" | "SINGLE" | null;
+    baseGuestTotal?: number | null;
+    roomSurchargeTotal?: number | null;
+    unitPriceSnapshot?: number | null;
+    child5To7RatioSnapshot?: number | null;
+    childUnder5RatioSnapshot?: number | null;
+    singleRoomSurchargePerAdultSnapshot?: number | null;
+    durationNightsSnapshot?: number | null;
     note?: string | null;
     paymentMethod?: string;
     departureDate?: Date | string | null;
@@ -66,11 +74,17 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
   const [paymentMethod, setPaymentMethod] = useState(
     booking.paymentMethod ?? "Thanh toán khi xác nhận",
   );
+  const [roomType, setRoomType] = useState<"DOUBLE" | "SINGLE">(booking.roomType === "SINGLE" ? "SINGLE" : "DOUBLE");
   const [departureDate, setDepartureDate] = useState(toDateInputValue(booking.departureDate));
   const [status, setStatus] = useState<BookingStatusValue>(booking.status);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatusValue>(booking.paymentStatus);
 
-  const unitPrice = booking.tour.discountPrice ?? booking.tour.price;
+  const unitPrice = booking.unitPriceSnapshot ?? booking.tour.discountPrice ?? booking.tour.price;
+  const child5To7Ratio = booking.child5To7RatioSnapshot ?? CHILD_5_TO_7_PRICE_RATIO;
+  const childUnder5Ratio = booking.childUnder5RatioSnapshot ?? CHILD_UNDER_5_PRICE_RATIO;
+  const singleRoomSurchargePerAdult = booking.singleRoomSurchargePerAdultSnapshot ?? 0;
+  const durationNights = Math.max(booking.durationNightsSnapshot ?? 0, 0);
+  const canUseSingleRoom = durationNights > 0;
   const guestBreakdown = useMemo(() => {
     const baseBreakdown = resolveBookingGuestBreakdown({
       numberOfGuests: booking.numberOfGuests,
@@ -108,19 +122,40 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
   ]);
 
   const estimatedTotal = useMemo(
-    () =>
-      Math.round(
+    () => {
+      const baseGuestTotal = Math.round(
         unitPrice *
           (guestBreakdown.adults +
-            guestBreakdown.child5To7 * CHILD_5_TO_7_PRICE_RATIO +
-            guestBreakdown.childUnder5 * CHILD_UNDER_5_PRICE_RATIO),
-      ),
-    [guestBreakdown.adults, guestBreakdown.child5To7, guestBreakdown.childUnder5, unitPrice],
+            guestBreakdown.child5To7 * child5To7Ratio +
+            guestBreakdown.childUnder5 * childUnder5Ratio),
+      );
+      const roomSurchargeTotal =
+        canUseSingleRoom && roomType === "SINGLE"
+          ? Math.round(guestBreakdown.adults * singleRoomSurchargePerAdult * durationNights)
+          : 0;
+      return baseGuestTotal + roomSurchargeTotal;
+    },
+    [
+      canUseSingleRoom,
+      child5To7Ratio,
+      childUnder5Ratio,
+      durationNights,
+      guestBreakdown.adults,
+      guestBreakdown.child5To7,
+      guestBreakdown.childUnder5,
+      roomType,
+      singleRoomSurchargePerAdult,
+      unitPrice,
+    ],
   );
 
   const adultTotal = guestBreakdown.adults * unitPrice;
-  const child5To7Total = Math.round(guestBreakdown.child5To7 * unitPrice * CHILD_5_TO_7_PRICE_RATIO);
-  const childUnder5Total = Math.round(guestBreakdown.childUnder5 * unitPrice * CHILD_UNDER_5_PRICE_RATIO);
+  const child5To7Total = Math.round(guestBreakdown.child5To7 * unitPrice * child5To7Ratio);
+  const childUnder5Total = Math.round(guestBreakdown.childUnder5 * unitPrice * childUnder5Ratio);
+  const roomSurchargeTotal =
+    canUseSingleRoom && roomType === "SINGLE"
+      ? Math.round(guestBreakdown.adults * singleRoomSurchargePerAdult * durationNights)
+      : 0;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -131,6 +166,10 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
     }
     if (guests > booking.tour.maxGuests) {
       toast.error(`Số khách vượt quá giới hạn tour (${booking.tour.maxGuests} khách).`);
+      return;
+    }
+    if (roomType === "SINGLE" && !canUseSingleRoom) {
+      toast.error("Tour không áp dụng loại phòng đơn.");
       return;
     }
 
@@ -146,6 +185,7 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
             numberOfGuests: Math.trunc(guests),
             note: note.trim().length ? note.trim() : null,
             paymentMethod: paymentMethod.trim(),
+            roomType,
             departureDate: departureDate || null,
             status,
             paymentStatus,
@@ -228,6 +268,26 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
             />
           </div>
           <div className="space-y-1">
+            <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Loại phòng</label>
+            <select
+              value={roomType}
+              onChange={(event) => setRoomType(event.target.value as "DOUBLE" | "SINGLE")}
+              className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm"
+            >
+              <option value="DOUBLE">Phòng đôi</option>
+              <option value="SINGLE" disabled={!canUseSingleRoom}>
+                Phòng đơn
+              </option>
+            </select>
+            {canUseSingleRoom ? (
+              <p className="text-xs text-slate-500">
+                Phụ thu phòng đơn: {formatPrice(singleRoomSurchargePerAdult)}/người lớn/đêm ({durationNights} đêm).
+              </p>
+            ) : (
+              <p className="text-xs text-slate-500">Tour không có lưu trú qua đêm, chỉ áp dụng phòng đôi.</p>
+            )}
+          </div>
+          <div className="space-y-1">
             <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Phương thức thanh toán</label>
             <input
               value={paymentMethod}
@@ -274,13 +334,19 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
               <span className="font-semibold text-slate-900">{formatPrice(adultTotal)}</span>
             </p>
             <p>
-              Trẻ em 5-7 tuổi: {guestBreakdown.child5To7} x {formatPrice(Math.round(unitPrice * CHILD_5_TO_7_PRICE_RATIO))} ={" "}
+              Trẻ em 5-7 tuổi: {guestBreakdown.child5To7} x {formatPrice(Math.round(unitPrice * child5To7Ratio))} ={" "}
               <span className="font-semibold text-slate-900">{formatPrice(child5To7Total)}</span>
             </p>
             <p>
-              Trẻ em dưới 5 tuổi: {guestBreakdown.childUnder5} x {formatPrice(0)} ={" "}
+              Trẻ em dưới 5 tuổi: {guestBreakdown.childUnder5} x {formatPrice(Math.round(unitPrice * childUnder5Ratio))} ={" "}
               <span className="font-semibold text-slate-900">{formatPrice(childUnder5Total)}</span>
             </p>
+            {roomSurchargeTotal > 0 ? (
+              <p>
+                Phụ thu phòng đơn: {guestBreakdown.adults} x {formatPrice(singleRoomSurchargePerAdult)} x {durationNights} đêm ={" "}
+                <span className="font-semibold text-slate-900">{formatPrice(roomSurchargeTotal)}</span>
+              </p>
+            ) : null}
             <p className="mt-1">
               Tổng tạm tính: <span className="font-semibold text-slate-900">{formatPrice(estimatedTotal)}</span>
             </p>

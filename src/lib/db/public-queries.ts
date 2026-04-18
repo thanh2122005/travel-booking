@@ -8,6 +8,7 @@ import {
 } from "@/lib/demo/admin-demo-store";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { db } from "@/lib/db/prisma";
+import { resolveSingleRoomSurchargePerAdult } from "@/lib/pricing/single-room-surcharge";
 
 /**
  * Ý đồ file này:
@@ -434,9 +435,20 @@ export async function getTourBySlug(slug: string, userId?: string) {
       };
     }
 
+    const surchargeRows = (await db.$queryRawUnsafe(
+      "SELECT `id`, `singleRoomSurchargePerAdult` FROM `Tour` WHERE `id` = ? LIMIT 1",
+      tour.id,
+    )) as Array<{ id: string; singleRoomSurchargePerAdult?: number | bigint | null }>;
+    const singleRoomSurchargePerAdult = resolveSingleRoomSurchargePerAdult({
+      durationNights: tour.durationNights,
+      unitPrice: tour.discountPrice ?? tour.price,
+      configuredSurcharge: surchargeRows[0]?.singleRoomSurchargePerAdult ?? 0,
+    });
+
     return {
       tour: {
         ...tour,
+        singleRoomSurchargePerAdult,
         avgRating: ratings[tour.id]?.avgRating ?? 0,
         reviewCount: ratings[tour.id]?.reviewCount ?? 0,
       },

@@ -27,15 +27,13 @@ function toDateInputValue(date: Date) {
 export function AdminTourAvailabilityPanel({ tourId }: AdminTourAvailabilityPanelProps) {
   const [departureDate, setDepartureDate] = useState(() => toDateInputValue(new Date()));
   const [availability, setAvailability] = useState<TourAvailability | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!departureDate) return;
 
     const controller = new AbortController();
-    setIsLoading(true);
-    setError(null);
 
     fetch(
       `/api/tours/${encodeURIComponent(tourId)}/availability?departureDate=${encodeURIComponent(
@@ -103,7 +101,11 @@ export function AdminTourAvailabilityPanel({ tourId }: AdminTourAvailabilityPane
           <input
             type="date"
             value={departureDate}
-            onChange={(event) => setDepartureDate(event.target.value)}
+            onChange={(event) => {
+              setIsLoading(true);
+              setError(null);
+              setDepartureDate(event.target.value);
+            }}
             className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
           />
         </label>

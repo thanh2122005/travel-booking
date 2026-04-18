@@ -23,6 +23,14 @@ type BookingItem = {
   guestsFrom8?: number | null;
   child5To7Guests?: number | null;
   childUnder5Guests?: number | null;
+  roomType?: "DOUBLE" | "SINGLE" | null;
+  baseGuestTotal?: number | null;
+  roomSurchargeTotal?: number | null;
+  unitPriceSnapshot?: number | null;
+  child5To7RatioSnapshot?: number | null;
+  childUnder5RatioSnapshot?: number | null;
+  singleRoomSurchargePerAdultSnapshot?: number | null;
+  durationNightsSnapshot?: number | null;
   note?: string | null;
   paymentMethod?: string;
   departureDate?: Date | string | null;
@@ -256,10 +264,14 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
                   <p className="text-sm font-semibold text-slate-800">{formatPrice(booking.totalPrice)}</p>
                   {(() => {
                     const breakdown = getBookingGuestBreakdown(booking);
+                    const roomTypeLabel = booking.roomType === "SINGLE" ? "Phòng đơn" : "Phòng đôi";
                     return (
-                      <p className="text-xs text-slate-500">
-                        {booking.numberOfGuests} khách (NL: {breakdown.adults}, TE 5-7: {breakdown.child5To7}, dưới 5: {breakdown.childUnder5})
-                      </p>
+                      <div className="space-y-0.5 text-xs text-slate-500">
+                        <p>
+                          {booking.numberOfGuests} khách (NL: {breakdown.adults}, TE 5-7: {breakdown.child5To7}, dưới 5: {breakdown.childUnder5})
+                        </p>
+                        <p>{roomTypeLabel}</p>
+                      </div>
                     );
                   })()}
                 </div>
@@ -345,14 +357,19 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
                     <p className="font-medium text-slate-800">{formatPrice(booking.totalPrice)}</p>
                     {(() => {
                       const breakdown = getBookingGuestBreakdown(booking);
-                      const unitPrice = booking.tour.discountPrice ?? booking.tour.price;
+                      const unitPrice = booking.unitPriceSnapshot ?? booking.tour.discountPrice ?? booking.tour.price;
+                      const child5To7Ratio = booking.child5To7RatioSnapshot ?? 0.5;
+                      const childUnder5Ratio = booking.childUnder5RatioSnapshot ?? 0;
                       const adultTotal = breakdown.adults * unitPrice;
-                      const child5To7Total = Math.round(breakdown.child5To7 * unitPrice * 0.5);
-                      const childUnder5Total = 0;
+                      const child5To7Total = Math.round(breakdown.child5To7 * unitPrice * child5To7Ratio);
+                      const childUnder5Total = Math.round(breakdown.childUnder5 * unitPrice * childUnder5Ratio);
+                      const roomSurchargeTotal = booking.roomSurchargeTotal ?? 0;
+                      const roomTypeLabel = booking.roomType === "SINGLE" ? "Phòng đơn" : "Phòng đôi";
                       return (
-                        <p className="mt-1 text-xs text-slate-500">
-                          NL: {formatPrice(adultTotal)} • TE 5-7: {formatPrice(child5To7Total)} • dưới 5: {formatPrice(childUnder5Total)}
-                        </p>
+                        <div className="mt-1 space-y-0.5 text-xs text-slate-500">
+                          <p>NL: {formatPrice(adultTotal)} • TE 5-7: {formatPrice(child5To7Total)} • dưới 5: {formatPrice(childUnder5Total)}</p>
+                          <p>{roomTypeLabel}{roomSurchargeTotal > 0 ? ` • Phụ thu: ${formatPrice(roomSurchargeTotal)}` : ""}</p>
+                        </div>
                       );
                     })()}
                     <p className="mt-1 text-xs text-slate-500">{booking.paymentMethod || "Thanh toán tiêu chuẩn"}</p>

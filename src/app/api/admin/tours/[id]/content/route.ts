@@ -20,6 +20,7 @@ const updateTourContentSchema = z.object({
   discountPrice: z.number().int().positive().nullable(),
   durationDays: z.number().int().positive("Số ngày phải lớn hơn 0."),
   durationNights: z.number().int().min(0, "Số đêm không hợp lệ."),
+  singleRoomSurchargePerAdult: z.number().int().min(0, "Phụ thu phòng đơn không hợp lệ."),
   maxGuests: z.number().int().positive("Số khách tối đa phải lớn hơn 0."),
   transportation: z.string().trim().min(1, "Phương tiện là bắt buộc."),
   departureLocation: z.string().trim().min(1, "Điểm khởi hành là bắt buộc."),
@@ -27,6 +28,14 @@ const updateTourContentSchema = z.object({
   locationId: z.string().trim().min(1, "Điểm đến là bắt buộc."),
   status: z.nativeEnum(TourStatus),
   featured: z.boolean(),
+}).superRefine((value, ctx) => {
+  if (value.durationNights > 0 && value.singleRoomSurchargePerAdult <= 0) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["singleRoomSurchargePerAdult"],
+      message: "Tour có lưu trú phải cấu hình phụ thu phòng đơn lớn hơn 0.",
+    });
+  }
 });
 
 type TourContentRouteContext = {
