@@ -130,6 +130,7 @@ export const authOptions: NextAuthOptions = {
 
       if (shouldSync && token.sub && token.sub !== "dev-admin") {
         let currentUser: { role: UserRole; status: UserStatus; phone: string | null } | null = null;
+        let syncFailed = false;
 
         try {
           currentUser = await db.user.findUnique({
@@ -140,8 +141,9 @@ export const authOptions: NextAuthOptions = {
               phone: true,
             },
           });
-        } catch {
-          currentUser = null;
+        } catch (error) {
+          syncFailed = true;
+          console.error("Loi dong bo session user tu DB:", error);
         }
 
         if (currentUser) {
@@ -149,7 +151,7 @@ export const authOptions: NextAuthOptions = {
           token.role = currentUser.role;
           token.status = currentUser.status;
           token.phone = currentUser.phone;
-        } else {
+        } else if (!syncFailed) {
           // Nếu user không còn tồn tại thì hạ quyền và khóa phiên.
           token.role = UserRole.USER;
           token.status = UserStatus.BLOCKED;
@@ -173,3 +175,4 @@ export const authOptions: NextAuthOptions = {
     },
   },
 };
+

@@ -7,6 +7,7 @@ import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { createPasswordResetOtp } from "@/lib/auth/password-reset";
 import { forgotPasswordSchema } from "@/lib/validations/auth";
+import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 
 // FLOW: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function POST(request: Request) {
@@ -64,7 +65,24 @@ export async function POST(request: Request) {
       },
       { status: 200 },
     );
-  } catch {
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      const detail =
+        process.env.NODE_ENV !== "production"
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined;
+      return NextResponse.json(
+        {
+          message: "Hệ thống cơ sở dữ liệu đang tạm gián đoạn. Vui lòng thử lại sau.",
+          detail,
+        },
+        { status: 503 },
+      );
+    }
+
+    console.error("Forgot password error:", error);
     return NextResponse.json(
       { message: "Không thể tạo mã OTP lúc này. Vui lòng thử lại sau." },
       { status: 500 },
