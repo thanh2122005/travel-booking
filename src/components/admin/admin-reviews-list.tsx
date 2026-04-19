@@ -135,7 +135,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
               type="button"
               onClick={handleBulkUpdate}
               disabled={isPending}
-              className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-2 xl:col-span-1"
+              className="iv-btn-primary iv-admin-bulk-apply-btn inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-2 xl:col-span-1"
             >
               {isPending ? (
                 <>
@@ -210,7 +210,7 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Đánh giá</th>
                 <th className="px-2 py-3 font-medium">Bình luận</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Ngày tạo</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
+                <th className="px-2 py-3 text-center font-medium whitespace-nowrap">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -245,10 +245,10 @@ export function AdminReviewsList({ items }: AdminReviewsListProps) {
                     <p className="line-clamp-2 text-sm text-slate-700">{review.comment}</p>
                   </td>
                   <td className="px-2 py-3 whitespace-nowrap text-xs text-slate-500">{formatDate(new Date(review.createdAt))}</td>
-                  <td className="min-w-[188px] px-2 py-3">
-                    <div className="ml-auto flex w-full max-w-[172px] flex-col items-end gap-2">
+                  <td className="min-w-[248px] px-2 py-3">
+                    <div className="mx-auto flex w-full max-w-[232px] min-w-[220px] flex-col items-center gap-2">
                       <AdminReviewActions reviewId={review.id} isVisible={review.isVisible} compact />
-                      <AdminReviewDetailDialog review={review} />
+                      <AdminReviewDetailDialog review={review} compact />
                     </div>
                   </td>
                 </tr>

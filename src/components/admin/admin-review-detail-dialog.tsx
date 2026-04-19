@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 
 type AdminReviewDetailDialogProps = {
+  compact?: boolean;
   review: {
     id: string;
     rating: number;
@@ -28,7 +29,7 @@ type AdminReviewDetailDialogProps = {
   };
 };
 
-export function AdminReviewDetailDialog({ review }: AdminReviewDetailDialogProps) {
+export function AdminReviewDetailDialog({ review, compact = false }: AdminReviewDetailDialogProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
@@ -72,7 +73,11 @@ export function AdminReviewDetailDialog({ review }: AdminReviewDetailDialogProps
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="inline-flex h-8 items-center justify-center rounded-md border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100">
+      <DialogTrigger
+        className={`inline-flex h-8 items-center justify-center rounded-md border border-slate-300 px-3 text-xs font-semibold whitespace-nowrap text-slate-700 transition hover:bg-slate-100 ${
+          compact ? "w-full" : ""
+        }`}
+      >
         <PencilLine className="mr-1.5 h-3.5 w-3.5" />
         Sửa đánh giá
       </DialogTrigger>

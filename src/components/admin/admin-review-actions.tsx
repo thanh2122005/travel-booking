@@ -40,11 +40,13 @@ export function AdminReviewActions({ reviewId, isVisible, compact = false }: Adm
   }
 
   return (
-    <div className={`flex items-center gap-2 ${compact ? "w-full max-w-[188px]" : "w-full sm:w-[188px]"}`}>
+    <div className={`flex gap-2 ${compact ? "w-full min-w-[220px] flex-col" : "w-full items-center sm:w-[220px]"}`}>
       <select
         value={visible ? "1" : "0"}
         onChange={(event) => setVisible(event.target.value === "1")}
-        className="h-8 flex-1 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700"
+        className={`h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 ${
+          compact ? "w-full" : "min-w-[132px] flex-1"
+        }`}
         disabled={isPending}
       >
         <option value="1">Hiển thị</option>
@@ -54,7 +56,9 @@ export function AdminReviewActions({ reviewId, isVisible, compact = false }: Adm
         type="button"
         onClick={handleSubmit}
         disabled={isPending}
-        className="inline-flex h-8 items-center justify-center rounded-md bg-teal-600 px-3 text-xs font-semibold text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-60"
+        className={`inline-flex h-8 items-center justify-center rounded-md bg-teal-600 px-3 text-xs font-semibold whitespace-nowrap text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-60 ${
+          compact ? "w-full" : "min-w-[54px]"
+        }`}
       >
         {isPending ? (
           <>
