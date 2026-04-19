@@ -206,4 +206,12 @@
   .iv-admin-filter-chip {
     @apply inline-flex h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700;
   }
+
+  .iv-admin-action-btn {
+    @apply sm:min-w-[132px];
+  }
+
+  .iv-admin-bulk-apply-btn {
+    @apply xl:min-w-[220px];
+  }
 }

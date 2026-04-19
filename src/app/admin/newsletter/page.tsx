@@ -82,17 +82,20 @@ function buildDateRangeLabel(createdFrom: string, createdTo: string) {
 export default async function AdminNewsletterPage({ searchParams }: AdminNewsletterPageProps) {
   const params = await searchParams;
   const search = normalizeParam(params.search);
+  const createdDate = normalizeParam(params.createdDate);
   const createdFrom = normalizeParam(params.createdFrom);
   const createdTo = normalizeParam(params.createdTo);
   const page = toValidPage(normalizeParam(params.page));
+  const normalizedCreatedFrom = createdDate || createdFrom;
+  const normalizedCreatedTo = createdDate || createdTo;
 
-  const hasActiveFilters = Boolean(search || createdFrom || createdTo);
+  const hasActiveFilters = Boolean(search || normalizedCreatedFrom || normalizedCreatedTo);
   const exportQuery = {
     ...(search ? { search } : {}),
-    ...(createdFrom ? { createdFrom } : {}),
-    ...(createdTo ? { createdTo } : {}),
+    ...(normalizedCreatedFrom ? { createdFrom: normalizedCreatedFrom } : {}),
+    ...(normalizedCreatedTo ? { createdTo: normalizedCreatedTo } : {}),
   };
-  const dateRangeLabel = buildDateRangeLabel(createdFrom, createdTo);
+  const dateRangeLabel = buildDateRangeLabel(normalizedCreatedFrom, normalizedCreatedTo);
   const activeFilterLabels = [
     ...(search ? [`Từ khóa: ${search}`] : []),
     ...(dateRangeLabel ? [dateRangeLabel] : []),
@@ -104,8 +107,8 @@ export default async function AdminNewsletterPage({ searchParams }: AdminNewslet
   try {
     data = await getAdminNewsletterSubscribers({
     search: search || undefined,
-    createdFrom: parseDateAtBoundary(createdFrom, "start"),
-    createdTo: parseDateAtBoundary(createdTo, "end"),
+    createdFrom: parseDateAtBoundary(normalizedCreatedFrom, "start"),
+    createdTo: parseDateAtBoundary(normalizedCreatedTo, "end"),
     page,
     pageSize: 15,
   });
@@ -135,15 +138,22 @@ export default async function AdminNewsletterPage({ searchParams }: AdminNewslet
 
       <form id="bo-loc-nhan-tin" className="iv-admin-filter-form">
         <input type="hidden" name="page" value="1" />
-        <label htmlFor="search" className="iv-admin-filter-title">
-          Tìm kiếm email
-        </label>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <label htmlFor="search" className="iv-admin-filter-title mb-0">
+            Tìm kiếm email
+          </label>
+          {createdDate ? (
+            <span className="inline-flex h-7 items-center rounded-full border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700">
+              Đang lọc theo ngày: {formatInputDate(createdDate)}
+            </span>
+          ) : null}
+        </div>
         <div className="iv-admin-filter-quick">
           <span className="iv-admin-filter-hint">Mốc nhanh:</span>
           {quickDateRanges.map((days) => {
             const quickRange = createQuickDateRange(days);
             const isActive =
-              createdFrom === quickRange.createdFrom && createdTo === quickRange.createdTo;
+              normalizedCreatedFrom === quickRange.createdFrom && normalizedCreatedTo === quickRange.createdTo;
             return (
               <Link
                 key={days}
@@ -151,6 +161,7 @@ export default async function AdminNewsletterPage({ searchParams }: AdminNewslet
                   pathname: "/admin/newsletter",
                   query: {
                     ...params,
+                    createdDate: undefined,
                     createdFrom: quickRange.createdFrom,
                     createdTo: quickRange.createdTo,
                     page: "1",
@@ -175,64 +186,63 @@ export default async function AdminNewsletterPage({ searchParams }: AdminNewslet
             </Link>
           ) : null}
         </div>
-        <div className="iv-admin-filter-grid">
-          <input
-            id="search"
-            name="search"
-            defaultValue={search}
-            placeholder="Email cần tìm..."
-            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm sm:col-span-2 xl:col-span-2 focus:border-teal-500 focus:outline-none"
-          />
-          <input
-            type="date"
-            name="createdFrom"
-            defaultValue={createdFrom}
-            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          />
-          <input
-            type="date"
-            name="createdTo"
-            defaultValue={createdTo}
-            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          />
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_240px_auto] xl:items-end">
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-500">Email</span>
+            <input
+              id="search"
+              name="search"
+              defaultValue={search}
+              placeholder="Email cần tìm..."
+              className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+          </label>
+          <input type="hidden" name="createdFrom" value="" />
+          <input type="hidden" name="createdTo" value="" />
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-500">Ngày đăng ký</span>
+            <input
+              type="date"
+              name="createdDate"
+              defaultValue={createdDate}
+              className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+          </label>
+          <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+            <button
+              type="submit"
+              className="iv-btn-primary iv-admin-action-btn inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto"
+            >
+              Lọc dữ liệu
+            </button>
+            <Link
+              href={{
+                pathname: "/api/admin/newsletter/export",
+                query: exportQuery,
+              }}
+              className="iv-btn-soft iv-admin-action-btn inline-flex h-10 w-full items-center justify-center px-4 text-sm font-semibold shadow-sm sm:w-auto"
+            >
+              Xuất CSV
+            </Link>
+            {hasActiveFilters ? (
+              <Link
+                href="/admin/newsletter"
+                className="iv-admin-action-btn inline-flex h-10 w-full items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
+              >
+                Xóa lọc
+              </Link>
+            ) : null}
+          </div>
         </div>
         {activeFilterLabels.length ? (
           <div className="mt-3 flex flex-wrap gap-2">
             {activeFilterLabels.map((label) => (
-              <span
-                key={label}
-                className="iv-admin-filter-chip"
-              >
+              <span key={label} className="iv-admin-filter-chip">
                 {label}
               </span>
             ))}
           </div>
         ) : null}
-        <div className="iv-admin-filter-actions">
-          <button
-            type="submit"
-            className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto"
-          >
-            Lọc dữ liệu
-          </button>
-          <Link
-            href={{
-              pathname: "/api/admin/newsletter/export",
-              query: exportQuery,
-            }}
-            className="iv-btn-soft inline-flex h-10 w-full items-center justify-center px-4 text-sm font-semibold shadow-sm sm:w-auto"
-          >
-            Xuất CSV
-          </Link>
-          {hasActiveFilters ? (
-            <Link
-              href="/admin/newsletter"
-              className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
-            >
-              Xóa lọc
-            </Link>
-          ) : null}
-        </div>
       </form>
 
       <div id="danh-sach-nhan-tin" className="scroll-mt-24" />

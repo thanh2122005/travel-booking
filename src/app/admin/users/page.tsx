@@ -83,18 +83,21 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
   const search = normalizeParam(params.search);
   const role = normalizeParam(params.role);
   const status = normalizeParam(params.status);
+  const createdDate = normalizeParam(params.createdDate);
   const createdFrom = normalizeParam(params.createdFrom);
   const createdTo = normalizeParam(params.createdTo);
   const page = toValidPage(normalizeParam(params.page));
-  const hasActiveFilters = Boolean(search || role || status || createdFrom || createdTo);
+  const normalizedCreatedFrom = createdDate || createdFrom;
+  const normalizedCreatedTo = createdDate || createdTo;
+  const hasActiveFilters = Boolean(search || role || status || normalizedCreatedFrom || normalizedCreatedTo);
   const exportQuery = new URLSearchParams();
   if (search) exportQuery.set("search", search);
   if (role) exportQuery.set("role", role);
   if (status) exportQuery.set("status", status);
-  if (createdFrom) exportQuery.set("createdFrom", createdFrom);
-  if (createdTo) exportQuery.set("createdTo", createdTo);
+  if (normalizedCreatedFrom) exportQuery.set("createdFrom", normalizedCreatedFrom);
+  if (normalizedCreatedTo) exportQuery.set("createdTo", normalizedCreatedTo);
   const exportHref = `/api/admin/users/export${exportQuery.toString() ? `?${exportQuery.toString()}` : ""}`;
-  const dateRangeLabel = buildDateRangeLabel(createdFrom, createdTo);
+  const dateRangeLabel = buildDateRangeLabel(normalizedCreatedFrom, normalizedCreatedTo);
   const activeFilterLabels = [
     ...(search ? [`Từ khóa: ${search}`] : []),
     ...(role ? [`Vai trò: ${adminLabels.userRole[role as keyof typeof adminLabels.userRole]}`] : []),
@@ -110,8 +113,8 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
     search: search || undefined,
     role: role ? (role as "ADMIN" | "USER") : undefined,
     status: status ? (status as "ACTIVE" | "BLOCKED") : undefined,
-    createdFrom: parseDateAtBoundary(createdFrom, "start"),
-    createdTo: parseDateAtBoundary(createdTo, "end"),
+    createdFrom: parseDateAtBoundary(normalizedCreatedFrom, "start"),
+    createdTo: parseDateAtBoundary(normalizedCreatedTo, "end"),
     page,
     pageSize: 12,
   });
@@ -139,15 +142,22 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
 
       <form id="bo-loc-nguoi-dung" className="iv-admin-filter-form">
         <input type="hidden" name="page" value="1" />
-        <label htmlFor="search" className="iv-admin-filter-title">
-          Tìm kiếm người dùng
-        </label>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <label htmlFor="search" className="iv-admin-filter-title mb-0">
+            Tìm kiếm người dùng
+          </label>
+          {createdDate ? (
+            <span className="inline-flex h-7 items-center rounded-full border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-700">
+              Ngày tạo: {formatInputDate(createdDate)}
+            </span>
+          ) : null}
+        </div>
         <div className="iv-admin-filter-quick">
           <span className="iv-admin-filter-hint">Mốc nhanh:</span>
           {quickDateRanges.map((days) => {
             const quickRange = createQuickDateRange(days);
             const isActive =
-              createdFrom === quickRange.createdFrom && createdTo === quickRange.createdTo;
+              normalizedCreatedFrom === quickRange.createdFrom && normalizedCreatedTo === quickRange.createdTo;
             return (
               <Link
                 key={days}
@@ -155,6 +165,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                   pathname: "/admin/users",
                   query: {
                     ...params,
+                    createdDate: undefined,
                     createdFrom: quickRange.createdFrom,
                     createdTo: quickRange.createdTo,
                     page: "1",
@@ -179,59 +190,69 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             </Link>
           ) : null}
         </div>
-        <div className="iv-admin-filter-grid">
-          <input
-            id="search"
-            name="search"
-            defaultValue={search}
-            placeholder="Tên hoặc email..."
-            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm sm:col-span-2 xl:col-span-2 focus:border-teal-500 focus:outline-none"
-          />
-          <select
-            name="role"
-            defaultValue={role}
-            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          >
-            <option value="">Tất cả vai trò</option>
-            <option value="USER">Người dùng</option>
-            <option value="ADMIN">Quản trị viên</option>
-          </select>
-          <select
-            name="status"
-            defaultValue={status}
-            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          >
-            <option value="">Tất cả trạng thái</option>
-            <option value="ACTIVE">Hoạt động</option>
-            <option value="BLOCKED">Bị khóa</option>
-          </select>
-          <input
-            type="date"
-            name="createdFrom"
-            defaultValue={createdFrom}
-            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          />
-          <input
-            type="date"
-            name="createdTo"
-            defaultValue={createdTo}
-            className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
-          />
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1.6fr)_minmax(180px,0.7fr)_minmax(180px,0.7fr)_220px] xl:items-end">
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-500">Từ khóa</span>
+            <input
+              id="search"
+              name="search"
+              defaultValue={search}
+              placeholder="Tên hoặc email..."
+              className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-500">Vai trò</span>
+            <select
+              name="role"
+              defaultValue={role}
+              className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            >
+              <option value="">Tất cả vai trò</option>
+              <option value="USER">Người dùng</option>
+              <option value="ADMIN">Quản trị viên</option>
+            </select>
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-500">Trạng thái</span>
+            <select
+              name="status"
+              defaultValue={status}
+              className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="ACTIVE">Hoạt động</option>
+              <option value="BLOCKED">Bị khóa</option>
+            </select>
+          </label>
+          <input type="hidden" name="createdFrom" value="" />
+          <input type="hidden" name="createdTo" value="" />
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-500">Ngày tạo</span>
+            <input
+              type="date"
+              name="createdDate"
+              defaultValue={createdDate}
+              aria-label="Ngày tạo"
+              title="Ngày tạo"
+              className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm focus:border-teal-500 focus:outline-none"
+            />
+          </label>
         </div>
-        <div className="iv-admin-filter-actions">
-          <button type="submit" className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto">
+        <div className="iv-admin-filter-actions mt-3 justify-center">
+          <button type="submit" className="iv-btn-primary iv-admin-action-btn inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:min-w-[140px] sm:w-auto">
             Tìm kiếm
           </button>
           <Link
             href={exportHref}
-            className="iv-btn-soft inline-flex h-10 w-full items-center justify-center px-4 text-sm font-semibold shadow-sm sm:w-auto"
+            className="iv-btn-soft iv-admin-action-btn inline-flex h-10 w-full items-center justify-center px-4 text-sm font-semibold shadow-sm sm:min-w-[140px] sm:w-auto"
           >
             Xuất CSV
           </Link>
           {hasActiveFilters ? (
             <Link
               href="/admin/users"
-              className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
+              className="iv-admin-action-btn inline-flex h-10 w-full items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:min-w-[140px] sm:w-auto"
             >
               Xóa lọc
             </Link>

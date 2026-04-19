@@ -149,7 +149,7 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
             ) : null}
           </div>
 
-          <div className="grid gap-2 md:grid-cols-2 2xl:grid-cols-5">
+          <div className="grid gap-2 md:grid-cols-2">
             <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:col-span-2 xl:col-span-2">
               <input
                 type="checkbox"
@@ -185,12 +185,14 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                 </option>
               ))}
             </select>
-
+          </div>
+          <div className="mt-1 flex flex-col items-center gap-1.5">
             <button
               type="button"
               onClick={handleBulkUpdate}
-              disabled={isPending}
-              className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-2 xl:col-span-1"
+              disabled={isPending || !selectedIdsInPage.length}
+              title={!selectedIdsInPage.length ? "Vui lòng chọn ít nhất 1 dòng" : "Áp dụng thay đổi cho các dòng đã chọn"}
+              className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70 sm:w-[280px]"
             >
               {isPending ? (
                 <>
@@ -198,9 +200,12 @@ export function AdminUsersTable({ items, roleLabels, statusLabels }: AdminUsersT
                   Đang cập nhật...
                 </>
               ) : (
-                "Áp dụng cho các dòng đã chọn"
+                "Áp dụng đã chọn"
               )}
             </button>
+            <p className="text-xs text-slate-500">
+              Áp dụng cho <span className="font-semibold text-slate-700">{selectedIdsInPage.length}</span> dòng được chọn
+            </p>
           </div>
         </div>
       </div>
