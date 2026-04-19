@@ -9,6 +9,7 @@ import {
   MapPinned,
   MessageCircleMore,
   MessageSquareQuote,
+  ScrollText,
   TicketCheck,
   Users,
 } from "lucide-react";
@@ -19,6 +20,7 @@ const adminNavItems = [
   { href: "/admin/tours", label: "Tour", icon: BookMarked },
   { href: "/admin/locations", label: "Điểm đến", icon: MapPinned },
   { href: "/admin/bookings", label: "Đơn đặt", icon: TicketCheck },
+  { href: "/admin/activity-logs", label: "Nhật ký", icon: ScrollText },
   { href: "/admin/reviews", label: "Đánh giá", icon: MessageCircleMore },
   { href: "/admin/inquiries", label: "Tư vấn", icon: MessageSquareQuote },
   { href: "/admin/newsletter", label: "Nhận tin", icon: Mail },

@@ -19,6 +19,10 @@ import {
 } from "@/lib/content/vietnam-catalog";
 import { resolveSingleRoomSurchargePerAdult } from "@/lib/pricing/single-room-surcharge";
 import { evaluateCancelBooking } from "@/lib/utils/booking-actions";
+import {
+  buildBookingCheckInCode,
+  buildBookingTicketCode,
+} from "@/lib/utils/booking-payment";
 import { demoGetContactInquiries } from "@/lib/demo/contact-inquiry-store";
 import { demoGetNewsletterSubscribers } from "@/lib/demo/newsletter-subscriber-store";
 
@@ -113,6 +117,16 @@ type DemoBooking = {
   status: BookingStatus;
   paymentMethod: string;
   paymentStatus: PaymentStatus;
+  paymentRequestedAt?: string | null;
+  paymentVerifiedAt?: string | null;
+  paymentVerifiedById?: string | null;
+  paymentVerifiedByName?: string | null;
+  ticketCode?: string | null;
+  checkInCode?: string | null;
+  ticketIssuedAt?: string | null;
+  checkedInAt?: string | null;
+  checkedInById?: string | null;
+  checkedInByName?: string | null;
   departureDate?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -135,6 +149,21 @@ type DemoFavorite = {
   tourId: string;
 };
 
+type DemoBookingActivityLog = {
+  id: string;
+  bookingId: string;
+  action:
+    | "BOOKING_STATUS_UPDATED"
+    | "BOOKING_PAYMENT_UPDATED"
+    | "BOOKING_TICKET_ISSUED"
+    | "BOOKING_CHECKED_IN"
+    | "BOOKING_DETAIL_UPDATED";
+  actorId?: string | null;
+  actorName?: string | null;
+  detailJson?: string | null;
+  createdAt: string;
+};
+
 type DemoState = {
   version: number;
   users: DemoUser[];
@@ -143,6 +172,7 @@ type DemoState = {
   tourImages: DemoTourImage[];
   itineraries: DemoItinerary[];
   bookings: DemoBooking[];
+  bookingActivityLogs: DemoBookingActivityLog[];
   reviews: DemoReview[];
   favorites: DemoFavorite[];
 };
@@ -413,6 +443,7 @@ function createInitialDemoState(): DemoState {
     tourImages,
     itineraries,
     bookings,
+    bookingActivityLogs: [],
     reviews,
     favorites,
   };
@@ -491,6 +522,12 @@ async function readDemo(): Promise<DemoState> {
     child5To7Guests: booking.child5To7Guests ?? 0,
     childUnder5Guests: booking.childUnder5Guests ?? 0,
   }));
+  state.bookingActivityLogs = Array.isArray((state as Partial<DemoState>).bookingActivityLogs)
+    ? (state as Partial<DemoState>).bookingActivityLogs!.filter(
+        (item): item is DemoBookingActivityLog =>
+          Boolean(item?.id && item.bookingId && item.action && item.createdAt),
+      )
+    : [];
   return state;
 }
 
@@ -1580,12 +1617,100 @@ export async function demoDeleteItinerary(itineraryId: string) {
   return itinerary;
 }
 
-export async function demoUpdateBooking(id: string, payload: { status?: BookingStatus; paymentStatus?: PaymentStatus }) {
+function applyDemoPaymentWorkflow(
+  booking: DemoBooking,
+  nextPaymentStatus: PaymentStatus | undefined,
+  adminUserId?: string | null,
+) {
+  if (!nextPaymentStatus || nextPaymentStatus === booking.paymentStatus) {
+    return null;
+  }
+
+  if (nextPaymentStatus === PaymentStatus.PAID) {
+    const now = nowIso();
+    booking.paymentRequestedAt = booking.paymentRequestedAt ?? now;
+    booking.paymentStatus = PaymentStatus.PAID;
+    booking.paymentVerifiedAt = now;
+    booking.paymentVerifiedById = adminUserId ?? null;
+    booking.paymentVerifiedByName = "Quản trị viên";
+    booking.ticketCode = booking.ticketCode ?? buildBookingTicketCode(booking.bookingCode);
+    booking.checkInCode = booking.checkInCode ?? buildBookingCheckInCode(booking.bookingCode);
+    booking.ticketIssuedAt = booking.ticketIssuedAt ?? now;
+    return null;
+  }
+
+  booking.paymentStatus = PaymentStatus.UNPAID;
+  booking.paymentRequestedAt = null;
+  booking.paymentVerifiedAt = null;
+  booking.paymentVerifiedById = null;
+  booking.paymentVerifiedByName = null;
+  booking.ticketCode = null;
+  booking.checkInCode = null;
+  booking.ticketIssuedAt = null;
+  booking.checkedInAt = null;
+  booking.checkedInById = null;
+  booking.checkedInByName = null;
+  return null;
+}
+
+function appendDemoBookingActivityLog(
+  state: DemoState,
+  input: {
+    bookingId: string;
+    action: DemoBookingActivityLog["action"];
+    actorId?: string | null;
+    actorName?: string | null;
+    detail?: Record<string, unknown> | null;
+  },
+) {
+  state.bookingActivityLogs.push({
+    id: randomUUID(),
+    bookingId: input.bookingId,
+    action: input.action,
+    actorId: input.actorId ?? null,
+    actorName: input.actorName ?? "Quản trị viên",
+    detailJson: input.detail ? JSON.stringify(input.detail) : null,
+    createdAt: nowIso(),
+  });
+}
+
+export async function demoUpdateBooking(
+  id: string,
+  payload: { status?: BookingStatus; paymentStatus?: PaymentStatus },
+  adminUserId?: string | null,
+) {
   const state = await readDemo();
   const booking = state.bookings.find((item) => item.id === id);
   if (!booking) return null;
   if (payload.status) booking.status = payload.status;
-  if (payload.paymentStatus) booking.paymentStatus = payload.paymentStatus;
+  applyDemoPaymentWorkflow(booking, payload.paymentStatus, adminUserId);
+  if (payload.status) {
+    appendDemoBookingActivityLog(state, {
+      bookingId: booking.id,
+      action: "BOOKING_STATUS_UPDATED",
+      actorId: adminUserId ?? null,
+      detail: { status: payload.status },
+    });
+  }
+  if (payload.paymentStatus) {
+    appendDemoBookingActivityLog(state, {
+      bookingId: booking.id,
+      action: "BOOKING_PAYMENT_UPDATED",
+      actorId: adminUserId ?? null,
+      detail: { paymentStatus: payload.paymentStatus },
+    });
+    if (payload.paymentStatus === PaymentStatus.PAID) {
+      appendDemoBookingActivityLog(state, {
+        bookingId: booking.id,
+        action: "BOOKING_TICKET_ISSUED",
+        actorId: adminUserId ?? null,
+        detail: {
+          ticketCode: booking.ticketCode ?? null,
+          checkInCode: booking.checkInCode ?? null,
+        },
+      });
+    }
+  }
   booking.updatedAt = nowIso();
   await writeDemo(state);
   return booking;
@@ -1595,7 +1720,7 @@ export async function demoUpdateBookingsBulk(input: {
   ids: string[];
   status?: BookingStatus;
   paymentStatus?: PaymentStatus;
-}) {
+}, adminUserId?: string | null) {
   const state = await readDemo();
   const ids = new Set(input.ids.filter(Boolean));
   if (!ids.size) return { count: 0 };
@@ -1604,7 +1729,35 @@ export async function demoUpdateBookingsBulk(input: {
   for (const booking of state.bookings) {
     if (!ids.has(booking.id)) continue;
     if (input.status) booking.status = input.status;
-    if (input.paymentStatus) booking.paymentStatus = input.paymentStatus;
+    applyDemoPaymentWorkflow(booking, input.paymentStatus, adminUserId);
+    if (input.status) {
+      appendDemoBookingActivityLog(state, {
+        bookingId: booking.id,
+        action: "BOOKING_STATUS_UPDATED",
+        actorId: adminUserId ?? null,
+        detail: { status: input.status, source: "bulk" },
+      });
+    }
+    if (input.paymentStatus) {
+      appendDemoBookingActivityLog(state, {
+        bookingId: booking.id,
+        action: "BOOKING_PAYMENT_UPDATED",
+        actorId: adminUserId ?? null,
+        detail: { paymentStatus: input.paymentStatus, source: "bulk" },
+      });
+      if (input.paymentStatus === PaymentStatus.PAID) {
+        appendDemoBookingActivityLog(state, {
+          bookingId: booking.id,
+          action: "BOOKING_TICKET_ISSUED",
+          actorId: adminUserId ?? null,
+          detail: {
+            source: "bulk",
+            ticketCode: booking.ticketCode ?? null,
+            checkInCode: booking.checkInCode ?? null,
+          },
+        });
+      }
+    }
     booking.updatedAt = nowIso();
     count += 1;
   }
@@ -1627,6 +1780,7 @@ export async function demoUpdateBookingDetail(
     status?: BookingStatus;
     paymentStatus?: PaymentStatus;
   },
+  adminUserId?: string | null,
 ) {
   const state = await readDemo();
   const booking = state.bookings.find((item) => item.id === id);
@@ -1654,7 +1808,44 @@ export async function demoUpdateBookingDetail(
     booking.roomType = payload.roomType;
   }
   if (payload.status) booking.status = payload.status;
-  if (payload.paymentStatus) booking.paymentStatus = payload.paymentStatus;
+  applyDemoPaymentWorkflow(booking, payload.paymentStatus, adminUserId);
+  appendDemoBookingActivityLog(state, {
+    bookingId: booking.id,
+    action: "BOOKING_DETAIL_UPDATED",
+    actorId: adminUserId ?? null,
+    detail: {
+      changedFields: Object.keys(payload),
+      status: payload.status ?? null,
+      paymentStatus: payload.paymentStatus ?? null,
+    },
+  });
+  if (payload.status) {
+    appendDemoBookingActivityLog(state, {
+      bookingId: booking.id,
+      action: "BOOKING_STATUS_UPDATED",
+      actorId: adminUserId ?? null,
+      detail: { status: payload.status },
+    });
+  }
+  if (payload.paymentStatus) {
+    appendDemoBookingActivityLog(state, {
+      bookingId: booking.id,
+      action: "BOOKING_PAYMENT_UPDATED",
+      actorId: adminUserId ?? null,
+      detail: { paymentStatus: payload.paymentStatus },
+    });
+    if (payload.paymentStatus === PaymentStatus.PAID) {
+      appendDemoBookingActivityLog(state, {
+        bookingId: booking.id,
+        action: "BOOKING_TICKET_ISSUED",
+        actorId: adminUserId ?? null,
+        detail: {
+          ticketCode: booking.ticketCode ?? null,
+          checkInCode: booking.checkInCode ?? null,
+        },
+      });
+    }
+  }
 
   const unitPrice = booking.unitPriceSnapshot ?? tour.discountPrice ?? tour.price;
   const guestsFrom8 = booking.guestsFrom8 ?? booking.numberOfGuests;
@@ -1678,6 +1869,87 @@ export async function demoUpdateBookingDetail(
   booking.updatedAt = nowIso();
   await writeDemo(state);
   return booking;
+}
+
+export async function demoMarkBookingCheckedIn(id: string, adminUserId?: string | null) {
+  const state = await readDemo();
+  const booking = state.bookings.find((item) => item.id === id);
+  if (!booking) return "NOT_FOUND" as const;
+  if (booking.paymentStatus !== PaymentStatus.PAID) return "NOT_PAID" as const;
+  if (!booking.ticketCode || !booking.checkInCode) return "TICKET_NOT_ISSUED" as const;
+  if (booking.checkedInAt) return "ALREADY_CHECKED_IN" as const;
+
+  booking.checkedInAt = nowIso();
+  booking.checkedInById = adminUserId ?? null;
+  booking.checkedInByName = "Quản trị viên";
+  appendDemoBookingActivityLog(state, {
+    bookingId: booking.id,
+    action: "BOOKING_CHECKED_IN",
+    actorId: adminUserId ?? null,
+    detail: {
+      ticketCode: booking.ticketCode,
+      checkInCode: booking.checkInCode,
+    },
+  });
+  booking.updatedAt = nowIso();
+  await writeDemo(state);
+
+  return {
+    id: booking.id,
+    bookingCode: booking.bookingCode,
+    ticketCode: booking.ticketCode,
+    checkInCode: booking.checkInCode,
+    checkedInAt: booking.checkedInAt,
+    checkedInById: booking.checkedInById ?? null,
+    checkedInByName: booking.checkedInByName ?? null,
+  };
+}
+
+export async function demoGetBookingActivityLogs(bookingId: string) {
+  const state = await readDemo();
+  return state.bookingActivityLogs
+    .filter((item) => item.bookingId === bookingId)
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+}
+
+export async function demoGetAdminActivityLogs(filter: {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+} = {}) {
+  const state = await readDemo();
+  const page = Math.max(filter.page ?? 1, 1);
+  const pageSize = Math.min(Math.max(filter.pageSize ?? 30, 1), 200);
+  const search = filter.search?.trim().toLowerCase() ?? "";
+  const bookingCodeById = new Map(state.bookings.map((booking) => [booking.id, booking.bookingCode]));
+
+  const matched = state.bookingActivityLogs
+    .filter((item) => {
+      if (!search) return true;
+      const bookingCode = bookingCodeById.get(item.bookingId) ?? "";
+      return (
+        bookingCode.toLowerCase().includes(search) ||
+        item.action.toLowerCase().includes(search) ||
+        (item.actorName ?? "").toLowerCase().includes(search) ||
+        (item.detailJson ?? "").toLowerCase().includes(search)
+      );
+    })
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+
+  const total = matched.length;
+  const start = (page - 1) * pageSize;
+  const items = matched.slice(start, start + pageSize).map((item) => ({
+    ...item,
+    bookingCode: bookingCodeById.get(item.bookingId) ?? null,
+  }));
+
+  return {
+    items,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(Math.ceil(total / pageSize), 1),
+  };
 }
 
 export async function demoUpdateReview(id: string, payload: { isVisible?: boolean }) {
@@ -2389,6 +2661,7 @@ export async function demoGetPublicTourBySlug(slug: string, userId?: string) {
     userId &&
       state.favorites.some((favorite) => favorite.userId === userId && favorite.tourId === tour.id),
   );
+  const viewerUser = userId ? userMap.get(userId) : null;
 
   const savedImages = state.tourImages
     .filter((item) => item.tourId === tour.id)
@@ -2435,7 +2708,7 @@ export async function demoGetPublicTourBySlug(slug: string, userId?: string) {
                 comment: viewerReview.comment,
               }
             : null,
-          phone: "",
+          phone: viewerUser?.phone ?? "",
         }
       : null,
   };
@@ -2632,6 +2905,23 @@ export async function demoCreatePublicBooking(input: {
     ...booking,
     remainingSeats: Math.max(remainingBeforeBooking - totalGuests, 0),
   };
+}
+
+export async function demoRequestPublicBookingPayment(input: {
+  bookingId: string;
+  userId: string;
+}) {
+  const state = await readDemo();
+  const booking = state.bookings.find((item) => item.id === input.bookingId && item.userId === input.userId);
+  if (!booking) return "NOT_FOUND" as const;
+  if (booking.status === BookingStatus.CANCELLED) return "NOT_ALLOWED" as const;
+  if (booking.paymentStatus === PaymentStatus.PAID) return "ALREADY_PAID" as const;
+  if (booking.paymentRequestedAt) return "ALREADY_REQUESTED" as const;
+
+  booking.paymentRequestedAt = nowIso();
+  booking.updatedAt = booking.paymentRequestedAt;
+  await writeDemo(state);
+  return booking;
 }
 
 export async function demoGetTourAvailability(input: {
