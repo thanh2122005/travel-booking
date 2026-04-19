@@ -27,6 +27,9 @@ import {
   demoUpdateBooking,
   demoUpdateBookingDetail,
   demoUpdateBookingsBulk,
+  demoMarkBookingCheckedIn,
+  demoGetBookingActivityLogs,
+  demoGetAdminActivityLogs,
   demoUpdateLocation,
   demoDeleteLocation,
   demoUpdateReview,
@@ -40,7 +43,30 @@ import {
   demoDeleteUser,
 } from "@/lib/demo/admin-demo-store";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
+import {
+  attachBookingCheckInMetadata,
+  clearBookingCheckInMetadata,
+  getBookingCheckInMetadata,
+  markBookingCheckedIn,
+} from "@/lib/db/booking-checkin-metadata";
+import {
+  appendBookingActivityLog,
+  getAdminBookingActivityLogs as getAdminBookingActivityFeed,
+  getBookingActivityLogs,
+} from "@/lib/db/booking-activity-log";
+import {
+  attachBookingPaymentMetadata,
+  getBookingPaymentMetadata,
+  getBookingPaymentMetadataByIds,
+  isBookingPaymentMetadataColumnError,
+  isBookingPaymentMetadataMigrationError,
+  updateBookingPaymentMetadata,
+} from "@/lib/db/booking-payment-metadata";
 import { db } from "@/lib/db/prisma";
+import {
+  buildBookingCheckInCode,
+  buildBookingTicketCode,
+} from "@/lib/utils/booking-payment";
 import { resolveBookingGuestBreakdown } from "@/lib/utils/booking-breakdown";
 
 type AdminListFilter = {
@@ -131,15 +157,162 @@ async function setTourSingleRoomSurcharge(tourId: string, surcharge: number) {
 }
 
 function isLegacyBookingFieldError(error: unknown) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
+    return true;
+  }
   const message = error instanceof Error ? error.message : "";
   return (
+    message.includes("Unknown column") ||
+    (message.includes("The column") && message.includes("does not exist")) ||
+    message.includes("Unknown field `roomType`") ||
+    message.includes("Unknown field `baseGuestTotal`") ||
+    message.includes("Unknown field `roomSurchargeTotal`") ||
+    message.includes("Unknown field `guestsFrom8`") ||
+    message.includes("Unknown field `child5To7Guests`") ||
+    message.includes("Unknown field `childUnder5Guests`") ||
+    message.includes("Unknown field `unitPriceSnapshot`") ||
+    message.includes("Unknown field `child5To7RatioSnapshot`") ||
+    message.includes("Unknown field `childUnder5RatioSnapshot`") ||
+    message.includes("Unknown field `singleRoomSurchargePerAdultSnapshot`") ||
+    message.includes("Unknown field `durationNightsSnapshot`") ||
+    message.includes("Unknown field `singleRoomSurchargePerAdult`") ||
     message.includes("Unknown argument `roomType`") ||
     message.includes("Unknown argument `baseGuestTotal`") ||
     message.includes("Unknown argument `roomSurchargeTotal`") ||
     message.includes("Unknown argument `guestsFrom8`") ||
     message.includes("Unknown argument `child5To7Guests`") ||
-    message.includes("Unknown argument `childUnder5Guests`")
+    message.includes("Unknown argument `childUnder5Guests`") ||
+    message.includes("Unknown argument `unitPriceSnapshot`") ||
+    message.includes("Unknown argument `child5To7RatioSnapshot`") ||
+    message.includes("Unknown argument `childUnder5RatioSnapshot`") ||
+    message.includes("Unknown argument `singleRoomSurchargePerAdultSnapshot`") ||
+    message.includes("Unknown argument `durationNightsSnapshot`") ||
+    message.includes("Unknown argument `singleRoomSurchargePerAdult`")
   );
+}
+
+type BookingPaymentWorkflowSnapshot = {
+  bookingCode: string;
+  paymentStatus: PaymentStatus;
+  paymentRequestedAt?: Date | string | null;
+  ticketCode?: string | null;
+  checkInCode?: string | null;
+  ticketIssuedAt?: Date | string | null;
+};
+
+type BookingPaymentWorkflowUpdate = {
+  paymentStatus?: PaymentStatus;
+  paymentRequestedAt?: Date | null;
+  paymentVerifiedAt?: Date | null;
+  paymentVerifiedById?: string | null;
+  paymentVerifiedByName?: string | null;
+  ticketCode?: string | null;
+  checkInCode?: string | null;
+  ticketIssuedAt?: Date | null;
+};
+
+function normalizeWorkflowDate(value?: Date | string | null) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+async function getAdminVerifierInfo(adminUserId?: string | null) {
+  if (!adminUserId) {
+    return { id: null as string | null, name: "Quản trị viên" };
+  }
+
+  const admin = await db.user.findUnique({
+    where: { id: adminUserId },
+    select: { id: true, fullName: true },
+  });
+
+  if (!admin) {
+    return { id: null as string | null, name: "Quản trị viên" };
+  }
+
+  return { id: admin.id, name: admin.fullName || "Quản trị viên" };
+}
+
+async function buildPaymentWorkflowUpdate(
+  booking: BookingPaymentWorkflowSnapshot,
+  nextPaymentStatus: PaymentStatus | undefined,
+  adminUserId?: string | null,
+): Promise<BookingPaymentWorkflowUpdate> {
+  if (!nextPaymentStatus || nextPaymentStatus === booking.paymentStatus) {
+    return {};
+  }
+
+  if (nextPaymentStatus === PaymentStatus.PAID) {
+    const verifiedAt = new Date();
+    const verifier = await getAdminVerifierInfo(adminUserId);
+    return {
+      paymentStatus: PaymentStatus.PAID,
+      paymentRequestedAt: normalizeWorkflowDate(booking.paymentRequestedAt) ?? verifiedAt,
+      paymentVerifiedAt: verifiedAt,
+      paymentVerifiedById: verifier.id,
+      paymentVerifiedByName: verifier.name,
+      ticketCode: booking.ticketCode ?? buildBookingTicketCode(booking.bookingCode),
+      checkInCode: booking.checkInCode ?? buildBookingCheckInCode(booking.bookingCode),
+      ticketIssuedAt: normalizeWorkflowDate(booking.ticketIssuedAt) ?? verifiedAt,
+    };
+  }
+
+  return {
+    paymentStatus: PaymentStatus.UNPAID,
+    paymentRequestedAt: null,
+    paymentVerifiedAt: null,
+    paymentVerifiedById: null,
+    paymentVerifiedByName: null,
+    ticketCode: null,
+    checkInCode: null,
+    ticketIssuedAt: null,
+  };
+}
+
+async function updateBookingPaymentMetadataSafe(
+  bookingId: string,
+  payload: Partial<BookingPaymentWorkflowUpdate>,
+) {
+  try {
+    await updateBookingPaymentMetadata(bookingId, payload);
+  } catch (error) {
+    if (isBookingPaymentMetadataMigrationError(error) || isBookingPaymentMetadataColumnError(error)) {
+      return;
+    }
+    throw error;
+  }
+}
+
+async function clearBookingCheckInMetadataSafe(bookingId: string) {
+  try {
+    await clearBookingCheckInMetadata(bookingId);
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return;
+    }
+    throw error;
+  }
+}
+
+async function appendBookingActivityLogSafe(input: {
+  bookingId: string;
+  action:
+    | "BOOKING_STATUS_UPDATED"
+    | "BOOKING_PAYMENT_UPDATED"
+    | "BOOKING_TICKET_ISSUED"
+    | "BOOKING_CHECKED_IN"
+    | "BOOKING_DETAIL_UPDATED";
+  actorId?: string | null;
+  actorName?: string | null;
+  detail?: Record<string, unknown> | null;
+}) {
+  try {
+    await appendBookingActivityLog(input);
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) return;
+    throw error;
+  }
 }
 
 function normalizeDateRange(
@@ -863,7 +1036,7 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
       timelineEndDate: timelineOptions.endDate,
       previousTimelineStartDate: previousTimelineOptions.startDate,
       previousTimelineEndDate: previousTimelineOptions.endDate,
-      recentBookings,
+      recentBookings: await attachBookingPaymentMetadata(recentBookings),
       recentReviews,
       recentInquiries: fallbackInquiries,
       recentNewsletterSubscribers: fallbackNewsletterSubscribers,
@@ -933,7 +1106,13 @@ export async function getAdminUsers(
       }),
     ]);
 
-    return { items, total, page, pageSize, totalPages: Math.max(Math.ceil(total / pageSize), 1) };
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(Math.ceil(total / pageSize), 1),
+    };
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoGetUsers(filter);
@@ -1045,7 +1224,14 @@ export async function getAdminTours(filter: AdminTourListFilter = {}) {
       }),
     ]);
 
-    return { items, total, page, pageSize, totalPages: Math.max(Math.ceil(total / pageSize), 1) };
+    const itemsWithCheckIn = await attachBookingCheckInMetadata(items);
+    return {
+      items: itemsWithCheckIn,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(Math.ceil(total / pageSize), 1),
+    };
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoGetTours(filter);
@@ -1367,18 +1553,86 @@ export async function getAdminLocationOptions() {
 export async function updateAdminBooking(
   bookingId: string,
   payload: { status?: BookingStatus; paymentStatus?: PaymentStatus },
+  adminUserId?: string | null,
 ) {
   try {
-      return await db.booking.update({
+    const current = await db.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        bookingCode: true,
+        paymentStatus: true,
+      },
+    });
+    if (!current) {
+      return null;
+    }
+
+    const paymentMetadata = await getBookingPaymentMetadata(bookingId, db);
+    const paymentWorkflow = await buildPaymentWorkflowUpdate(
+      { ...current, ...paymentMetadata },
+      payload.paymentStatus,
+      adminUserId,
+    );
+
+    const updated = await db.booking.update({
       where: { id: bookingId },
       data: {
         ...(payload.status ? { status: payload.status } : {}),
         ...(payload.paymentStatus ? { paymentStatus: payload.paymentStatus } : {}),
       },
     });
+
+    await updateBookingPaymentMetadataSafe(bookingId, {
+      paymentRequestedAt: paymentWorkflow.paymentRequestedAt,
+      paymentVerifiedAt: paymentWorkflow.paymentVerifiedAt,
+      paymentVerifiedById: paymentWorkflow.paymentVerifiedById,
+      paymentVerifiedByName: paymentWorkflow.paymentVerifiedByName,
+      ticketCode: paymentWorkflow.ticketCode,
+      checkInCode: paymentWorkflow.checkInCode,
+      ticketIssuedAt: paymentWorkflow.ticketIssuedAt,
+    });
+    if (paymentWorkflow.paymentStatus === PaymentStatus.UNPAID) {
+      await clearBookingCheckInMetadataSafe(bookingId);
+    }
+
+    const [updatedWithPayment] = await attachBookingPaymentMetadata([updated]);
+    const [updatedWithCheckIn] = await attachBookingCheckInMetadata([updatedWithPayment]);
+    const verifier = await getAdminVerifierInfo(adminUserId);
+    if (payload.status) {
+      await appendBookingActivityLogSafe({
+        bookingId,
+        action: "BOOKING_STATUS_UPDATED",
+        actorId: verifier.id,
+        actorName: verifier.name,
+        detail: { status: payload.status },
+      });
+    }
+    if (payload.paymentStatus) {
+      await appendBookingActivityLogSafe({
+        bookingId,
+        action: "BOOKING_PAYMENT_UPDATED",
+        actorId: verifier.id,
+        actorName: verifier.name,
+        detail: { paymentStatus: payload.paymentStatus },
+      });
+      if (payload.paymentStatus === PaymentStatus.PAID) {
+        await appendBookingActivityLogSafe({
+          bookingId,
+          action: "BOOKING_TICKET_ISSUED",
+          actorId: verifier.id,
+          actorName: verifier.name,
+          detail: {
+            ticketCode: paymentWorkflow.ticketCode ?? null,
+            checkInCode: paymentWorkflow.checkInCode ?? null,
+          },
+        });
+      }
+    }
+    return updatedWithCheckIn;
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      return demoUpdateBooking(bookingId, payload);
+      return demoUpdateBooking(bookingId, payload, adminUserId);
     }
     throw error;
   }
@@ -1388,27 +1642,139 @@ export async function updateAdminBookingsBulk(input: {
   ids: string[];
   status?: BookingStatus;
   paymentStatus?: PaymentStatus;
-}) {
+}, adminUserId?: string | null) {
   try {
     const ids = Array.from(new Set(input.ids.filter(Boolean)));
     if (!ids.length) {
       return { count: 0 };
     }
 
-      return await db.booking.updateMany({
+    if (!input.paymentStatus) {
+      const updated = await db.booking.updateMany({
+        where: {
+          id: {
+            in: ids,
+          },
+        },
+        data: {
+          ...(input.status ? { status: input.status } : {}),
+        },
+      });
+      if (input.status && updated.count > 0) {
+        const verifier = await getAdminVerifierInfo(adminUserId);
+        const existingRows = await db.booking.findMany({
+          where: { id: { in: ids } },
+          select: { id: true },
+        });
+        await Promise.all(
+          existingRows.map((row) =>
+            appendBookingActivityLogSafe({
+              bookingId: row.id,
+              action: "BOOKING_STATUS_UPDATED",
+              actorId: verifier.id,
+              actorName: verifier.name,
+              detail: { status: input.status, source: "bulk" },
+            }),
+          ),
+        );
+      }
+      return updated;
+    }
+
+    const bookings = await db.booking.findMany({
       where: {
         id: {
           in: ids,
         },
       },
-      data: {
-        ...(input.status ? { status: input.status } : {}),
-        ...(input.paymentStatus ? { paymentStatus: input.paymentStatus } : {}),
+      select: {
+        id: true,
+        bookingCode: true,
+        paymentStatus: true,
       },
     });
+
+    if (!bookings.length) {
+      return { count: 0 };
+    }
+
+    const paymentMetadataById = await getBookingPaymentMetadataByIds(ids, db);
+    const workflowUpdates = await Promise.all(
+      bookings.map(async (booking) => ({
+        id: booking.id,
+        data: await buildPaymentWorkflowUpdate(
+          { ...booking, ...(paymentMetadataById.get(booking.id) ?? {}) },
+          input.paymentStatus,
+          adminUserId,
+        ),
+      })),
+    );
+    await db.$transaction(
+      workflowUpdates.map((item) =>
+        db.booking.update({
+          where: { id: item.id },
+          data: {
+            ...(input.status ? { status: input.status } : {}),
+            ...(input.paymentStatus ? { paymentStatus: input.paymentStatus } : {}),
+          },
+        }),
+      ),
+    );
+
+    await Promise.all(
+      workflowUpdates.map((item) =>
+        updateBookingPaymentMetadataSafe(item.id, {
+          paymentRequestedAt: item.data.paymentRequestedAt,
+          paymentVerifiedAt: item.data.paymentVerifiedAt,
+          paymentVerifiedById: item.data.paymentVerifiedById,
+          paymentVerifiedByName: item.data.paymentVerifiedByName,
+          ticketCode: item.data.ticketCode,
+          checkInCode: item.data.checkInCode,
+          ticketIssuedAt: item.data.ticketIssuedAt,
+        }),
+      ),
+    );
+    if (input.paymentStatus === PaymentStatus.UNPAID) {
+      await Promise.all(workflowUpdates.map((item) => clearBookingCheckInMetadataSafe(item.id)));
+    }
+    const verifier = await getAdminVerifierInfo(adminUserId);
+    await Promise.all(
+      workflowUpdates.map(async (item) => {
+        if (input.status) {
+          await appendBookingActivityLogSafe({
+            bookingId: item.id,
+            action: "BOOKING_STATUS_UPDATED",
+            actorId: verifier.id,
+            actorName: verifier.name,
+            detail: { status: input.status, source: "bulk" },
+          });
+        }
+        await appendBookingActivityLogSafe({
+          bookingId: item.id,
+          action: "BOOKING_PAYMENT_UPDATED",
+          actorId: verifier.id,
+          actorName: verifier.name,
+          detail: { paymentStatus: input.paymentStatus, source: "bulk" },
+        });
+        if (input.paymentStatus === PaymentStatus.PAID) {
+          await appendBookingActivityLogSafe({
+            bookingId: item.id,
+            action: "BOOKING_TICKET_ISSUED",
+            actorId: verifier.id,
+            actorName: verifier.name,
+            detail: {
+              source: "bulk",
+              ticketCode: item.data.ticketCode ?? null,
+              checkInCode: item.data.checkInCode ?? null,
+            },
+          });
+        }
+      }),
+    );
+    return { count: workflowUpdates.length };
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      return demoUpdateBookingsBulk(input);
+      return demoUpdateBookingsBulk(input, adminUserId);
     }
     throw error;
   }
@@ -1431,63 +1797,117 @@ export async function updateAdminBookingDetail(
     status?: BookingStatus;
     paymentStatus?: PaymentStatus;
   },
+  adminUserId?: string | null,
 ) {
   try {
-    const current = (await db.booking.findUnique({
-      where: { id: bookingId },
-      select: {
-        id: true,
-        numberOfGuests: true,
-        guestsFrom8: true,
-        child5To7Guests: true,
-        childUnder5Guests: true,
-        roomType: true,
-        baseGuestTotal: true,
-        roomSurchargeTotal: true,
-        unitPriceSnapshot: true,
-        child5To7RatioSnapshot: true,
-        childUnder5RatioSnapshot: true,
-        singleRoomSurchargePerAdultSnapshot: true,
-        durationNightsSnapshot: true,
-        totalPrice: true,
-        tour: {
-          select: {
-            price: true,
-            discountPrice: true,
-            maxGuests: true,
-            durationNights: true,
-            singleRoomSurchargePerAdult: true,
+    type BookingDetailSnapshot = {
+      id: string;
+      bookingCode: string;
+      tourId: string;
+      numberOfGuests: number;
+      totalPrice: number;
+      paymentStatus: PaymentStatus;
+      guestsFrom8?: number | null;
+      child5To7Guests?: number | null;
+      childUnder5Guests?: number | null;
+      roomType?: "DOUBLE" | "SINGLE" | null;
+      baseGuestTotal?: number | null;
+      roomSurchargeTotal?: number | null;
+      unitPriceSnapshot?: number | null;
+      child5To7RatioSnapshot?: number | null;
+      childUnder5RatioSnapshot?: number | null;
+      singleRoomSurchargePerAdultSnapshot?: number | null;
+      durationNightsSnapshot?: number | null;
+      tour: {
+        price: number;
+        discountPrice: number | null;
+        maxGuests: number;
+        durationNights: number;
+        singleRoomSurchargePerAdult: number;
+      };
+    };
+    let current: BookingDetailSnapshot | null;
+    try {
+      current = (await db.booking.findUnique({
+        where: { id: bookingId },
+        select: {
+          bookingCode: true,
+          id: true,
+          tourId: true,
+          numberOfGuests: true,
+          guestsFrom8: true,
+          child5To7Guests: true,
+          childUnder5Guests: true,
+          roomType: true,
+          baseGuestTotal: true,
+          roomSurchargeTotal: true,
+          unitPriceSnapshot: true,
+          child5To7RatioSnapshot: true,
+          childUnder5RatioSnapshot: true,
+          singleRoomSurchargePerAdultSnapshot: true,
+          durationNightsSnapshot: true,
+          totalPrice: true,
+          paymentStatus: true,
+          tour: {
+            select: {
+              price: true,
+              discountPrice: true,
+              maxGuests: true,
+              durationNights: true,
+              singleRoomSurchargePerAdult: true,
+            },
           },
         },
-      },
-    } as unknown as Prisma.BookingFindUniqueArgs)) as unknown as
-      | (Prisma.BookingGetPayload<{
-          include: {
-            tour: {
-              select: {
-                price: true;
-                discountPrice: true;
-                maxGuests: true;
-                durationNights: true;
-                singleRoomSurchargePerAdult: true;
-              };
-            };
-          };
-        }> & {
-          guestsFrom8?: number | null;
-          child5To7Guests?: number | null;
-          childUnder5Guests?: number | null;
-          roomType?: "DOUBLE" | "SINGLE" | null;
-          baseGuestTotal?: number | null;
-          roomSurchargeTotal?: number | null;
-          unitPriceSnapshot?: number | null;
-          child5To7RatioSnapshot?: number | null;
-          childUnder5RatioSnapshot?: number | null;
-          singleRoomSurchargePerAdultSnapshot?: number | null;
-          durationNightsSnapshot?: number | null;
-        })
-      | null;
+      } as unknown as Prisma.BookingFindUniqueArgs)) as BookingDetailSnapshot | null;
+    } catch (error) {
+      if (!isLegacyBookingFieldError(error)) {
+        throw error;
+      }
+      current = (await db.booking.findUnique({
+        where: { id: bookingId },
+        select: {
+          bookingCode: true,
+          id: true,
+          tourId: true,
+          numberOfGuests: true,
+          totalPrice: true,
+          paymentStatus: true,
+          tour: {
+            select: {
+              id: true,
+              price: true,
+              discountPrice: true,
+              maxGuests: true,
+              durationNights: true,
+            },
+          },
+        },
+      } as unknown as Prisma.BookingFindUniqueArgs)) as BookingDetailSnapshot | null;
+      if (current) {
+        const singleRoomSurchargePerAdult = await getTourSingleRoomSurcharge(current.tourId);
+        current = {
+          ...current,
+          guestsFrom8: null,
+          child5To7Guests: null,
+          childUnder5Guests: null,
+          roomType: null,
+          baseGuestTotal: null,
+          roomSurchargeTotal: null,
+          unitPriceSnapshot: null,
+          child5To7RatioSnapshot: null,
+          childUnder5RatioSnapshot: null,
+          singleRoomSurchargePerAdultSnapshot: null,
+          durationNightsSnapshot: null,
+          tour: {
+            ...current.tour,
+            singleRoomSurchargePerAdult,
+          },
+        };
+      }
+    }
     if (!current) return "NOT_FOUND" as const;
+
+    const paymentMetadata = await getBookingPaymentMetadata(bookingId, db);
 
     const nextGuests =
       typeof payload.numberOfGuests === "number" && Number.isFinite(payload.numberOfGuests)
@@ -1559,6 +1979,11 @@ export async function updateAdminBookingDetail(
         : payload.departureDate
           ? new Date(payload.departureDate)
           : undefined;
+    const paymentWorkflow = await buildPaymentWorkflowUpdate(
+      { ...current, ...paymentMetadata },
+      payload.paymentStatus,
+      adminUserId,
+    );
 
     const updateData = {
         ...(payload.fullName ? { fullName: payload.fullName } : {}),
@@ -1579,10 +2004,67 @@ export async function updateAdminBookingDetail(
         totalPrice: baseGuestTotal + roomSurchargeTotal,
       } as unknown as Prisma.BookingUncheckedUpdateInput;
     try {
-      return await db.booking.update({
+      const updated = await db.booking.update({
         where: { id: bookingId },
         data: updateData,
       });
+      await updateBookingPaymentMetadataSafe(bookingId, {
+        paymentRequestedAt: paymentWorkflow.paymentRequestedAt,
+        paymentVerifiedAt: paymentWorkflow.paymentVerifiedAt,
+        paymentVerifiedById: paymentWorkflow.paymentVerifiedById,
+        paymentVerifiedByName: paymentWorkflow.paymentVerifiedByName,
+        ticketCode: paymentWorkflow.ticketCode,
+        checkInCode: paymentWorkflow.checkInCode,
+        ticketIssuedAt: paymentWorkflow.ticketIssuedAt,
+      });
+      if (paymentWorkflow.paymentStatus === PaymentStatus.UNPAID) {
+        await clearBookingCheckInMetadataSafe(bookingId);
+      }
+      const [updatedWithPayment] = await attachBookingPaymentMetadata([updated]);
+      const [updatedWithCheckIn] = await attachBookingCheckInMetadata([updatedWithPayment]);
+      const verifier = await getAdminVerifierInfo(adminUserId);
+      await appendBookingActivityLogSafe({
+        bookingId,
+        action: "BOOKING_DETAIL_UPDATED",
+        actorId: verifier.id,
+        actorName: verifier.name,
+        detail: {
+          changedFields: Object.keys(payload),
+          status: payload.status ?? null,
+          paymentStatus: payload.paymentStatus ?? null,
+        },
+      });
+      if (payload.status) {
+        await appendBookingActivityLogSafe({
+          bookingId,
+          action: "BOOKING_STATUS_UPDATED",
+          actorId: verifier.id,
+          actorName: verifier.name,
+          detail: { status: payload.status },
+        });
+      }
+      if (payload.paymentStatus) {
+        await appendBookingActivityLogSafe({
+          bookingId,
+          action: "BOOKING_PAYMENT_UPDATED",
+          actorId: verifier.id,
+          actorName: verifier.name,
+          detail: { paymentStatus: payload.paymentStatus },
+        });
+        if (payload.paymentStatus === PaymentStatus.PAID) {
+          await appendBookingActivityLogSafe({
+            bookingId,
+            action: "BOOKING_TICKET_ISSUED",
+            actorId: verifier.id,
+            actorName: verifier.name,
+            detail: {
+              ticketCode: paymentWorkflow.ticketCode ?? null,
+              checkInCode: paymentWorkflow.checkInCode ?? null,
+            },
+          });
+        }
+      }
+      return updatedWithCheckIn;
     } catch (updateError) {
       if (!isLegacyBookingFieldError(updateError)) {
         throw updateError;
@@ -1599,14 +2081,147 @@ export async function updateAdminBookingDetail(
         ...(payload.paymentStatus ? { paymentStatus: payload.paymentStatus } : {}),
         totalPrice: baseGuestTotal + roomSurchargeTotal,
       } as unknown as Prisma.BookingUncheckedUpdateInput;
-      return await db.booking.update({
+      const updatedLegacy = await db.booking.update({
         where: { id: bookingId },
         data: updateDataLegacy,
       });
+      const [updatedWithPayment] = await attachBookingPaymentMetadata([updatedLegacy]);
+      if (paymentWorkflow.paymentStatus === PaymentStatus.UNPAID) {
+        await clearBookingCheckInMetadataSafe(bookingId);
+      }
+      const [updatedWithCheckIn] = await attachBookingCheckInMetadata([updatedWithPayment]);
+      const verifier = await getAdminVerifierInfo(adminUserId);
+      await appendBookingActivityLogSafe({
+        bookingId,
+        action: "BOOKING_DETAIL_UPDATED",
+        actorId: verifier.id,
+        actorName: verifier.name,
+        detail: {
+          changedFields: Object.keys(payload),
+          status: payload.status ?? null,
+          paymentStatus: payload.paymentStatus ?? null,
+          mode: "legacy",
+        },
+      });
+      if (payload.status) {
+        await appendBookingActivityLogSafe({
+          bookingId,
+          action: "BOOKING_STATUS_UPDATED",
+          actorId: verifier.id,
+          actorName: verifier.name,
+          detail: { status: payload.status },
+        });
+      }
+      if (payload.paymentStatus) {
+        await appendBookingActivityLogSafe({
+          bookingId,
+          action: "BOOKING_PAYMENT_UPDATED",
+          actorId: verifier.id,
+          actorName: verifier.name,
+          detail: { paymentStatus: payload.paymentStatus },
+        });
+        if (payload.paymentStatus === PaymentStatus.PAID) {
+          await appendBookingActivityLogSafe({
+            bookingId,
+            action: "BOOKING_TICKET_ISSUED",
+            actorId: verifier.id,
+            actorName: verifier.name,
+            detail: {
+              ticketCode: paymentWorkflow.ticketCode ?? null,
+              checkInCode: paymentWorkflow.checkInCode ?? null,
+            },
+          });
+        }
+      }
+      return updatedWithCheckIn;
     }
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      return demoUpdateBookingDetail(bookingId, payload);
+      return demoUpdateBookingDetail(bookingId, payload, adminUserId);
+    }
+    throw error;
+  }
+}
+
+export async function markAdminBookingCheckedIn(
+  bookingId: string,
+  adminUserId?: string | null,
+) {
+  try {
+    const booking = await db.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        bookingCode: true,
+        paymentStatus: true,
+      },
+    });
+    if (!booking) return "NOT_FOUND" as const;
+    if (booking.paymentStatus !== PaymentStatus.PAID) return "NOT_PAID" as const;
+
+    const paymentMetadata = await getBookingPaymentMetadata(bookingId, db);
+    const ticketCode = paymentMetadata.ticketCode ?? buildBookingTicketCode(booking.bookingCode);
+    const checkInCode = paymentMetadata.checkInCode ?? buildBookingCheckInCode(booking.bookingCode);
+    if (!ticketCode || !checkInCode) return "TICKET_NOT_ISSUED" as const;
+
+    const checkIn = await getBookingCheckInMetadata(bookingId);
+    if (checkIn.checkedInAt) return "ALREADY_CHECKED_IN" as const;
+
+    const verifier = await getAdminVerifierInfo(adminUserId);
+    const nextCheckIn = await markBookingCheckedIn({
+      bookingId,
+      checkedInById: verifier.id,
+      checkedInByName: verifier.name,
+    });
+    await appendBookingActivityLogSafe({
+      bookingId,
+      action: "BOOKING_CHECKED_IN",
+      actorId: verifier.id,
+      actorName: verifier.name,
+      detail: {
+        ticketCode,
+        checkInCode,
+      },
+    });
+
+    return {
+      id: bookingId,
+      bookingCode: booking.bookingCode,
+      ticketCode,
+      checkInCode,
+      checkedInAt: nextCheckIn.checkedInAt,
+      checkedInById: nextCheckIn.checkedInById,
+      checkedInByName: nextCheckIn.checkedInByName,
+    };
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoMarkBookingCheckedIn(bookingId, adminUserId);
+    }
+    throw error;
+  }
+}
+
+export async function getAdminBookingActivityLogs(bookingId: string) {
+  try {
+    return await getBookingActivityLogs(bookingId);
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetBookingActivityLogs(bookingId);
+    }
+    throw error;
+  }
+}
+
+export async function getAdminActivityLogs(filter: {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+} = {}) {
+  try {
+    return await getAdminBookingActivityFeed(filter);
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return demoGetAdminActivityLogs(filter);
     }
     throw error;
   }

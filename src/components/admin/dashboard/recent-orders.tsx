@@ -2,6 +2,7 @@
 import type { BookingStatus, PaymentStatus } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatPrice } from "@/lib/utils/format";
+import { getBookingPaymentPresentation, hasPaymentRequest } from "@/lib/utils/booking-payment";
 import type { DashboardRecentBooking } from "@/components/admin/dashboard/types";
 
 type RecentOrdersProps = {
@@ -36,6 +37,14 @@ export function RecentOrders({ items, bookingStatusLabels, paymentStatusLabels }
         <div className="space-y-2.5">
           {items.slice(0, 7).map((booking) => (
             <article key={booking.id} className="rounded-xl border border-slate-200 bg-white p-3">
+              {(() => {
+                const paymentPresentation = getBookingPaymentPresentation(booking);
+                const paymentLabel =
+                  booking.paymentRequestedAt || booking.ticketCode
+                    ? paymentPresentation.label
+                    : paymentStatusLabels[booking.paymentStatus];
+                return (
+                  <>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm font-medium text-slate-700">{booking.bookingCode}</p>
                 <p className="text-sm font-semibold text-slate-700">{formatPrice(booking.totalPrice)}</p>
@@ -50,8 +59,16 @@ export function RecentOrders({ items, bookingStatusLabels, paymentStatusLabels }
 
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <Badge className={bookingBadgeTone[booking.status]}>{bookingStatusLabels[booking.status]}</Badge>
-                <Badge className={paymentBadgeTone[booking.paymentStatus]}>{paymentStatusLabels[booking.paymentStatus]}</Badge>
+                <Badge className={paymentBadgeTone[booking.paymentStatus]}>{paymentLabel}</Badge>
               </div>
+              {hasPaymentRequest(booking) ? (
+                <p className="mt-2 text-xs text-emerald-700">
+                  {booking.ticketCode ? `Vé đã phát hành: ${booking.ticketCode}` : "Khách đã gửi yêu cầu thanh toán"}
+                </p>
+              ) : null}
+                  </>
+                );
+              })()}
             </article>
           ))}
         </div>

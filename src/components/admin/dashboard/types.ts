@@ -46,6 +46,9 @@ export type DashboardRecentBooking = {
   createdAt: Date;
   status: BookingStatus;
   paymentStatus: PaymentStatus;
+  paymentRequestedAt?: Date | null;
+  ticketCode?: string | null;
+  ticketIssuedAt?: Date | null;
   user: {
     id: string;
     fullName: string;

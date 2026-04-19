@@ -5,8 +5,9 @@
 import { BookingStatus, PaymentStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import { requireAdminApi } from "@/lib/auth/admin-api";
-import { isPrismaNotFoundError } from "@/lib/db/db-error";
+import { requireAdminApiAuth } from "@/lib/auth/admin-api";
+import { isBookingPaymentMetadataMigrationError } from "@/lib/db/booking-payment-metadata";
+import { isPrismaForeignKeyError } from "@/lib/db/db-error";
 import { updateAdminBooking } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 
@@ -28,8 +29,8 @@ export async function PATCH(request: Request, context: BookingRouteContext) {
   // STEP 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
   // STEP 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
   // Guard admin từ sớm để ngăn request trái quyền.
-  const guard = await requireAdminApi();
-  if (guard) return guard;
+  const guard = await requireAdminApiAuth();
+  if (guard.response) return guard.response;
 
   const { id } = await context.params;
 
@@ -53,13 +54,24 @@ export async function PATCH(request: Request, context: BookingRouteContext) {
   // Endpoint này cho update status và paymentStatus, không sửa thông tin khách/tour.
   // Trường hợp cần sửa chi tiết đơn thì dùng endpoint detail/content khác.
   try {
-    const updated = await updateAdminBooking(id, parsed.data);
-    return NextResponse.json({ message: "Đã cập nhật đơn đặt tour.", booking: updated });
-  } catch (error) {
-    if (isPrismaNotFoundError(error)) {
+    const updated = await updateAdminBooking(id, parsed.data, guard.userId);
+    if (!updated) {
       return NextResponse.json({ message: "Không tìm thấy đơn đặt tour cần cập nhật." }, { status: 404 });
     }
-
+    return NextResponse.json({ message: "Đã cập nhật đơn đặt tour.", booking: updated });
+  } catch (error) {
+    if (isBookingPaymentMetadataMigrationError(error)) {
+      return NextResponse.json(
+        { message: "CSDL chưa cập nhật chức năng xác nhận thanh toán/vé điện tử." },
+        { status: 503 },
+      );
+    }
+    if (isPrismaForeignKeyError(error)) {
+      return NextResponse.json(
+        { message: "Không thể xác nhận thanh toán do dữ liệu tài khoản quản trị không hợp lệ. Vui lòng đăng nhập lại." },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ message: "Không thể cập nhật đơn đặt tour." }, { status: 500 });
   }
 }
