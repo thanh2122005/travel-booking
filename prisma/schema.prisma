@@ -173,6 +173,13 @@ model Booking {
   status         BookingStatus @default(PENDING)
   paymentMethod  String        @default("Thanh toan khi xac nhan")
   paymentStatus  PaymentStatus @default(UNPAID)
+  paymentRequestedAt DateTime?
+  paymentVerifiedAt DateTime?
+  paymentVerifiedById String?
+  paymentVerifiedByName String?
+  ticketCode     String?       @unique
+  checkInCode    String?       @unique
+  ticketIssuedAt DateTime?
   departureDate  DateTime?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
