@@ -140,7 +140,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
               type="button"
               onClick={handleBulkUpdate}
               disabled={isPending}
-              className="iv-btn-primary inline-flex h-10 items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-2 xl:col-span-1"
+              className="iv-btn-primary iv-admin-bulk-apply-btn inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-2 xl:col-span-1"
             >
               {isPending ? (
                 <>
@@ -217,7 +217,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
 
       <div className="iv-card hidden xl:block">
         <div className="iv-admin-table-scroll">
-          <table className="w-full min-w-[1040px] text-left text-sm">
+          <table className="w-full min-w-[960px] text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-slate-500">
                 <th className="px-2 py-3 font-medium">
@@ -235,7 +235,9 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Nội dung</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Ngày gửi</th>
                 <th className="px-2 py-3 font-medium whitespace-nowrap">Trạng thái</th>
-                <th className="px-2 py-3 font-medium whitespace-nowrap text-right">Thao tác</th>
+                <th className="sticky right-0 z-10 bg-white px-2 py-3 text-center font-medium whitespace-nowrap shadow-[-10px_0_14px_-14px_rgba(15,23,42,0.45)]">
+                  Thao tác
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -253,12 +255,12 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                     />
                   </td>
                   <td className="px-2 py-3 font-mono text-xs text-slate-700">{inquiry.referenceCode}</td>
-                  <td className="min-w-[150px] px-2 py-3 font-medium text-slate-800">{inquiry.fullName}</td>
-                  <td className="min-w-[150px] px-2 py-3">
+                  <td className="min-w-[130px] px-2 py-3 font-medium text-slate-800">{inquiry.fullName}</td>
+                  <td className="min-w-[130px] px-2 py-3">
                     <p className="text-slate-800">{inquiry.phone}</p>
                     <p className="text-xs text-slate-500">{inquiry.email}</p>
                   </td>
-                  <td className="min-w-[145px] px-2 py-3 text-xs text-slate-600">
+                  <td className="min-w-[132px] px-2 py-3 text-xs text-slate-600">
                     {inquiry.tour?.slug ? (
                       <p>
                         Tour{" "}
@@ -274,7 +276,7 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                     <p className="mt-1">{inquiry.numberOfGuests} khách</p>
                     {inquiry.departureDate ? <p className="mt-1">Khởi hành: {formatDate(new Date(inquiry.departureDate))}</p> : null}
                   </td>
-                  <td className="min-w-[240px] px-2 py-3">
+                  <td className="min-w-[220px] px-2 py-3">
                     {parsedCapacityShortage ? (
                       <div className="rounded-lg border border-rose-100 bg-rose-50/70 px-2.5 py-2 text-xs text-rose-800">
                         <p>
@@ -308,8 +310,8 @@ export function AdminInquiriesTable({ items }: AdminInquiriesTableProps) {
                       )}
                     </div>
                   </td>
-                  <td className="min-w-[168px] px-2 py-3 text-right">
-                    <div className="ml-auto w-fit">
+                  <td className="sticky right-0 z-[1] min-w-[86px] bg-white px-2 py-3 text-center shadow-[-10px_0_14px_-14px_rgba(15,23,42,0.45)]">
+                    <div className="flex justify-center">
                       <AdminInquiryActions inquiryId={inquiry.id} status={inquiry.status} />
                     </div>
                   </td>
