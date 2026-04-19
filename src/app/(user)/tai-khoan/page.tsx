@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth/session";
 import { getUserDashboardData } from "@/lib/db/user-queries";
 import { canCancelBooking, evaluateCancelBooking } from "@/lib/utils/booking-actions";
+import { getBookingPaymentPresentation } from "@/lib/utils/booking-payment";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
@@ -334,7 +335,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   };
 
   const session = await requireUser();
-  const data = await getUserDashboardData(session.user.id);
+  const data = await getUserDashboardData(session.user.id, session.user.email);
 
   if (!data) {
     return (
@@ -730,11 +731,16 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                     <Badge variant={bookingStatusMap[booking.status].variant}>
                       {bookingStatusMap[booking.status].label}
                     </Badge>
-                    <Badge variant={paymentStatusMap[booking.paymentStatus].variant}>
-                      {paymentStatusMap[booking.paymentStatus].label}
+                    <Badge variant={getBookingPaymentPresentation(booking).variant}>
+                      {getBookingPaymentPresentation(booking).label}
                     </Badge>
                     <span className="text-xs text-slate-500">{booking.numberOfGuests} khách</span>
                   </div>
+                  {booking.ticketCode ? (
+                    <p className="text-xs text-emerald-700">Mã vé: {booking.ticketCode}</p>
+                  ) : booking.paymentRequestedAt ? (
+                    <p className="text-xs text-amber-700">Đã gửi yêu cầu thanh toán, chờ admin xác nhận.</p>
+                  ) : null}
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <Link
                       href={`/booking/${booking.id}`}
@@ -790,9 +796,16 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                         </Badge>
                       </td>
                       <td className="px-2 py-3">
-                        <Badge variant={paymentStatusMap[booking.paymentStatus].variant}>
-                          {paymentStatusMap[booking.paymentStatus].label}
-                        </Badge>
+                        <div className="space-y-1">
+                          <Badge variant={getBookingPaymentPresentation(booking).variant}>
+                            {getBookingPaymentPresentation(booking).label}
+                          </Badge>
+                          {booking.ticketCode ? (
+                            <p className="text-xs text-emerald-700">Vé: {booking.ticketCode}</p>
+                          ) : booking.paymentRequestedAt ? (
+                            <p className="text-xs text-amber-700">Chờ admin xác nhận</p>
+                          ) : null}
+                        </div>
                       </td>
                       <td className="px-2 py-3 text-muted-foreground">{formatDate(booking.createdAt)}</td>
                       <td className="px-2 py-3">

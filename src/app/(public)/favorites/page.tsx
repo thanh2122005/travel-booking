@@ -57,7 +57,9 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
   const requestedPage = parsePage(normalizeParam(params.page));
 
   const session = await getAuthSession();
-  const dashboard = session?.user?.id ? await getUserDashboardData(session.user.id).catch(() => null) : null;
+  const dashboard = session?.user?.id
+    ? await getUserDashboardData(session.user.id, session.user.email).catch(() => null)
+    : null;
   const favorites = dashboard?.favorites ?? [];
   const loginHref = `/dang-nhap?callbackUrl=${encodeURIComponent(
     buildAliasRedirectPath("/favorites", params),

@@ -11,6 +11,7 @@ import { getAuthSession } from "@/lib/auth/session";
 import { getUserDashboardData } from "@/lib/db/user-queries";
 import { buildAliasRedirectPath } from "@/lib/utils/alias-redirect";
 import { canCancelBooking, evaluateCancelBooking } from "@/lib/utils/booking-actions";
+import { getBookingPaymentPresentation } from "@/lib/utils/booking-payment";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
@@ -62,7 +63,7 @@ const bookingSteps = [
   {
     icon: CreditCard,
     title: "4. Thanh toán",
-    description: "Theo dõi trạng thái thanh toán và thông tin đơn trong trang tài khoản.",
+    description: "Xác nhận đã thanh toán để admin duyệt và phát hành vé điện tử ngay trên đơn đặt tour.",
   },
 ];
 
@@ -172,7 +173,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
 
   if (session?.user?.id) {
     try {
-      dashboard = await getUserDashboardData(session.user.id);
+      dashboard = await getUserDashboardData(session.user.id, session.user.email);
     } catch {
       dashboardLoadFailed = true;
     }
@@ -553,7 +554,9 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                     <div>
                       <dt className="text-slate-500">Thanh toán</dt>
                       <dd className="mt-0.5">
-                        <Badge variant="outline">{paymentStatusLabels[booking.paymentStatus as PaymentStatusValue] ?? booking.paymentStatus}</Badge>
+                        <Badge variant={getBookingPaymentPresentation(booking).variant}>
+                          {getBookingPaymentPresentation(booking).label}
+                        </Badge>
                       </dd>
                     </div>
                     <div>
@@ -562,6 +565,11 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                     </div>
                   </dl>
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                    {booking.ticketCode ? (
+                      <p className="w-full text-xs text-emerald-700">Mã vé: {booking.ticketCode}</p>
+                    ) : booking.paymentRequestedAt ? (
+                      <p className="w-full text-xs text-amber-700">Đã gửi yêu cầu thanh toán, chờ admin xác nhận.</p>
+                    ) : null}
                     <Link
                       href={`/booking/${booking.id}`}
                       className="inline-flex h-9 items-center justify-center rounded-lg border border-teal-200 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-50"
@@ -621,7 +629,16 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                           <Badge variant="outline">{bookingStatusLabels[booking.status as BookingStatusValue] ?? booking.status}</Badge>
                         </td>
                         <td className="px-2 py-3">
-                          <Badge variant="outline">{paymentStatusLabels[booking.paymentStatus as PaymentStatusValue] ?? booking.paymentStatus}</Badge>
+                          <div className="space-y-1">
+                            <Badge variant={getBookingPaymentPresentation(booking).variant}>
+                              {getBookingPaymentPresentation(booking).label}
+                            </Badge>
+                            {booking.ticketCode ? (
+                              <p className="text-xs text-emerald-700">Vé: {booking.ticketCode}</p>
+                            ) : booking.paymentRequestedAt ? (
+                              <p className="text-xs text-amber-700">Chờ admin xác nhận</p>
+                            ) : null}
+                          </div>
                         </td>
                         <td className="px-2 py-3 text-slate-500">{formatDate(booking.createdAt)}</td>
                         <td className="px-2 py-3">

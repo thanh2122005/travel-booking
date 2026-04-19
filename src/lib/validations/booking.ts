@@ -58,7 +58,7 @@ export const bookingSchema = z
     phone: z
       .string()
       .trim()
-      .min(8, "So dien thoai phai co it nhat 8 ky tu")
+      .min(8, "Số điện thoại phải có ít nhất 8 ký tự")
       .max(20, "So dien thoai khong hop le"),
     numberOfGuests: z
       .number({ message: "So luong khach khong hop le" })

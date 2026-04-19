@@ -2,7 +2,7 @@
 // Phạm vi: API public hoặc user đã đăng nhập.
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
-import { Prisma, TourStatus } from "@prisma/client";
+import { Prisma, TourStatus, UserStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { demoCreatePublicBooking } from "@/lib/demo/admin-demo-store";
@@ -28,6 +28,43 @@ type BookingTourPricing = {
   maxGuests: number;
 };
 
+type BookingActor = {
+  id: string;
+  status: UserStatus;
+};
+
+async function resolveBookingActor(input: { id?: string | null; email?: string | null }) {
+  const sessionId = input.id?.trim();
+  if (sessionId && sessionId !== "dev-admin") {
+    const byId = await db.user.findUnique({
+      where: { id: sessionId },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+    if (byId) {
+      return byId satisfies BookingActor;
+    }
+  }
+
+  const email = input.email?.trim().toLowerCase();
+  if (email) {
+    const byEmail = await db.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+    if (byEmail) {
+      return byEmail satisfies BookingActor;
+    }
+  }
+
+  return null;
+}
+
 function isGuestBreakdownPersistenceError(error: unknown) {
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
     return true;
@@ -46,7 +83,53 @@ function isGuestBreakdownPersistenceError(error: unknown) {
     message.includes("Unknown argument `childUnder5RatioSnapshot`") ||
     message.includes("Unknown argument `singleRoomSurchargePerAdultSnapshot`") ||
     message.includes("Unknown argument `durationNightsSnapshot`") ||
+    message.includes("Unknown argument `departureDate`") ||
+    message.includes("Unknown argument `paymentMethod`") ||
+    message.includes("Unknown argument `paymentStatus`") ||
+    message.includes("Unknown argument `status`") ||
+    message.includes("Invalid value for argument `roomType`") ||
+    message.includes("Invalid value for argument `paymentStatus`") ||
+    message.includes("Invalid value for argument `status`") ||
+    message.includes("Argument `status` is missing") ||
+    message.includes("Argument `paymentStatus` is missing") ||
+    message.includes("Argument `paymentMethod` is missing") ||
     message.includes("The column") && message.includes("does not exist")
+  );
+}
+
+function isCompatibilitySchemaError(error: unknown) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
+    return true;
+  }
+
+  const message = error instanceof Error ? error.message : "";
+  return (
+    message.includes("Unknown column") ||
+    message.includes("The column") && message.includes("does not exist") ||
+    message.includes("Unknown argument `guestsFrom8`") ||
+    message.includes("Unknown argument `child5To7Guests`") ||
+    message.includes("Unknown argument `childUnder5Guests`") ||
+    message.includes("Unknown argument `roomType`") ||
+    message.includes("Unknown argument `baseGuestTotal`") ||
+    message.includes("Unknown argument `roomSurchargeTotal`") ||
+    message.includes("Unknown argument `unitPriceSnapshot`") ||
+    message.includes("Unknown argument `discountPriceSnapshot`") ||
+    message.includes("Unknown argument `child5To7RatioSnapshot`") ||
+    message.includes("Unknown argument `childUnder5RatioSnapshot`") ||
+    message.includes("Unknown argument `singleRoomSurchargePerAdultSnapshot`") ||
+    message.includes("Unknown argument `durationNightsSnapshot`") ||
+    message.includes("Unknown argument `paymentMethod`") ||
+    message.includes("Unknown argument `paymentStatus`") ||
+    message.includes("Unknown argument `status`") ||
+    message.includes("Invalid value for argument `roomType`") ||
+    message.includes("Invalid value for argument `paymentStatus`") ||
+    message.includes("Invalid value for argument `status`") ||
+    message.includes("Argument `status` is missing") ||
+    message.includes("Argument `paymentStatus` is missing") ||
+    message.includes("Argument `paymentMethod` is missing") ||
+    message.includes("Unknown argument `departureDate`") ||
+    message.includes("Unknown argument `singleRoomSurchargePerAdult`") ||
+    message.includes("Field '") && message.includes("doesn't have a default value")
   );
 }
 
@@ -234,24 +317,6 @@ export async function POST(request: Request) {
   }
   const session = guard.session;
 
-  const ip = getClientIp(request);
-  const rate = consumeRateLimit(`public:booking:create:${session.user.id}:${ip}`, {
-    windowMs: 15 * 60 * 1000,
-    max: 10,
-  });
-  if (!rate.allowed) {
-    // Trả Retry-After để frontend biết thời gian chờ.
-    return NextResponse.json(
-      { message: "Bạn thao tác quá nhanh. Vui lòng thử đặt tour lại sau ít phút." },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": String(rate.retryAfterSeconds),
-        },
-      },
-    );
-  }
-
   const json = await parseJsonBody(request, "Dữ liệu đặt tour không hợp lệ.");
   if (!json.ok) {
     return json.response;
@@ -294,6 +359,42 @@ export async function POST(request: Request) {
   }
 
   try {
+    const actor = await resolveBookingActor({
+      id: session.user.id,
+      email: session.user.email,
+    });
+    if (!actor) {
+      return NextResponse.json(
+        { message: "Phiên đăng nhập đã hết hiệu lực. Vui lòng đăng xuất và đăng nhập lại." },
+        { status: 401 },
+      );
+    }
+    if (actor.status === UserStatus.BLOCKED) {
+      return NextResponse.json(
+        { message: "Tài khoản của bạn đã bị khóa." },
+        { status: 403 },
+      );
+    }
+
+    const bookingUserId = actor.id;
+    const ip = getClientIp(request);
+    const rate = consumeRateLimit(`public:booking:create:${bookingUserId}:${ip}`, {
+      windowMs: 15 * 60 * 1000,
+      max: 10,
+    });
+    if (!rate.allowed) {
+      // Trả Retry-After để frontend biết thời gian chờ.
+      return NextResponse.json(
+        { message: "Bạn thao tác quá nhanh. Vui lòng thử đặt tour lại sau ít phút." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rate.retryAfterSeconds),
+          },
+        },
+      );
+    }
+
     const tourRaw = await db.tour.findUnique({
       where: { id: parsed.data.tourId },
       select: {
@@ -330,7 +431,12 @@ export async function POST(request: Request) {
     const surchargeRows = (await db.$queryRawUnsafe(
       "SELECT `singleRoomSurchargePerAdult` FROM `Tour` WHERE `id` = ? LIMIT 1",
       tour.id,
-    )) as Array<{ singleRoomSurchargePerAdult?: number | bigint | null }>;
+    ).catch((error) => {
+      if (isCompatibilitySchemaError(error)) {
+        return [] as Array<{ singleRoomSurchargePerAdult?: number | bigint | null }>;
+      }
+      throw error;
+    })) as Array<{ singleRoomSurchargePerAdult?: number | bigint | null }>;
     const singleRoomSurchargePerAdult = resolveSingleRoomSurchargePerAdult({
       durationNights: tour.durationNights,
       unitPrice,
@@ -357,8 +463,8 @@ export async function POST(request: Request) {
     const booking = await db.$transaction(
       async (tx) => {
         const { start, end } = getUtc7DayRange(departureDate);
-        const occupied = await tx.booking.aggregate({
-          where: {
+        const aggregateAttempts: Array<Prisma.BookingAggregateArgs["where"]> = [
+          {
             tourId: tour.id,
             status: {
               not: "CANCELLED",
@@ -368,10 +474,46 @@ export async function POST(request: Request) {
               lt: end,
             },
           },
-          _sum: {
-            numberOfGuests: true,
+          {
+            tourId: tour.id,
+            departureDate: {
+              gte: start,
+              lt: end,
+            },
           },
-        });
+          {
+            tourId: tour.id,
+            status: {
+              not: "CANCELLED",
+            },
+          },
+          {
+            tourId: tour.id,
+          },
+        ];
+        let occupied: { _sum: { numberOfGuests: number | null } } | null = null;
+        let lastAggregateError: unknown;
+
+        for (const aggregateWhere of aggregateAttempts) {
+          try {
+            occupied = await tx.booking.aggregate({
+              where: aggregateWhere,
+              _sum: {
+                numberOfGuests: true,
+              },
+            });
+            break;
+          } catch (aggregateError) {
+            lastAggregateError = aggregateError;
+            if (!isCompatibilitySchemaError(aggregateError)) {
+              throw aggregateError;
+            }
+          }
+        }
+
+        if (!occupied) {
+          throw lastAggregateError;
+        }
         const bookedGuests = occupied._sum.numberOfGuests ?? 0;
         const remainingBeforeBooking = Math.max(tour.maxGuests - bookedGuests, 0);
         if (totalGuests > remainingBeforeBooking) {
@@ -384,13 +526,16 @@ export async function POST(request: Request) {
         const bookingCode = await getUniqueBookingCodeTx(tx);
         const baseCreateData = {
           bookingCode,
-          userId: session.user.id,
+          userId: bookingUserId,
           tourId: tour.id,
           fullName: parsed.data.fullName,
           email: parsed.data.email,
           phone: parsed.data.phone,
           numberOfGuests: totalGuests,
           note: parsed.data.note || null,
+          status: "PENDING",
+          paymentMethod: "Thanh toan khi xac nhan",
+          paymentStatus: "UNPAID",
           roomType,
           baseGuestTotal,
           roomSurchargeTotal,
@@ -411,7 +556,88 @@ export async function POST(request: Request) {
         } as unknown as Prisma.BookingUncheckedCreateInput;
         const createDataLegacy = {
           bookingCode,
-          userId: session.user.id,
+          userId: bookingUserId,
+          tourId: tour.id,
+          fullName: parsed.data.fullName,
+          email: parsed.data.email,
+          phone: parsed.data.phone,
+          numberOfGuests: totalGuests,
+          note: parsed.data.note || null,
+          status: "PENDING",
+          paymentMethod: "Thanh toan khi xac nhan",
+          paymentStatus: "UNPAID",
+          totalPrice,
+          departureDate,
+        } as unknown as Prisma.BookingUncheckedCreateInput;
+        const createDataLegacyWithoutDepartureDate = {
+          bookingCode,
+          userId: bookingUserId,
+          tourId: tour.id,
+          fullName: parsed.data.fullName,
+          email: parsed.data.email,
+          phone: parsed.data.phone,
+          numberOfGuests: totalGuests,
+          note: parsed.data.note || null,
+          status: "PENDING",
+          paymentMethod: "Thanh toan khi xac nhan",
+          paymentStatus: "UNPAID",
+          totalPrice,
+        } as unknown as Prisma.BookingUncheckedCreateInput;
+        const createDataLegacyWithoutPaymentStatus = {
+          bookingCode,
+          userId: bookingUserId,
+          tourId: tour.id,
+          fullName: parsed.data.fullName,
+          email: parsed.data.email,
+          phone: parsed.data.phone,
+          numberOfGuests: totalGuests,
+          note: parsed.data.note || null,
+          status: "PENDING",
+          paymentMethod: "Thanh toan khi xac nhan",
+          totalPrice,
+          departureDate,
+        } as unknown as Prisma.BookingUncheckedCreateInput;
+        const createDataLegacyWithoutPaymentStatusAndDepartureDate = {
+          bookingCode,
+          userId: bookingUserId,
+          tourId: tour.id,
+          fullName: parsed.data.fullName,
+          email: parsed.data.email,
+          phone: parsed.data.phone,
+          numberOfGuests: totalGuests,
+          note: parsed.data.note || null,
+          status: "PENDING",
+          paymentMethod: "Thanh toan khi xac nhan",
+          totalPrice,
+        } as unknown as Prisma.BookingUncheckedCreateInput;
+        const createDataLegacyWithPaymentMethodOnly = {
+          bookingCode,
+          userId: bookingUserId,
+          tourId: tour.id,
+          fullName: parsed.data.fullName,
+          email: parsed.data.email,
+          phone: parsed.data.phone,
+          numberOfGuests: totalGuests,
+          note: parsed.data.note || null,
+          paymentMethod: "Thanh toan khi xac nhan",
+          totalPrice,
+          departureDate,
+        } as unknown as Prisma.BookingUncheckedCreateInput;
+        const createDataLegacyWithPaymentMethodOnlyWithoutDepartureDate = {
+          bookingCode,
+          userId: bookingUserId,
+          tourId: tour.id,
+          fullName: parsed.data.fullName,
+          email: parsed.data.email,
+          phone: parsed.data.phone,
+          numberOfGuests: totalGuests,
+          note: parsed.data.note || null,
+          paymentMethod: "Thanh toan khi xac nhan",
+          totalPrice,
+        } as unknown as Prisma.BookingUncheckedCreateInput;
+        const createDataLegacyMinimal = {
+          bookingCode,
+          userId: bookingUserId,
           tourId: tour.id,
           fullName: parsed.data.fullName,
           email: parsed.data.email,
@@ -421,29 +647,52 @@ export async function POST(request: Request) {
           totalPrice,
           departureDate,
         } as unknown as Prisma.BookingUncheckedCreateInput;
-        let created: { id: string; bookingCode: string; totalPrice: number };
-        try {
-          created = await tx.booking.create({
-            data: createDataWithBreakdown,
-            select: {
-              id: true,
-              bookingCode: true,
-              totalPrice: true,
-            },
-          });
-        } catch (createError) {
-          if (!isGuestBreakdownPersistenceError(createError)) {
-            throw createError;
+        const createDataLegacyMinimalWithoutDepartureDate = {
+          bookingCode,
+          userId: bookingUserId,
+          tourId: tour.id,
+          fullName: parsed.data.fullName,
+          email: parsed.data.email,
+          phone: parsed.data.phone,
+          numberOfGuests: totalGuests,
+          note: parsed.data.note || null,
+          totalPrice,
+        } as unknown as Prisma.BookingUncheckedCreateInput;
+        const createAttempts: Prisma.BookingUncheckedCreateInput[] = [
+          createDataWithBreakdown,
+          createDataLegacy,
+          createDataLegacyWithoutDepartureDate,
+          createDataLegacyWithoutPaymentStatus,
+          createDataLegacyWithoutPaymentStatusAndDepartureDate,
+          createDataLegacyWithPaymentMethodOnly,
+          createDataLegacyWithPaymentMethodOnlyWithoutDepartureDate,
+          createDataLegacyMinimal,
+          createDataLegacyMinimalWithoutDepartureDate,
+        ];
+        let created: { id: string; bookingCode: string; totalPrice: number } | null = null;
+        let lastCreateError: unknown;
+
+        for (const data of createAttempts) {
+          try {
+            created = await tx.booking.create({
+              data,
+              select: {
+                id: true,
+                bookingCode: true,
+                totalPrice: true,
+              },
+            });
+            break;
+          } catch (createError) {
+            lastCreateError = createError;
+            if (!isGuestBreakdownPersistenceError(createError) && !isCompatibilitySchemaError(createError)) {
+              throw createError;
+            }
           }
-          // Tương thích ngược: DB/Prisma cũ chưa có 3 cột breakdown vẫn cho đặt tour.
-          created = await tx.booking.create({
-            data: createDataLegacy,
-            select: {
-              id: true,
-              bookingCode: true,
-              totalPrice: true,
-            },
-          });
+        }
+
+        if (!created) {
+          throw lastCreateError;
         }
 
         return {
@@ -618,6 +867,31 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { message: "Có lỗi trùng mã đặt tour, vui lòng thử lại." },
         { status: 409 },
+      );
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
+      const fieldName = String(error.meta?.field_name ?? "");
+      if (fieldName.toLowerCase().includes("userid")) {
+        return NextResponse.json(
+          { message: "Phiên đăng nhập đã hết hiệu lực. Vui lòng đăng nhập lại để đặt tour." },
+          { status: 401 },
+        );
+      }
+    }
+
+    if (isCompatibilitySchemaError(error)) {
+      return NextResponse.json(
+        { message: "CSDL chưa đồng bộ cấu trúc đặt tour. Vui lòng chạy migration rồi thử lại." },
+        { status: 503 },
+      );
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      const debugMessage = error instanceof Error ? error.message : String(error);
+      return NextResponse.json(
+        { message: `Không thể xử lý đặt tour lúc này. Debug: ${debugMessage}` },
+        { status: 500 },
       );
     }
 

@@ -834,6 +834,12 @@ export function TourBookingCard({
                   <li>Tổng số khách: {computedTotalGuests}</li>
                   <li>Ngày đi: {bookingSummary.departureDate || "Linh hoạt"}</li>
                   <li>Đơn giá người lớn: {formatPrice(adultUnitPrice)}/khách</li>
+                  {roomType === "SINGLE" && roomSurchargeTotal > 0 ? (
+                    <li>
+                      Phụ thu phòng đơn: {formatPrice(effectiveSingleRoomSurchargePerAdult)}/người lớn/đêm x{" "}
+                      {guestsFrom8} người x {durationNights} đêm = {formatPrice(roomSurchargeTotal)}
+                    </li>
+                  ) : null}
                   {child5To7Guests > 0 ? (
                     <li>
                       Đơn giá trẻ em 5-7 tuổi (50%): {formatPrice(child5To7UnitPrice)}/khách
@@ -882,6 +888,12 @@ export function TourBookingCard({
                     <li>
                       Trẻ em dưới 5 tuổi: {childUnder5Guests} x {formatPrice(childUnder5UnitPrice)} ={" "}
                       {formatPrice(childUnder5TotalPrice)}
+                    </li>
+                  ) : null}
+                  {roomType === "SINGLE" && roomSurchargeTotal > 0 ? (
+                    <li>
+                      Phụ thu phòng đơn: {guestsFrom8} x {formatPrice(effectiveSingleRoomSurchargePerAdult)} x{" "}
+                      {durationNights} đêm = {formatPrice(roomSurchargeTotal)}
                     </li>
                   ) : null}
                 </ul>

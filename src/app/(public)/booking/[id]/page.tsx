@@ -2,10 +2,16 @@
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
 import { BookingCancelButton } from "@/components/booking/booking-cancel-button";
+import { BookingPaymentRequestButton } from "@/components/booking/booking-payment-request-button";
+import { BookingTicketCard } from "@/components/booking/booking-ticket-card";
 import { getAuthSession } from "@/lib/auth/session";
 import { getUserBookingDetail } from "@/lib/db/user-queries";
 import { canCancelBooking, evaluateCancelBooking } from "@/lib/utils/booking-actions";
 import { formatDate, formatPrice } from "@/lib/utils/format";
+import {
+  canRequestBookingPayment,
+  getBookingPaymentPresentation,
+} from "@/lib/utils/booking-payment";
 
 type BookingDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -16,11 +22,6 @@ const bookingStatusLabels: Record<string, string> = {
   CONFIRMED: "Đã xác nhận",
   CANCELLED: "Đã hủy",
   COMPLETED: "Hoàn thành",
-};
-
-const paymentStatusLabels: Record<string, string> = {
-  UNPAID: "Chưa thanh toán",
-  PAID: "Đã thanh toán",
 };
 
 export const dynamic = "force-dynamic";
@@ -51,7 +52,7 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
   let bookingLoadFailed = false;
 
   try {
-    booking = await getUserBookingDetail(session.user.id, id);
+    booking = await getUserBookingDetail(session.user.id, id, session.user.email);
   } catch {
     bookingLoadFailed = true;
   }
@@ -78,6 +79,9 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
     );
   }
 
+  const paymentPresentation = getBookingPaymentPresentation(booking);
+  const canRequestPayment = canRequestBookingPayment(booking);
+
   return (
     <div className="space-y-6 pb-24 lg:pb-8">
       <section className="iv-card p-5 md:p-6">
@@ -89,7 +93,7 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline">{bookingStatusLabels[booking.status] ?? booking.status}</Badge>
-            <Badge variant="outline">{paymentStatusLabels[booking.paymentStatus] ?? booking.paymentStatus}</Badge>
+            <Badge variant={paymentPresentation.variant}>{paymentPresentation.label}</Badge>
           </div>
         </div>
 
@@ -112,9 +116,17 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
               {booking.departureDate ? (
                 <div className="flex justify-between gap-3"><dt className="text-slate-500">Ngày khởi hành</dt><dd>{formatDate(booking.departureDate)}</dd></div>
               ) : null}
+              {booking.paymentRequestedAt ? (
+                <div className="flex justify-between gap-3"><dt className="text-slate-500">Yêu cầu thanh toán</dt><dd>{formatDate(new Date(booking.paymentRequestedAt))}</dd></div>
+              ) : null}
             </dl>
             {booking.note ? <p className="mt-3 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-600">Ghi chú: {booking.note}</p> : null}
           </article>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-600">
+          <p className="font-semibold text-slate-800">Thanh toán và phát hành vé</p>
+          <p className="mt-2">{paymentPresentation.description}</p>
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-2">
@@ -142,7 +154,29 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
             </p>
           )}
         </div>
+
+        {canRequestPayment ? (
+          <div className="mt-4">
+            <BookingPaymentRequestButton
+              bookingId={booking.id}
+              bookingCode={booking.bookingCode}
+            />
+          </div>
+        ) : null}
       </section>
+
+      {booking.paymentStatus === "PAID" && booking.ticketCode ? (
+        <BookingTicketCard
+          bookingCode={booking.bookingCode}
+          ticketCode={booking.ticketCode}
+          checkInCode={booking.checkInCode}
+          ticketIssuedAt={booking.ticketIssuedAt}
+          departureDate={booking.departureDate}
+          fullName={booking.fullName}
+          tourTitle={booking.tour.title}
+          verifiedByName={booking.paymentVerifiedByName}
+        />
+      ) : null}
     </div>
   );
 }
