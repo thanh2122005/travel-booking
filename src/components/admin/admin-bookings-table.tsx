@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AdminBookingDetailDialog } from "@/components/admin/admin-booking-detail-dialog";
 import { Badge } from "@/components/ui/badge";
+import { getBookingPaymentPresentation, hasPaymentRequest } from "@/lib/utils/booking-payment";
 import { resolveBookingGuestBreakdown } from "@/lib/utils/booking-breakdown";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
@@ -34,6 +35,14 @@ type BookingItem = {
   note?: string | null;
   paymentMethod?: string;
   departureDate?: Date | string | null;
+  paymentRequestedAt?: Date | string | null;
+  paymentVerifiedAt?: Date | string | null;
+  paymentVerifiedByName?: string | null;
+  ticketCode?: string | null;
+  checkInCode?: string | null;
+  ticketIssuedAt?: Date | string | null;
+  checkedInAt?: Date | string | null;
+  checkedInByName?: string | null;
   totalPrice: number;
   status: BookingStatusValue;
   paymentStatus: PaymentStatusValue;
@@ -228,7 +237,7 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
               type="button"
               onClick={handleBulkUpdate}
               disabled={isPending}
-              className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-2 xl:col-span-1"
+              className="iv-btn-primary iv-admin-bulk-apply-btn inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-2 xl:col-span-1"
             >
               {isPending ? (
                 <>
@@ -246,6 +255,12 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
       <div className="space-y-3 xl:hidden">
         {/* Mobile: render theo card de de doc, thao tac nhanh tren man hinh hep. */}
         {items.map((booking) => (
+          (() => {
+            const paymentDisplay = getBookingPaymentPresentation(booking);
+            const paymentLabel = hasPaymentRequest(booking)
+              ? paymentDisplay.label
+              : paymentLabels[booking.paymentStatus];
+            return (
           <article key={booking.id} className="iv-card p-4">
             <div className="flex items-start gap-3">
               <input
@@ -291,8 +306,21 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
 
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline">{statusLabels[booking.status]}</Badge>
-                  <Badge variant="outline">{paymentLabels[booking.paymentStatus]}</Badge>
+                  <Badge variant={paymentDisplay.variant}>{paymentLabel}</Badge>
                 </div>
+                {hasPaymentRequest(booking) ? (
+                  <p className="text-xs text-emerald-700">
+                    Khách đã yêu cầu thanh toán
+                    {booking.ticketCode ? ` • Vé ${booking.ticketCode}` : ""}
+                    {booking.checkInCode ? ` • CI ${booking.checkInCode}` : ""}
+                  </p>
+                ) : null}
+                {booking.checkedInAt ? (
+                  <p className="text-xs font-medium text-teal-700">
+                    Đã check-in: {formatDate(new Date(booking.checkedInAt))}
+                    {booking.checkedInByName ? ` • ${booking.checkedInByName}` : ""}
+                  </p>
+                ) : null}
 
                 <div className="pt-2">
                   <AdminBookingDetailDialog booking={booking} />
@@ -300,6 +328,8 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
               </div>
             </div>
           </article>
+            );
+          })()
         ))}
       </div>
 
@@ -326,6 +356,12 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
             </thead>
             <tbody>
               {items.map((booking) => (
+                (() => {
+                  const paymentDisplay = getBookingPaymentPresentation(booking);
+                  const paymentLabel = hasPaymentRequest(booking)
+                    ? paymentDisplay.label
+                    : paymentLabels[booking.paymentStatus];
+                  return (
                 <tr key={booking.id} className="border-b border-slate-100 last:border-0 align-top">
                   <td className="px-2 py-3 align-top">
                     <input
@@ -378,8 +414,19 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
                     <div className="space-y-2">
                       <Badge variant="outline">{statusLabels[booking.status]}</Badge>
                       <div>
-                        <Badge variant="outline">{paymentLabels[booking.paymentStatus]}</Badge>
+                        <Badge variant={paymentDisplay.variant}>{paymentLabel}</Badge>
                       </div>
+                      {hasPaymentRequest(booking) ? (
+                        <p className="text-xs text-emerald-700">
+                          {booking.ticketCode ? `Vé ${booking.ticketCode}` : "Đã gửi yêu cầu thanh toán"}
+                          {booking.checkInCode ? ` • CI ${booking.checkInCode}` : ""}
+                        </p>
+                      ) : null}
+                      {booking.checkedInAt ? (
+                        <p className="text-xs font-medium text-teal-700">
+                          Check-in: {formatDate(new Date(booking.checkedInAt))}
+                        </p>
+                      ) : null}
                       <p className="text-xs text-slate-500">{formatDate(new Date(booking.createdAt))}</p>
                     </div>
                   </td>
@@ -389,6 +436,8 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
                     </div>
                   </td>
                 </tr>
+                  );
+                })()
               ))}
             </tbody>
           </table>

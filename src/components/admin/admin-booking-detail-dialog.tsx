@@ -1,9 +1,10 @@
 ﻿"use client";
 
-import { FormEvent, useMemo, useState, useTransition } from "react";
-import { Loader2, PencilLine } from "lucide-react";
+import { FormEvent, useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { CheckCircle2, Loader2, PencilLine } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { BookingTicketCard } from "@/components/booking/booking-ticket-card";
 import {
   Dialog,
   DialogContent,
@@ -12,11 +13,26 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { getBookingPaymentPresentation, hasPaymentRequest } from "@/lib/utils/booking-payment";
 import { resolveBookingGuestBreakdown } from "@/lib/utils/booking-breakdown";
-import { formatPrice } from "@/lib/utils/format";
+import { formatDate, formatPrice } from "@/lib/utils/format";
 
 type BookingStatusValue = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
 type PaymentStatusValue = "UNPAID" | "PAID";
+type BookingActivityAction =
+  | "BOOKING_STATUS_UPDATED"
+  | "BOOKING_PAYMENT_UPDATED"
+  | "BOOKING_TICKET_ISSUED"
+  | "BOOKING_CHECKED_IN"
+  | "BOOKING_DETAIL_UPDATED";
+
+type BookingActivityItem = {
+  id: string;
+  action: BookingActivityAction;
+  actorName?: string | null;
+  detailJson?: string | null;
+  createdAt: string;
+};
 
 type AdminBookingDetailDialogProps = {
   booking: {
@@ -41,6 +57,15 @@ type AdminBookingDetailDialogProps = {
     note?: string | null;
     paymentMethod?: string;
     departureDate?: Date | string | null;
+    paymentRequestedAt?: Date | string | null;
+    paymentVerifiedAt?: Date | string | null;
+    paymentVerifiedByName?: string | null;
+    ticketCode?: string | null;
+    checkInCode?: string | null;
+    ticketIssuedAt?: Date | string | null;
+    checkedInAt?: Date | string | null;
+    checkedInById?: string | null;
+    checkedInByName?: string | null;
     status: BookingStatusValue;
     paymentStatus: PaymentStatusValue;
     tour: {
@@ -54,6 +79,76 @@ type AdminBookingDetailDialogProps = {
 
 const CHILD_5_TO_7_PRICE_RATIO = 0.5;
 const CHILD_UNDER_5_PRICE_RATIO = 0;
+const ACTIVITY_ACTION_LABELS: Record<BookingActivityAction, string> = {
+  BOOKING_STATUS_UPDATED: "Cập nhật trạng thái đơn",
+  BOOKING_PAYMENT_UPDATED: "Cập nhật trạng thái thanh toán",
+  BOOKING_TICKET_ISSUED: "Phát hành vé/check-in code",
+  BOOKING_CHECKED_IN: "Đánh dấu đã check-in",
+  BOOKING_DETAIL_UPDATED: "Cập nhật chi tiết booking",
+};
+
+const DETAIL_KEY_LABELS: Record<string, string> = {
+  status: "Trạng thái đơn",
+  paymentStatus: "Trạng thái thanh toán",
+  ticketCode: "Mã vé",
+  checkInCode: "Mã check-in",
+  source: "Nguồn cập nhật",
+  mode: "Chế độ",
+};
+
+const FIELD_LABELS: Record<string, string> = {
+  fullName: "Họ tên",
+  email: "Email",
+  phone: "Số điện thoại",
+  numberOfGuests: "Số khách",
+  note: "Ghi chú",
+  departureDate: "Ngày khởi hành",
+  paymentMethod: "Phương thức thanh toán",
+  roomType: "Loại phòng",
+  status: "Trạng thái đơn",
+  paymentStatus: "Trạng thái thanh toán",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: "Chờ xác nhận",
+  CONFIRMED: "Đã xác nhận",
+  CANCELLED: "Đã hủy",
+  COMPLETED: "Hoàn thành",
+  UNPAID: "Chưa thanh toán",
+  PAID: "Đã thanh toán",
+};
+
+function formatLogDetail(detailJson?: string | null) {
+  if (!detailJson) return "";
+
+  try {
+    const parsed = JSON.parse(detailJson) as Record<string, unknown>;
+    const lines: string[] = [];
+
+    for (const [key, value] of Object.entries(parsed)) {
+      if (value === null || value === undefined || value === "") continue;
+
+      if (key === "changedFields" && Array.isArray(value)) {
+        const labels = value
+          .map((item) => String(item))
+          .map((field) => FIELD_LABELS[field] ?? field);
+        if (labels.length) {
+          lines.push(`Trường thay đổi: ${labels.join(", ")}`);
+        }
+        continue;
+      }
+
+      const label = DETAIL_KEY_LABELS[key] ?? key;
+      const resolvedValue =
+        typeof value === "string" && STATUS_LABELS[value] ? STATUS_LABELS[value] : String(value);
+      lines.push(`${label}: ${resolvedValue}`);
+    }
+
+    return lines.join(" • ");
+  } catch {
+    return detailJson;
+  }
+}
 
 function toDateInputValue(value: Date | string | null | undefined) {
   if (!value) return "";
@@ -65,6 +160,7 @@ function toDateInputValue(value: Date | string | null | undefined) {
 export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isCheckInPending, startCheckInTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [fullName, setFullName] = useState(booking.fullName);
   const [email, setEmail] = useState(booking.email);
@@ -78,6 +174,12 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
   const [departureDate, setDepartureDate] = useState(toDateInputValue(booking.departureDate));
   const [status, setStatus] = useState<BookingStatusValue>(booking.status);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatusValue>(booking.paymentStatus);
+  const [checkedInAt, setCheckedInAt] = useState<Date | string | null>(booking.checkedInAt ?? null);
+  const [checkedInByName, setCheckedInByName] = useState<string | null>(booking.checkedInByName ?? null);
+  const [activityLogs, setActivityLogs] = useState<BookingActivityItem[]>([]);
+  const [isActivityLoading, setIsActivityLoading] = useState(false);
+  const paymentPresentation = getBookingPaymentPresentation(booking);
+  const paymentRequested = hasPaymentRequest(booking);
 
   const unitPrice = booking.unitPriceSnapshot ?? booking.tour.discountPrice ?? booking.tour.price;
   const child5To7Ratio = booking.child5To7RatioSnapshot ?? CHILD_5_TO_7_PRICE_RATIO;
@@ -157,6 +259,27 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
       ? Math.round(guestBreakdown.adults * singleRoomSurchargePerAdult * durationNights)
       : 0;
 
+  const loadActivityLogs = useCallback(async () => {
+    setIsActivityLoading(true);
+    try {
+      const response = await fetch(`/api/admin/bookings/${booking.id}/activity`, {
+        method: "GET",
+      });
+      const payload = (await response.json().catch(() => ({}))) as {
+        items?: BookingActivityItem[];
+      };
+      if (!response.ok) return;
+      setActivityLogs(Array.isArray(payload.items) ? payload.items : []);
+    } finally {
+      setIsActivityLoading(false);
+    }
+  }, [booking.id]);
+
+  useEffect(() => {
+    if (!open) return;
+    void loadActivityLogs();
+  }, [loadActivityLogs, open]);
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const guests = Number(numberOfGuests);
@@ -201,6 +324,42 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
         toast.success(payload.message ?? "Đã cập nhật đơn đặt tour.");
         setOpen(false);
         router.refresh();
+        void loadActivityLogs();
+      } catch {
+        toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
+      }
+    });
+  }
+
+  function handleMarkCheckIn() {
+    startCheckInTransition(async () => {
+      try {
+        const response = await fetch(`/api/admin/bookings/${booking.id}/check-in`, {
+          method: "POST",
+        });
+        const payload = (await response.json().catch(() => ({}))) as {
+          message?: string;
+          booking?: {
+            checkedInAt?: string | null;
+            checkedInByName?: string | null;
+          };
+        };
+        if (!response.ok) {
+          if (response.status === 409) {
+            // Đồng bộ UI ngay cả khi backend báo đã check-in trước đó.
+            setCheckedInAt((prev) => prev ?? new Date().toISOString());
+            setCheckedInByName((prev) => prev ?? "Quản trị viên");
+            toast.message(payload.message ?? "Đơn đã được check-in trước đó.");
+            return;
+          }
+          toast.error(payload.message ?? "Không thể đánh dấu check-in.");
+          return;
+        }
+
+        setCheckedInAt(payload.booking?.checkedInAt ?? new Date().toISOString());
+        setCheckedInByName(payload.booking?.checkedInByName ?? "Quản trị viên");
+        toast.success(payload.message ?? "Đã đánh dấu check-in.");
+        void loadActivityLogs();
       } catch {
         toast.error("Kết nối tạm thời gián đoạn. Vui lòng thử lại.");
       }
@@ -213,7 +372,7 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
         <PencilLine className="mr-1.5 h-3.5 w-3.5" />
         Sửa chi tiết
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Cập nhật đơn {booking.bookingCode}</DialogTitle>
           <DialogDescription>
@@ -315,9 +474,32 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
               onChange={(event) => setPaymentStatus(event.target.value as PaymentStatusValue)}
               className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm"
             >
-              <option value="UNPAID">Chưa thanh toán</option>
-              <option value="PAID">Đã thanh toán</option>
+              <option value="UNPAID">Chưa thanh toán / đợi lại xác minh</option>
+              <option value="PAID">Đã thanh toán - phát hành vé</option>
             </select>
+            <p className="text-xs text-slate-500">{paymentPresentation.description}</p>
+            {booking.paymentStatus !== "PAID" ? (
+              paymentRequested ? (
+                <p className="text-xs text-emerald-700">
+                  Khách đã gửi yêu cầu thanh toán
+                  {booking.paymentRequestedAt ? ` lúc ${toDateInputValue(booking.paymentRequestedAt)}` : ""}.
+                </p>
+              ) : (
+                <p className="text-xs text-slate-600">
+                  Admin có thể xác nhận thanh toán trực tiếp để phát hành vé cho khách.
+                </p>
+              )
+            ) : (
+              <p className="text-xs text-slate-600">
+                Thông tin vé điện tử hiển thị ở phần bên dưới.
+              </p>
+            )}
+            {checkedInAt ? (
+              <p className="text-xs font-medium text-teal-700">
+                Đã check-in: {formatDate(new Date(checkedInAt))}
+                {checkedInByName ? ` • ${checkedInByName}` : ""}
+              </p>
+            ) : null}
           </div>
           <div className="space-y-1 md:col-span-2">
             <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Ghi chú</label>
@@ -366,8 +548,80 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
             )}
           </button>
         </form>
+
+        {booking.paymentStatus === "PAID" && booking.ticketCode ? (
+          <div className="mt-4 space-y-3">
+            <BookingTicketCard
+              bookingCode={booking.bookingCode}
+              ticketCode={booking.ticketCode}
+              checkInCode={booking.checkInCode}
+              ticketIssuedAt={booking.ticketIssuedAt}
+              paymentRequestedAt={booking.paymentRequestedAt}
+              departureDate={booking.departureDate}
+              fullName={booking.fullName}
+              tourTitle={booking.tour.title}
+                verifiedByName={booking.paymentVerifiedByName}
+            />
+            {checkedInAt ? (
+              <div className="rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-xs font-medium text-teal-700">
+                Đã check-in: {formatDate(new Date(checkedInAt))}
+                {checkedInByName ? ` • ${checkedInByName}` : ""}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleMarkCheckIn}
+                disabled={isCheckInPending}
+                className="inline-flex h-9 items-center justify-center rounded-lg border border-teal-300 bg-teal-50 px-3 text-xs font-semibold text-teal-700 transition hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isCheckInPending ? (
+                  <>
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    Đang ghi nhận...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                    Đánh dấu đã check-in
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        ) : null}
+
+        <section className="mt-4 rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+          <p className="text-sm font-semibold text-slate-800">Nhật ký hoạt động</p>
+          {isActivityLoading ? (
+            <p className="mt-2 text-xs text-slate-500">Đang tải nhật ký...</p>
+          ) : activityLogs.length ? (
+            <ul className="mt-2 space-y-2">
+              {activityLogs.map((item) => {
+                const detail = formatLogDetail(item.detailJson);
+                return (
+                  <li key={item.id} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">
+                    <p className="font-medium text-slate-800">
+                      {ACTIVITY_ACTION_LABELS[item.action] ?? item.action}
+                    </p>
+                    <p className="mt-1 text-slate-500">
+                      {formatDate(new Date(item.createdAt))}
+                      {item.actorName ? ` • ${item.actorName}` : ""}
+                    </p>
+                    {detail ? <p className="mt-1 text-slate-600">{detail}</p> : null}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="mt-2 text-xs text-slate-500">Chưa có nhật ký hoạt động.</p>
+          )}
+        </section>
       </DialogContent>
     </Dialog>
   );
 }
+
+
+
+
 
