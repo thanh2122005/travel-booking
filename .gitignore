@@ -55,3 +55,6 @@ next-env.d.ts
 /ts_errs*.json
 /tsc_mysql_errors.txt
 /fix_insensitive.js
+/backups/*.sql
+!backups/.gitkeep
+/.tmp-seed/
