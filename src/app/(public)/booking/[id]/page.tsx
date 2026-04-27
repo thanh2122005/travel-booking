@@ -26,11 +26,23 @@ const bookingStatusLabels: Record<string, string> = {
 
 export const dynamic = "force-dynamic";
 
-function getCancelBlockedLabel(status: string, paymentStatus: string, departureDate?: string | Date | null) {
+function getCancelBlockedLabel(
+  status: string,
+  paymentStatus: string,
+  departureDate?: string | Date | null,
+  hasIssuedTicket?: boolean,
+) {
   const decision = evaluateCancelBooking(status, paymentStatus, departureDate);
   if (decision.allowed) return null;
-  if (decision.reason === "TOO_CLOSE_TO_DEPARTURE") return "Đơn đã quá hạn hủy trực tuyến (dưới 2 ngày trước ngày đi).";
-  return "Đơn hiện tại không thể hủy trực tuyến.";
+  if (decision.reason === "TOO_CLOSE_TO_DEPARTURE") {
+    return "Quá hạn hủy (cần hủy trước ngày khởi hành ít nhất 2 ngày)";
+  }
+  if (paymentStatus === "PAID") {
+    return hasIssuedTicket ? "Vé đã phát hành, vui lòng liên hệ hỗ trợ" : "Đơn đã thanh toán";
+  }
+  if (status === "COMPLETED") return "Đơn đã hoàn thành";
+  if (status === "CANCELLED") return "Đơn đã hủy";
+  return "Đơn hiện tại không thể hủy trực tuyến";
 }
 
 export default async function BookingDetailPage({ params }: BookingDetailPageProps) {
@@ -160,7 +172,12 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
             />
           ) : (
             <p className="text-sm text-slate-500">
-              {getCancelBlockedLabel(booking.status, booking.paymentStatus, booking.departureDate)}
+              {getCancelBlockedLabel(
+                booking.status,
+                booking.paymentStatus,
+                booking.departureDate,
+                Boolean(booking.ticketCode),
+              )}
             </p>
           )}
         </div>

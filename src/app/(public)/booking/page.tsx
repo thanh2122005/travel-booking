@@ -149,11 +149,23 @@ function buildDateRangeLabel(createdFrom: string, createdTo: string) {
   return "";
 }
 
-function getCancelBlockedLabel(status: string, paymentStatus: string, departureDate?: string | Date | null) {
+function getCancelBlockedLabel(
+  status: string,
+  paymentStatus: string,
+  departureDate?: string | Date | null,
+  hasIssuedTicket?: boolean,
+) {
   const decision = evaluateCancelBooking(status, paymentStatus, departureDate);
   if (decision.allowed) return null;
-  if (decision.reason === "TOO_CLOSE_TO_DEPARTURE") return "Quá hạn hủy";
-  return "Không thể hủy";
+  if (decision.reason === "TOO_CLOSE_TO_DEPARTURE") {
+    return "Quá hạn hủy (cần hủy trước ngày khởi hành ít nhất 2 ngày)";
+  }
+  if (paymentStatus === "PAID") {
+    return hasIssuedTicket ? "Vé đã phát hành, vui lòng liên hệ hỗ trợ" : "Đơn đã thanh toán";
+  }
+  if (status === "COMPLETED") return "Đơn đã hoàn thành";
+  if (status === "CANCELLED") return "Đơn đã hủy";
+  return "Đơn hiện tại không thể hủy trực tuyến";
 }
 
 export default async function BookingPage({ searchParams }: BookingPageProps) {
@@ -590,7 +602,12 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                       />
                     ) : (
                       <span className="text-xs text-slate-400">
-                        {getCancelBlockedLabel(booking.status, booking.paymentStatus, booking.departureDate)}
+                        {getCancelBlockedLabel(
+                          booking.status,
+                          booking.paymentStatus,
+                          booking.departureDate,
+                          Boolean(booking.ticketCode),
+                        )}
                       </span>
                     )}
                   </div>
@@ -663,7 +680,12 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                               />
                             ) : (
                               <span className="text-xs text-slate-400">
-                                {getCancelBlockedLabel(booking.status, booking.paymentStatus, booking.departureDate)}
+                                {getCancelBlockedLabel(
+                                  booking.status,
+                                  booking.paymentStatus,
+                                  booking.departureDate,
+                                  Boolean(booking.ticketCode),
+                                )}
                               </span>
                             )}
                           </div>
