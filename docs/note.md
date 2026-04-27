@@ -76,3 +76,54 @@ status
 
 
 có 1 khung chat từ ng dung cho admin và bổ sung them nhân viên để chat vs khách hang 
+
+
+
+
+
+Phụ thu phòng đơn: 300.000 ₫/người lớn/đêm x 2 người x 2 đêm = 1.200.000 ₫
+làm rõ phụ thu đag mặc định là phụ thu hết à hay j 
+
+
+
+
+
+
+
+quản lý lịch trình tour 
+
+
+
+Ưu tiên cao (nên làm ngay)
+
+<!-- Endpoint public đang lộ toàn bộ yêu cầu tư vấn (không auth).
+[route.ts](d:/Source Code/travel-booking/src/app/api/contact-inquiries/route.ts:140) và [route.ts](d:/Source Code/travel-booking/src/app/api/contact-inquiries/route.ts:147) -->
+
+Luồng quên mật khẩu đang trả OTP ra client (debugOtp) và auto-fill qua URL/session.
+[route.ts](d:/Source Code/travel-booking/src/app/api/auth/forgot-password/route.ts:64)
+[forgot-password-form.tsx](d:/Source Code/travel-booking/src/components/auth/forgot-password-form.tsx:50)
+
+Một số API trả lỗi kèm Debug: ra message (khi dev), dễ lộ thông tin nội bộ lúc demo local.
+[route.ts](d:/Source Code/travel-booking/src/app/api/bookings/route.ts:939)
+[route.ts](d:/Source Code/travel-booking/src/app/api/admin/bookings/[id]/detail/route.ts:166)
+
+Có lỗi mã hóa tiếng Việt trong API admin check-in/activity (Không..., Đã...) ảnh hưởng UX.
+[route.ts](d:/Source Code/travel-booking/src/app/api/admin/bookings/[id]/check-in/route.ts:40)
+[route.ts](d:/Source Code/travel-booking/src/app/api/admin/bookings/[id]/activity/route.ts:20)
+
+Fallback demo tự bật khi DB lỗi có thể làm dữ liệu “nhảy” sang data demo, gây hiểu lầm mất dữ liệu thật.
+[public-queries.ts](d:/Source Code/travel-booking/src/lib/db/public-queries.ts:346)
+[admin-queries.ts](d:/Source Code/travel-booking/src/lib/db/admin-queries.ts:1051)
+[admin-queries.ts](d:/Source Code/travel-booking/src/lib/db/admin-queries.ts:1427)
+
+Ưu tiên vừa (UI/UX nghiệp vụ)
+6. Nhãn chặn hủy đang khá chung chung (Không thể hủy), nên tách rõ lý do: đã thanh toán, đã phát hành vé, quá hạn hủy.
+[page.tsx](d:/Source Code/travel-booking/src/app/(user)/tai-khoan/page.tsx:117)
+
+Ghi chú kỹ thuật
+7. Lint đang fail ở file script phụ trợ (require), không phải core UI nhưng nên dọn để tránh trừ điểm khi check code quality.
+
+Nếu bạn muốn, mình fix luôn theo gói “an toàn demo” trong 1 lượt:
+
+khóa endpoint debug, 2) bỏ debugOtp, 3) sửa tiếng Việt lỗi mã hóa, 4) tắt fallback demo bằng env flag, 5) cải thiện message “Không thể hủy”.
+

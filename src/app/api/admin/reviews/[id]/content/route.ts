@@ -1,10 +1,11 @@
-﻿// API SUMMARY: src/app/api/admin/reviews/[id]/content/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/reviews/[id]/content/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireAdminApi } from "@/lib/auth/admin-api";
+import { requireAdminApiAuth } from "@/lib/auth/admin-api";
+import { appendAdminActivityLog } from "@/lib/db/admin-activity-log";
 import { isPrismaNotFoundError } from "@/lib/db/db-error";
 import { updateAdminReviewContent } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
@@ -19,14 +20,14 @@ type ReviewContentRouteContext = {
   params: Promise<{ id: string }>;
 };
 
-// FLOW: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function PATCH(request: Request, context: ReviewContentRouteContext) {
-  // STEP 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
-  // STEP 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
-  // STEP 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
-  // STEP 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
-  const guard = await requireAdminApi();
-  if (guard) return guard;
+  // BƯỚC 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
+  // BƯỚC 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
+  // BƯỚC 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
+  // BƯỚC 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
+  const auth = await requireAdminApiAuth();
+  if (auth.response) return auth.response;
 
   const { id } = await context.params;
   const json = await parseJsonBody(request, "Dữ liệu cập nhật nội dung đánh giá không hợp lệ.");
@@ -45,6 +46,17 @@ export async function PATCH(request: Request, context: ReviewContentRouteContext
 
   try {
     const updated = await updateAdminReviewContent(id, parsed.data);
+    await appendAdminActivityLog({
+      action: "REVIEW_CONTENT_UPDATED",
+      actorId: auth.userId,
+      actorName: auth.userName ?? "Quản trị viên",
+      detail: {
+        reviewId: updated.id,
+        rating: updated.rating,
+        isVisible: updated.isVisible,
+      },
+    }).catch(() => undefined);
+
     return NextResponse.json({
       message: "Đã cập nhật chi tiết đánh giá.",
       review: updated,
@@ -57,6 +69,7 @@ export async function PATCH(request: Request, context: ReviewContentRouteContext
     return NextResponse.json({ message: "Không thể cập nhật đánh giá." }, { status: 500 });
   }
 }
+
 
 
 

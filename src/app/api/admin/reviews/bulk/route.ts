@@ -1,10 +1,11 @@
-﻿// API SUMMARY: src/app/api/admin/reviews/bulk/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/reviews/bulk/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import { requireAdminApi } from "@/lib/auth/admin-api";
+import { requireAdminApiAuth } from "@/lib/auth/admin-api";
+import { appendAdminActivityLog } from "@/lib/db/admin-activity-log";
 import { updateAdminReviewsBulk } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 
@@ -13,14 +14,14 @@ const bulkReviewSchema = z.object({
   isVisible: z.boolean(),
 });
 
-// FLOW: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function PATCH(request: Request) {
-  // STEP 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
-  // STEP 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
-  // STEP 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
-  // STEP 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
-  const guard = await requireAdminApi();
-  if (guard) return guard;
+  // BƯỚC 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
+  // BƯỚC 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
+  // BƯỚC 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
+  // BƯỚC 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
+  const auth = await requireAdminApiAuth();
+  if (auth.response) return auth.response;
 
   try {
     const json = await parseJsonBody(request, "Dữ liệu cập nhật đánh giá hàng loạt không hợp lệ.");
@@ -41,6 +42,15 @@ export async function PATCH(request: Request) {
     if (updated.count === 0) {
       return NextResponse.json({ message: "Không tìm thấy đánh giá phù hợp để cập nhật." }, { status: 404 });
     }
+    await appendAdminActivityLog({
+      action: "REVIEWS_BULK_UPDATED",
+      actorId: auth.userId,
+      actorName: auth.userName ?? "Quản trị viên",
+      detail: {
+        count: updated.count,
+        isVisible: parsed.data.isVisible,
+      },
+    }).catch(() => undefined);
 
     return NextResponse.json({
       message: `Đã cập nhật ${updated.count} đánh giá.`,
@@ -50,6 +60,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ message: "Không thể xử lý yêu cầu lúc này." }, { status: 500 });
   }
 }
+
 
 
 

@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/reviews/export/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/reviews/export/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> đọc bộ lọc query -> truy vấn DB -> xuất CSV.
 
@@ -98,4 +98,5 @@ export async function GET(request: NextRequest) {
     },
   });
 }
+
 

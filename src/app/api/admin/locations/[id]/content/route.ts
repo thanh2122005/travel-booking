@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/locations/[id]/content/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/locations/[id]/content/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -26,12 +26,12 @@ type LocationContentRouteContext = {
   params: Promise<{ id: string }>;
 };
 
-// FLOW: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function PATCH(request: Request, context: LocationContentRouteContext) {
-  // STEP 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
-  // STEP 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
-  // STEP 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
-  // STEP 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
+  // BƯỚC 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
+  // BƯỚC 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
+  // BƯỚC 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
+  // BƯỚC 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
   // Guard admin cho endpoint sửa nội dung location.
   const guard = await requireAdminApi();
   if (guard) return guard;
@@ -74,6 +74,7 @@ export async function PATCH(request: Request, context: LocationContentRouteConte
     return NextResponse.json({ message: "Không thể cập nhật điểm đến." }, { status: 500 });
   }
 }
+
 
 
 

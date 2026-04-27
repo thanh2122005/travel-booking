@@ -47,6 +47,8 @@ type AdminBookingDetailDialogProps = {
     child5To7Guests?: number | null;
     childUnder5Guests?: number | null;
     roomType?: "DOUBLE" | "SINGLE" | null;
+    pickupMethod?: "SELF_ARRIVAL" | "NEED_PICKUP" | null;
+    pickupLocation?: string | null;
     baseGuestTotal?: number | null;
     roomSurchargeTotal?: number | null;
     unitPriceSnapshot?: number | null;
@@ -82,9 +84,9 @@ const CHILD_UNDER_5_PRICE_RATIO = 0;
 const ACTIVITY_ACTION_LABELS: Record<BookingActivityAction, string> = {
   BOOKING_STATUS_UPDATED: "Cập nhật trạng thái đơn",
   BOOKING_PAYMENT_UPDATED: "Cập nhật trạng thái thanh toán",
-  BOOKING_TICKET_ISSUED: "Phát hành vé/check-in code",
+  BOOKING_TICKET_ISSUED: "Phát hành vé/mã check-in",
   BOOKING_CHECKED_IN: "Đánh dấu đã check-in",
-  BOOKING_DETAIL_UPDATED: "Cập nhật chi tiết booking",
+  BOOKING_DETAIL_UPDATED: "Cập nhật chi tiết đơn đặt tour",
 };
 
 const DETAIL_KEY_LABELS: Record<string, string> = {
@@ -105,6 +107,9 @@ const FIELD_LABELS: Record<string, string> = {
   departureDate: "Ngày khởi hành",
   paymentMethod: "Phương thức thanh toán",
   roomType: "Loại phòng",
+  singleRoomGuests: "Số khách ở phòng đơn",
+  pickupMethod: "Nhu cầu đón",
+  pickupLocation: "Điểm đón mong muốn",
   status: "Trạng thái đơn",
   paymentStatus: "Trạng thái thanh toán",
 };
@@ -116,6 +121,8 @@ const STATUS_LABELS: Record<string, string> = {
   COMPLETED: "Hoàn thành",
   UNPAID: "Chưa thanh toán",
   PAID: "Đã thanh toán",
+  SELF_ARRIVAL: "Tự đến điểm hẹn",
+  NEED_PICKUP: "Cần hỗ trợ đón",
 };
 
 function formatLogDetail(detailJson?: string | null) {
@@ -171,6 +178,10 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
     booking.paymentMethod ?? "Thanh toán khi xác nhận",
   );
   const [roomType, setRoomType] = useState<"DOUBLE" | "SINGLE">(booking.roomType === "SINGLE" ? "SINGLE" : "DOUBLE");
+  const [pickupMethod, setPickupMethod] = useState<"SELF_ARRIVAL" | "NEED_PICKUP">(
+    booking.pickupMethod === "NEED_PICKUP" ? "NEED_PICKUP" : "SELF_ARRIVAL",
+  );
+  const [pickupLocation, setPickupLocation] = useState(booking.pickupLocation ?? "");
   const [departureDate, setDepartureDate] = useState(toDateInputValue(booking.departureDate));
   const [status, setStatus] = useState<BookingStatusValue>(booking.status);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatusValue>(booking.paymentStatus);
@@ -187,6 +198,24 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
   const singleRoomSurchargePerAdult = booking.singleRoomSurchargePerAdultSnapshot ?? 0;
   const durationNights = Math.max(booking.durationNightsSnapshot ?? 0, 0);
   const canUseSingleRoom = durationNights > 0;
+  const inferredSingleRoomGuests = useMemo(() => {
+    if (
+      typeof booking.roomSurchargeTotal === "number" &&
+      booking.roomSurchargeTotal > 0 &&
+      singleRoomSurchargePerAdult > 0 &&
+      durationNights > 0
+    ) {
+      return Math.max(1, Math.round(booking.roomSurchargeTotal / (singleRoomSurchargePerAdult * durationNights)));
+    }
+    return booking.roomType === "SINGLE" ? Math.max(1, booking.numberOfGuests) : 0;
+  }, [
+    booking.numberOfGuests,
+    booking.roomSurchargeTotal,
+    booking.roomType,
+    durationNights,
+    singleRoomSurchargePerAdult,
+  ]);
+  const [singleRoomGuests, setSingleRoomGuests] = useState(String(inferredSingleRoomGuests));
   const guestBreakdown = useMemo(() => {
     const baseBreakdown = resolveBookingGuestBreakdown({
       numberOfGuests: booking.numberOfGuests,
@@ -233,7 +262,7 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
       );
       const roomSurchargeTotal =
         canUseSingleRoom && roomType === "SINGLE"
-          ? Math.round(guestBreakdown.adults * singleRoomSurchargePerAdult * durationNights)
+          ? Math.round(Math.max(1, Math.min(guestBreakdown.total, Number(singleRoomGuests))) * singleRoomSurchargePerAdult * durationNights)
           : 0;
       return baseGuestTotal + roomSurchargeTotal;
     },
@@ -245,7 +274,9 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
       guestBreakdown.adults,
       guestBreakdown.child5To7,
       guestBreakdown.childUnder5,
+      guestBreakdown.total,
       roomType,
+      singleRoomGuests,
       singleRoomSurchargePerAdult,
       unitPrice,
     ],
@@ -256,8 +287,33 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
   const childUnder5Total = Math.round(guestBreakdown.childUnder5 * unitPrice * childUnder5Ratio);
   const roomSurchargeTotal =
     canUseSingleRoom && roomType === "SINGLE"
-      ? Math.round(guestBreakdown.adults * singleRoomSurchargePerAdult * durationNights)
+      ? Math.round(Math.max(1, Math.min(guestBreakdown.total, Number(singleRoomGuests))) * singleRoomSurchargePerAdult * durationNights)
       : 0;
+  const resolvedSingleRoomGuests =
+    canUseSingleRoom && roomType === "SINGLE"
+      ? Math.max(
+          1,
+          Math.min(
+            guestBreakdown.total,
+            Number.isFinite(Number(singleRoomGuests)) ? Math.trunc(Number(singleRoomGuests)) : 1,
+          ),
+        )
+      : 0;
+
+  useEffect(() => {
+    if (roomType !== "SINGLE") {
+      setSingleRoomGuests("0");
+      return;
+    }
+    const numeric = Number(singleRoomGuests);
+    if (!Number.isFinite(numeric) || numeric < 1) {
+      setSingleRoomGuests(String(Math.max(1, Math.min(guestBreakdown.total, inferredSingleRoomGuests || 1))));
+      return;
+    }
+    if (numeric > guestBreakdown.total) {
+      setSingleRoomGuests(String(Math.max(1, guestBreakdown.total)));
+    }
+  }, [guestBreakdown.total, inferredSingleRoomGuests, roomType, singleRoomGuests]);
 
   const loadActivityLogs = useCallback(async () => {
     setIsActivityLoading(true);
@@ -295,6 +351,16 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
       toast.error("Tour không áp dụng loại phòng đơn.");
       return;
     }
+    const parsedSingleRoomGuests = Number(singleRoomGuests);
+    if (
+      roomType === "SINGLE" &&
+      (!Number.isFinite(parsedSingleRoomGuests) ||
+        parsedSingleRoomGuests < 1 ||
+        parsedSingleRoomGuests > guestBreakdown.total)
+    ) {
+      toast.error(`Số khách ở phòng đơn phải từ 1 đến ${Math.max(guestBreakdown.total, 1)}.`);
+      return;
+    }
 
     startTransition(async () => {
       try {
@@ -309,6 +375,12 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
             note: note.trim().length ? note.trim() : null,
             paymentMethod: paymentMethod.trim(),
             roomType,
+            singleRoomGuests:
+              roomType === "SINGLE"
+                ? Math.max(1, Math.min(guestBreakdown.total, Math.trunc(parsedSingleRoomGuests)))
+                : 0,
+            pickupMethod,
+            pickupLocation: pickupMethod === "NEED_PICKUP" ? pickupLocation.trim() || null : null,
             departureDate: departureDate || null,
             status,
             paymentStatus,
@@ -380,7 +452,7 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid gap-3 md:grid-cols-2">
+        <form id="admin-booking-detail-form" onSubmit={handleSubmit} className="grid gap-3 md:grid-cols-2">
           <div className="space-y-1">
             <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Họ và tên</label>
             <input
@@ -446,6 +518,47 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
               <p className="text-xs text-slate-500">Tour không có lưu trú qua đêm, chỉ áp dụng phòng đôi.</p>
             )}
           </div>
+          {canUseSingleRoom && roomType === "SINGLE" ? (
+            <div className="space-y-1">
+              <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                Số khách ở phòng đơn
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={Math.max(guestBreakdown.total, 1)}
+                value={singleRoomGuests}
+                onChange={(event) => setSingleRoomGuests(event.target.value)}
+                className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm"
+              />
+              <p className="text-xs text-slate-500">
+                Tối đa {guestBreakdown.total} khách theo đơn.
+              </p>
+            </div>
+          ) : null}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Nhu cầu đón</label>
+            <select
+              value={pickupMethod}
+              onChange={(event) => setPickupMethod(event.target.value as "SELF_ARRIVAL" | "NEED_PICKUP")}
+              className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm"
+            >
+              <option value="SELF_ARRIVAL">Tự đến điểm hẹn</option>
+              <option value="NEED_PICKUP">Cần hỗ trợ đón</option>
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Điểm đón mong muốn
+            </label>
+            <input
+              value={pickupLocation}
+              onChange={(event) => setPickupLocation(event.target.value)}
+              placeholder="Ví dụ: Big C Thăng Long, Hà Nội"
+              className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm"
+              disabled={pickupMethod !== "NEED_PICKUP"}
+            />
+          </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Phương thức thanh toán</label>
             <input
@@ -484,11 +597,7 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
                   Khách đã gửi yêu cầu thanh toán
                   {booking.paymentRequestedAt ? ` lúc ${toDateInputValue(booking.paymentRequestedAt)}` : ""}.
                 </p>
-              ) : (
-                <p className="text-xs text-slate-600">
-                  Admin có thể xác nhận thanh toán trực tiếp để phát hành vé cho khách.
-                </p>
-              )
+              ) : null
             ) : (
               <p className="text-xs text-slate-600">
                 Thông tin vé điện tử hiển thị ở phần bên dưới.
@@ -525,7 +634,7 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
             </p>
             {roomSurchargeTotal > 0 ? (
               <p>
-                Phụ thu phòng đơn: {guestBreakdown.adults} x {formatPrice(singleRoomSurchargePerAdult)} x {durationNights} đêm ={" "}
+                Phụ thu phòng đơn: {resolvedSingleRoomGuests} x {formatPrice(singleRoomSurchargePerAdult)} x {durationNights} đêm ={" "}
                 <span className="font-semibold text-slate-900">{formatPrice(roomSurchargeTotal)}</span>
               </p>
             ) : null}
@@ -533,10 +642,13 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
               Tổng tạm tính: <span className="font-semibold text-slate-900">{formatPrice(estimatedTotal)}</span>
             </p>
           </div>
+        </form>
+        <div className="sticky bottom-0 z-20 -mx-6 mt-3 border-t border-slate-200 bg-white/95 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/80">
           <button
             type="submit"
+            form="admin-booking-detail-form"
             disabled={isPending}
-            className="inline-flex h-10 items-center justify-center rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60 md:col-span-2 md:justify-self-end"
+            className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60 sm:w-auto"
           >
             {isPending ? (
               <>
@@ -547,7 +659,7 @@ export function AdminBookingDetailDialog({ booking }: AdminBookingDetailDialogPr
               "Lưu chi tiết đơn"
             )}
           </button>
-        </form>
+        </div>
 
         {booking.paymentStatus === "PAID" && booking.ticketCode ? (
           <div className="mt-4 space-y-3">

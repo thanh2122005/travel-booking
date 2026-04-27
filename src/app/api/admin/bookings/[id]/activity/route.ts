@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { requireAdminApiAuth } from "@/lib/auth/admin-api";
 import { getAdminBookingActivityLogs } from "@/lib/db/admin-queries";
 
@@ -15,10 +15,7 @@ export async function GET(_request: Request, context: AdminBookingActivityRouteC
     const items = await getAdminBookingActivityLogs(id);
     return NextResponse.json({ items });
   } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      const detail = error instanceof Error ? error.message : String(error);
-      return NextResponse.json({ message: `Không thể tải nhật ký hoạt động. Debug: ${detail}` }, { status: 500 });
-    }
+    console.error("Load booking activity logs failed:", error);
     return NextResponse.json({ message: "Không thể tải nhật ký hoạt động." }, { status: 500 });
   }
 }

@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/bookings/export/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/bookings/export/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> đọc bộ lọc query -> truy vấn DB -> xuất CSV.
 
@@ -56,7 +56,7 @@ function buildFileName(prefix: string) {
   return `${prefix}_${date}_${time}.csv`;
 }
 
-// FLOW: GET - kiểm tra quyền -> đọc query params -> export dữ liệu booking.
+// LUỒNG: GET - kiểm tra quyền -> đọc query params -> xuất dữ liệu đơn đặt tour.
 export async function GET(request: NextRequest) {
   const guard = await requireAdminApi();
   if (guard) return guard;
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
       createdTo: parseDateAtBoundary(createdToRaw, "end"),
     });
   } catch {
-    return NextResponse.json({ message: "Không thể xuất dữ liệu booking lúc này." }, { status: 500 });
+    return NextResponse.json({ message: "Không thể xuất dữ liệu đơn đặt tour lúc này." }, { status: 500 });
   }
 
   const rows: Array<Array<unknown>> = [
@@ -98,6 +98,8 @@ export async function GET(request: NextRequest) {
       "Trạng thái đơn",
       "Trạng thái thanh toán",
       "Số khách",
+      "Nhu cầu đón",
+      "Điểm đón mong muốn",
       "Tổng tiền (VND)",
       "Ngày khởi hành",
       "Ghi chú",
@@ -112,6 +114,8 @@ export async function GET(request: NextRequest) {
       adminLabels.bookingStatus[item.status],
       adminLabels.paymentStatus[item.paymentStatus],
       item.numberOfGuests,
+      item.pickupMethod === "NEED_PICKUP" ? "Cần hỗ trợ đón" : "Tự đến điểm hẹn",
+      item.pickupLocation ?? "",
       item.totalPrice,
       formatDateTime(item.departureDate ?? null),
       item.note ?? "",
@@ -129,4 +133,5 @@ export async function GET(request: NextRequest) {
     },
   });
 }
+
 

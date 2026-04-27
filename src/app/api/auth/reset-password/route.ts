@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/auth/reset-password/route.ts
+﻿// TÓM TẮT API: src/app/api/auth/reset-password/route.ts
 // Phạm vi: API xác thực (auth).
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -9,12 +9,12 @@ import { resetPasswordWithOtp } from "@/lib/auth/password-reset";
 import { resetPasswordSchema } from "@/lib/validations/auth";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 
-// FLOW: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function POST(request: Request) {
-  // STEP 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
-  // STEP 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
-  // STEP 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
-  // STEP 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
+  // BƯỚC 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
+  // BƯỚC 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
+  // BƯỚC 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
+  // BƯỚC 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
   // Rate limit endpoint reset password theo IP.
   const ip = getClientIp(request);
   const rate = consumeRateLimit(`auth:reset-password:${ip}`, {
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // STEP 2: Phân tích body + kiểm tra hợp lệ schema trước khi xử lý OTP.
+  // BƯỚC 2: Phân tích body + kiểm tra hợp lệ schema trước khi xử lý OTP.
   const json = await parseJsonBody(request, "Dữ liệu đặt lại mật khẩu không hợp lệ.");
   if (!json.ok) return json.response;
 
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    // STEP 3: Xác thực OTP và cập nhật password hash mới.
+    // BƯỚC 3: Xác thực OTP và cập nhật password hash mới.
     // Verify OTP rồi cập nhật password hash mới cho user.
     const result = await resetPasswordWithOtp({
       email: parsed.data.email,
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     });
 
     if (!result.ok) {
-      // STEP 3.1: Tách từng reason để frontend hiển thị thông điệp chính xác.
+      // BƯỚC 3.1: Tách từng reason để frontend hiển thị thông điệp chính xác.
       // Cách này giúp demo bảo mật rõ: sai OTP, hết hạn OTP, khóa OTP... là các trạng thái riêng.
       // Tách từng reason để frontend hiển thị thông điệp chính xác.
       if (result.reason === "NOT_FOUND") {
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // STEP 4: Trả response thành công, yêu cầu user đăng nhập lại bằng mật khẩu mới.
+    // BƯỚC 4: Trả response thành công, yêu cầu user đăng nhập lại bằng mật khẩu mới.
     return NextResponse.json(
       { message: "Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại." },
       { status: 200 },
@@ -114,6 +114,7 @@ export async function POST(request: Request) {
     );
   }
 }
+
 
 
 

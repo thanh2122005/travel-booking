@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/bookings/[id]/detail/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/bookings/[id]/detail/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -20,8 +20,19 @@ const bookingDetailUpdateSchema = z.object({
   departureDate: z.string().trim().nullable().optional(),
   paymentMethod: z.string().trim().min(1, "Phương thức thanh toán là bắt buộc."),
   roomType: z.enum(["DOUBLE", "SINGLE"]).optional(),
+  singleRoomGuests: z.number().int().min(0, "Số khách ở phòng đơn không hợp lệ.").optional(),
+  pickupMethod: z.enum(["SELF_ARRIVAL", "NEED_PICKUP"]).optional(),
+  pickupLocation: z.string().trim().max(120, "Điểm đón tối đa 120 ký tự.").nullable().optional(),
   status: z.nativeEnum(BookingStatus).optional(),
   paymentStatus: z.nativeEnum(PaymentStatus).optional(),
+}).superRefine((value, ctx) => {
+  if (value.pickupMethod === "NEED_PICKUP" && !value.pickupLocation?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Vui lòng nhập điểm đón mong muốn khi chọn cần hỗ trợ đón.",
+      path: ["pickupLocation"],
+    });
+  }
 });
 
 function isBookingAdminCompatibilityError(error: unknown) {
@@ -40,13 +51,17 @@ function isBookingAdminCompatibilityError(error: unknown) {
     message.includes("Unknown field `child5To7Guests`") ||
     message.includes("Unknown field `childUnder5Guests`") ||
     message.includes("Unknown field `singleRoomSurchargePerAdult`") ||
+    message.includes("Unknown field `pickupMethod`") ||
+    message.includes("Unknown field `pickupLocation`") ||
     message.includes("Unknown argument `roomType`") ||
     message.includes("Unknown argument `baseGuestTotal`") ||
     message.includes("Unknown argument `roomSurchargeTotal`") ||
     message.includes("Unknown argument `guestsFrom8`") ||
     message.includes("Unknown argument `child5To7Guests`") ||
     message.includes("Unknown argument `childUnder5Guests`") ||
-    message.includes("Unknown argument `singleRoomSurchargePerAdult`")
+    message.includes("Unknown argument `singleRoomSurchargePerAdult`") ||
+    message.includes("Unknown argument `pickupMethod`") ||
+    message.includes("Unknown argument `pickupLocation`")
   );
 }
 
@@ -54,12 +69,12 @@ type BookingDetailRouteContext = {
   params: Promise<{ id: string }>;
 };
 
-// FLOW: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function PATCH(request: Request, context: BookingDetailRouteContext) {
-  // STEP 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
-  // STEP 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
-  // STEP 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
-  // STEP 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
+  // BƯỚC 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
+  // BƯỚC 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
+  // BƯỚC 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
+  // BƯỚC 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
   const guard = await requireAdminApiAuth();
   if (guard.response) return guard.response;
 
@@ -96,6 +111,12 @@ export async function PATCH(request: Request, context: BookingDetailRouteContext
       departureDate: departureDate ? departureDate.toISOString() : null,
       paymentMethod: parsed.data.paymentMethod,
       roomType: parsed.data.roomType,
+      singleRoomGuests: parsed.data.singleRoomGuests,
+      pickupMethod: parsed.data.pickupMethod,
+      pickupLocation:
+        parsed.data.pickupMethod === "NEED_PICKUP"
+          ? parsed.data.pickupLocation?.trim() || null
+          : null,
       status: parsed.data.status,
       paymentStatus: parsed.data.paymentStatus,
     }, guard.userId);
@@ -135,18 +156,13 @@ export async function PATCH(request: Request, context: BookingDetailRouteContext
     }
     if (isBookingAdminCompatibilityError(error)) {
       return NextResponse.json(
-        { message: "CSDL chưa đồng bộ đầy đủ cấu trúc booking admin. Vui lòng chạy migration rồi thử lại." },
+        { message: "CSDL chưa đồng bộ đầy đủ cấu trúc đơn đặt tour cho admin. Vui lòng chạy migration rồi thử lại." },
         { status: 503 },
       );
     }
-    if (process.env.NODE_ENV !== "production") {
-      const debugMessage = error instanceof Error ? error.message : String(error);
-      return NextResponse.json(
-        { message: `Không thể cập nhật chi tiết đơn đặt tour. Debug: ${debugMessage}` },
-        { status: 500 },
-      );
-    }
+    console.error("Update booking detail failed:", error);
     return NextResponse.json({ message: "Không thể cập nhật chi tiết đơn đặt tour." }, { status: 500 });
   }
 }
+
 

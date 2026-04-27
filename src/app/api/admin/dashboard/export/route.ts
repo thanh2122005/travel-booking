@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/dashboard/export/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/dashboard/export/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -85,12 +85,12 @@ function toUtf16LePayload(text: string) {
   return Buffer.concat([bom, body]);
 }
 
-// FLOW: GET - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: GET - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function GET(request: NextRequest) {
-  // STEP 1: Kiểm tra quyền truy cập (nếu endpoint có yêu cầu auth/admin).
-  // STEP 2: Đọc query params và chuẩn hóa bộ lọc/sắp xếp.
-  // STEP 3: Gọi service/DB để lấy dữ liệu hoặc tạo file export.
-  // STEP 4: Trả response thành công hoặc mã lỗi phù hợp (400/401/403/404/500).
+  // BƯỚC 1: Kiểm tra quyền truy cập (nếu endpoint có yêu cầu auth/admin).
+  // BƯỚC 2: Đọc query params và chuẩn hóa bộ lọc/sắp xếp.
+  // BƯỚC 3: Gọi service/DB để lấy dữ liệu hoặc tạo file export.
+  // BƯỚC 4: Trả response thành công hoặc mã lỗi phù hợp (400/401/403/404/500).
   // Chỉ admin được xuất báo cáo dashboard.
   const guard = await requireAdminApi();
   if (guard) return guard;
@@ -249,6 +249,7 @@ export async function GET(request: NextRequest) {
     },
   });
 }
+
 
 
 

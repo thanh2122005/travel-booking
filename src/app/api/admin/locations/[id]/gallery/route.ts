@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/locations/[id]/gallery/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/locations/[id]/gallery/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> parse body -> validate -> cập nhật gallery.
 
@@ -55,4 +55,5 @@ export async function PATCH(request: Request, context: LocationGalleryRouteConte
     return NextResponse.json({ message: "Không thể cập nhật gallery điểm đến." }, { status: 500 });
   }
 }
+
 

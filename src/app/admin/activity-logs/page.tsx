@@ -23,9 +23,20 @@ function toValidPage(value: string) {
 const ACTION_LABELS: Record<string, string> = {
   BOOKING_STATUS_UPDATED: "Cập nhật trạng thái đơn",
   BOOKING_PAYMENT_UPDATED: "Cập nhật thanh toán",
-  BOOKING_TICKET_ISSUED: "Phát hành vé/check-in code",
+  BOOKING_TICKET_ISSUED: "Phát hành vé/mã check-in",
   BOOKING_CHECKED_IN: "Đánh dấu check-in",
-  BOOKING_DETAIL_UPDATED: "Cập nhật chi tiết booking",
+  BOOKING_DETAIL_UPDATED: "Cập nhật chi tiết đơn đặt tour",
+  ADMIN_LOGIN: "Đăng nhập admin",
+  REVIEW_VISIBILITY_UPDATED: "Cập nhật hiển thị đánh giá",
+  REVIEW_CONTENT_UPDATED: "Cập nhật nội dung đánh giá",
+  REVIEWS_BULK_UPDATED: "Cập nhật hàng loạt đánh giá",
+  USER_UPDATED: "Cập nhật người dùng",
+  USER_CONTENT_UPDATED: "Cập nhật chi tiết người dùng",
+  USERS_BULK_UPDATED: "Cập nhật hàng loạt người dùng",
+  USER_DELETED: "Xóa người dùng",
+  NEWSLETTER_BULK_DELETED: "Xóa email nhận tin hàng loạt",
+  INQUIRY_STATUS_UPDATED: "Cập nhật trạng thái tư vấn",
+  INQUIRIES_BULK_UPDATED: "Cập nhật hàng loạt tư vấn",
 };
 
 const ACTION_TONES: Record<string, string> = {
@@ -34,15 +45,35 @@ const ACTION_TONES: Record<string, string> = {
   BOOKING_TICKET_ISSUED: "border-violet-200 bg-violet-50 text-violet-700",
   BOOKING_CHECKED_IN: "border-teal-200 bg-teal-50 text-teal-700",
   BOOKING_DETAIL_UPDATED: "border-amber-200 bg-amber-50 text-amber-700",
+  ADMIN_LOGIN: "border-cyan-200 bg-cyan-50 text-cyan-700",
+  REVIEW_VISIBILITY_UPDATED: "border-indigo-200 bg-indigo-50 text-indigo-700",
+  REVIEW_CONTENT_UPDATED: "border-indigo-200 bg-indigo-50 text-indigo-700",
+  REVIEWS_BULK_UPDATED: "border-indigo-200 bg-indigo-50 text-indigo-700",
+  USER_UPDATED: "border-slate-300 bg-slate-50 text-slate-700",
+  USER_CONTENT_UPDATED: "border-slate-300 bg-slate-50 text-slate-700",
+  USERS_BULK_UPDATED: "border-slate-300 bg-slate-50 text-slate-700",
+  USER_DELETED: "border-rose-200 bg-rose-50 text-rose-700",
+  NEWSLETTER_BULK_DELETED: "border-rose-200 bg-rose-50 text-rose-700",
+  INQUIRY_STATUS_UPDATED: "border-orange-200 bg-orange-50 text-orange-700",
+  INQUIRIES_BULK_UPDATED: "border-orange-200 bg-orange-50 text-orange-700",
 };
 
 const DETAIL_KEY_LABELS: Record<string, string> = {
-  status: "Trạng thái đơn",
+  status: "Trạng thái",
   paymentStatus: "Trạng thái thanh toán",
   ticketCode: "Mã vé",
   checkInCode: "Mã check-in",
   source: "Nguồn cập nhật",
   mode: "Chế độ",
+  count: "Số lượng",
+  inquiryId: "Mã tư vấn",
+  referenceCode: "Mã tham chiếu",
+  reviewId: "Mã đánh giá",
+  userId: "Mã người dùng",
+  fullName: "Họ tên",
+  email: "Email",
+  isVisible: "Hiển thị",
+  role: "Vai trò",
 };
 
 const FIELD_LABELS: Record<string, string> = {
@@ -54,6 +85,9 @@ const FIELD_LABELS: Record<string, string> = {
   departureDate: "Ngày khởi hành",
   paymentMethod: "Phương thức thanh toán",
   roomType: "Loại phòng",
+  singleRoomGuests: "Số khách ở phòng đơn",
+  pickupMethod: "Nhu cầu đón",
+  pickupLocation: "Điểm đón mong muốn",
   status: "Trạng thái đơn",
   paymentStatus: "Trạng thái thanh toán",
 };
@@ -65,6 +99,13 @@ const STATUS_LABELS: Record<string, string> = {
   COMPLETED: "Hoàn thành",
   UNPAID: "Chưa thanh toán",
   PAID: "Đã thanh toán",
+  RESOLVED: "Đã xử lý",
+  ACTIVE: "Hoạt động",
+  BLOCKED: "Bị khóa",
+  USER: "Người dùng",
+  ADMIN: "Quản trị viên",
+  SELF_ARRIVAL: "Tự đến điểm hẹn",
+  NEED_PICKUP: "Cần hỗ trợ đón",
 };
 
 function formatLogDetail(detailJson?: string | null) {
@@ -146,7 +187,7 @@ export default async function AdminActivityLogsPage({ searchParams }: AdminActiv
             </p>
             <h1 className="mt-3 iv-admin-page-title">Nhật ký hoạt động</h1>
             <p className="iv-admin-page-subtitle">
-              Theo dõi toàn bộ thao tác booking của admin: cập nhật trạng thái, thanh toán, phát hành vé và check-in.
+              Theo dõi thao tác đơn đặt tour và các hành động quản trị: đánh giá, thành viên, tư vấn, nhận tin.
             </p>
           </div>
           <div className="rounded-xl border border-teal-100 bg-gradient-to-br from-white to-teal-50/70 px-4 py-3 text-right shadow-sm">
@@ -179,14 +220,14 @@ export default async function AdminActivityLogsPage({ searchParams }: AdminActiv
         <div className="iv-admin-filter-actions">
           <button
             type="submit"
-            className="iv-btn-primary inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto"
+            className="iv-btn-primary iv-admin-action-btn inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold sm:w-auto"
           >
             Lọc dữ liệu
           </button>
           {hasActiveFilters ? (
             <Link
               href="/admin/activity-logs"
-              className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
+              className="iv-admin-action-btn inline-flex h-10 w-full items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
             >
               <FilterX className="mr-1.5 h-4 w-4" />
               Xóa bộ lọc
@@ -258,7 +299,7 @@ export default async function AdminActivityLogsPage({ searchParams }: AdminActiv
                 <thead>
                   <tr className="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
                     <th className="w-[118px] px-3 py-3 whitespace-nowrap">Thời gian</th>
-                    <th className="w-[210px] px-3 py-3 whitespace-nowrap">Hành động</th>
+                    <th className="w-[220px] px-3 py-3 whitespace-nowrap">Hành động</th>
                     <th className="w-[140px] px-3 py-3 whitespace-nowrap">Mã đơn</th>
                     <th className="w-[150px] px-3 py-3 whitespace-nowrap">Người thao tác</th>
                     <th className="px-3 py-3 whitespace-nowrap">Chi tiết</th>
@@ -321,9 +362,9 @@ export default async function AdminActivityLogsPage({ searchParams }: AdminActiv
       ) : (
         <EmptyState
           title="Chưa có nhật ký phù hợp"
-          description="Hãy thử đổi bộ lọc hoặc thao tác thêm trên booking."
+          description="Hãy thử đổi bộ lọc hoặc thao tác thêm trên khu vực admin."
           ctaHref="/admin/bookings"
-          ctaLabel="Tới trang booking"
+          ctaLabel="Tới trang đơn đặt tour"
         />
       )}
 
@@ -381,3 +422,5 @@ export default async function AdminActivityLogsPage({ searchParams }: AdminActiv
     </div>
   );
 }
+
+

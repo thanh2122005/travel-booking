@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/users/[id]/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/users/[id]/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -6,6 +6,7 @@ import { UserRole, UserStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApiAuth } from "@/lib/auth/admin-api";
+import { appendAdminActivityLog } from "@/lib/db/admin-activity-log";
 import { deleteAdminUser, getAdminUsers, updateAdminUser } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 
@@ -23,12 +24,12 @@ type UserRouteContext = {
   params: Promise<{ id: string }>;
 };
 
-// FLOW: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function PATCH(request: Request, context: UserRouteContext) {
-  // STEP 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
-  // STEP 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
-  // STEP 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
-  // STEP 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
+  // BƯỚC 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
+  // BƯỚC 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
+  // BƯỚC 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
+  // BƯỚC 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
   // requireAdminApiAuth khác requireAdminApi:
   // - Ngoài response guard, hàm này còn trả userId hiện tại.
   // - UserId này cần cho rule chặn admin tự khóa / tự hạ quyền.
@@ -75,6 +76,16 @@ export async function PATCH(request: Request, context: UserRouteContext) {
     if (updated === "NOT_FOUND") {
       return NextResponse.json({ message: "Không tìm thấy người dùng cần cập nhật." }, { status: 404 });
     }
+    await appendAdminActivityLog({
+      action: "USER_UPDATED",
+      actorId: auth.userId,
+      actorName: auth.userName ?? "Quản trị viên",
+      detail: {
+        userId: updated.id,
+        role: updated.role,
+        status: updated.status,
+      },
+    }).catch(() => undefined);
 
     return NextResponse.json({ message: "Đã cập nhật người dùng.", user: updated });
   } catch {
@@ -82,12 +93,12 @@ export async function PATCH(request: Request, context: UserRouteContext) {
   }
 }
 
-// FLOW: DELETE - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: DELETE - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function DELETE(_request: Request, context: UserRouteContext) {
-  // STEP 1: Kiểm tra quyền truy cập để tránh xóa trái phép.
-  // STEP 2: Phân tích input cần thiết (id/body/query) và kiểm tra hợp lệ.
-  // STEP 3: Kiểm tra tồn tại + ràng buộc nghiệp vụ trước khi xóa.
-  // STEP 4: Xóa dữ liệu và trả kết quả/thông báo lỗi phù hợp.
+  // BƯỚC 1: Kiểm tra quyền truy cập để tránh xóa trái phép.
+  // BƯỚC 2: Phân tích input cần thiết (id/body/query) và kiểm tra hợp lệ.
+  // BƯỚC 3: Kiểm tra tồn tại + ràng buộc nghiệp vụ trước khi xóa.
+  // BƯỚC 4: Xóa dữ liệu và trả kết quả/thông báo lỗi phù hợp.
   const auth = await requireAdminApiAuth();
   if (auth.response) return auth.response;
 
@@ -115,6 +126,16 @@ export async function DELETE(_request: Request, context: UserRouteContext) {
     if (removed === "NOT_FOUND") {
       return NextResponse.json({ message: "Không tìm thấy người dùng cần xóa." }, { status: 404 });
     }
+    await appendAdminActivityLog({
+      action: "USER_DELETED",
+      actorId: auth.userId,
+      actorName: auth.userName ?? "Quản trị viên",
+      detail: {
+        userId: removed.id,
+        email: removed.email,
+        fullName: removed.fullName,
+      },
+    }).catch(() => undefined);
 
     let totalUsers: number | undefined;
 
@@ -135,6 +156,7 @@ export async function DELETE(_request: Request, context: UserRouteContext) {
     return NextResponse.json({ message: "Không thể xóa người dùng." }, { status: 500 });
   }
 }
+
 
 
 

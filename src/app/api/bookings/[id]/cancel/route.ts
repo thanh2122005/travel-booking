@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/bookings/[id]/cancel/route.ts
+﻿// TÓM TẮT API: src/app/api/bookings/[id]/cancel/route.ts
 // Phạm vi: API public hoặc user đã đăng nhập.
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -15,12 +15,12 @@ type BookingCancelRouteContext = {
   params: Promise<{ id: string }>;
 };
 
-// FLOW: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function PATCH(request: Request, context: BookingCancelRouteContext) {
-  // STEP 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
-  // STEP 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
-  // STEP 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
-  // STEP 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
+  // BƯỚC 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
+  // BƯỚC 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
+  // BƯỚC 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
+  // BƯỚC 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
   // Chỉ chủ đơn đăng nhập mới có quyền hủy booking.
   const guard = await requireActiveUserApi({
     unauthorizedMessage: "Vui lòng đăng nhập để hủy đơn.",
@@ -30,7 +30,7 @@ export async function PATCH(request: Request, context: BookingCancelRouteContext
   }
   const session = guard.session;
 
-  // STEP 2: Rate limit theo user + IP để giảm spam thao tác hủy đơn.
+  // BƯỚC 2: Rate limit theo user + IP để giảm spam thao tác hủy đơn.
   const ip = getClientIp(request);
   const rate = consumeRateLimit(`public:booking:cancel:${session.user.id}:${ip}`, {
     windowMs: 15 * 60 * 1000,
@@ -51,7 +51,7 @@ export async function PATCH(request: Request, context: BookingCancelRouteContext
   const { id } = await context.params;
 
   try {
-    // STEP 3: Chỉ truy vấn booking thuộc đúng chủ đơn hiện tại.
+    // BƯỚC 3: Chỉ truy vấn booking thuộc đúng chủ đơn hiện tại.
     // Tìm booking theo id + userId để tránh hủy nhầm đơn người khác.
     const booking = await db.booking.findFirst({
       where: {
@@ -76,7 +76,7 @@ export async function PATCH(request: Request, context: BookingCancelRouteContext
 
     const decision = evaluateCancelBooking(booking.status, booking.paymentStatus, booking.departureDate);
     if (!decision.allowed) {
-      // STEP 3.1: Áp quy tắc nghiệp vụ hủy đơn (không phải trạng thái nào cũng cho hủy).
+      // BƯỚC 3.1: Áp quy tắc nghiệp vụ hủy đơn (không phải trạng thái nào cũng cho hủy).
       // Rule nghiệp vụ: một số trạng thái không cho hủy online.
       if (decision.reason === "TOO_CLOSE_TO_DEPARTURE") {
         return NextResponse.json(
@@ -91,7 +91,7 @@ export async function PATCH(request: Request, context: BookingCancelRouteContext
       );
     }
 
-    // STEP 4: Cập nhật trạng thái sang CANCELLED và trả dữ liệu xác nhận.
+    // BƯỚC 4: Cập nhật trạng thái sang CANCELLED và trả dữ liệu xác nhận.
     // Cập nhật trạng thái booking về CANCELLED.
     const updated = await db.booking.update({
       where: { id: booking.id },
@@ -154,6 +154,7 @@ export async function PATCH(request: Request, context: BookingCancelRouteContext
     );
   }
 }
+
 
 
 

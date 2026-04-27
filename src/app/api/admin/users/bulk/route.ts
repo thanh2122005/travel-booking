@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/users/bulk/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/users/bulk/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -6,6 +6,7 @@ import { UserRole, UserStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApiAuth } from "@/lib/auth/admin-api";
+import { appendAdminActivityLog } from "@/lib/db/admin-activity-log";
 import { updateAdminUsersBulk } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 
@@ -19,12 +20,12 @@ const userBulkUpdateSchema = z
     message: "Vui lòng chọn ít nhất một trường cập nhật.",
   });
 
-// FLOW: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function PATCH(request: Request) {
-  // STEP 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
-  // STEP 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
-  // STEP 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
-  // STEP 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
+  // BƯỚC 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
+  // BƯỚC 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
+  // BƯỚC 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
+  // BƯỚC 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
   try {
     // Guard + userId hiện tại để xử lý rule an toàn cho admin.
     const auth = await requireAdminApiAuth();
@@ -68,6 +69,16 @@ export async function PATCH(request: Request) {
     if (result.count === 0) {
       return NextResponse.json({ message: "Không tìm thấy người dùng phù hợp để cập nhật." }, { status: 404 });
     }
+    await appendAdminActivityLog({
+      action: "USERS_BULK_UPDATED",
+      actorId: auth.userId,
+      actorName: auth.userName ?? "Quản trị viên",
+      detail: {
+        count: result.count,
+        role: parsed.data.role ?? null,
+        status: parsed.data.status ?? null,
+      },
+    }).catch(() => undefined);
 
     return NextResponse.json({
       // count trả về để UI cập nhật nhanh mà không cần query phụ.
@@ -78,6 +89,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ message: "Không thể xử lý yêu cầu lúc này." }, { status: 500 });
   }
 }
+
 
 
 

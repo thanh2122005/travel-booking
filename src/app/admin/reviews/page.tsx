@@ -148,7 +148,7 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
             href="#bo-loc-review"
             className="inline-flex h-9 items-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
           >
-            Bộ lọc review
+            Bộ lọc đánh giá
           </a>
           <a
             href="#danh-sach-review"
@@ -214,7 +214,7 @@ export default async function AdminReviewsPage({ searchParams }: AdminReviewsPag
             id="search"
             name="search"
             defaultValue={search}
-            placeholder="Nội dung review, tên người dùng hoặc tên tour..."
+            placeholder="Nội dung đánh giá, tên người dùng hoặc tên tour..."
             className="h-10 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm sm:col-span-2 xl:col-span-2 focus:border-teal-500 focus:outline-none"
           />
           <select

@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/tours/[id]/images/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/tours/[id]/images/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> validate -> thêm ảnh/sắp xếp ảnh tour.
 
@@ -103,4 +103,5 @@ export async function PATCH(request: Request, context: TourImageRouteContext) {
     images: reordered,
   });
 }
+
 

@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/locations/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/locations/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -21,22 +21,22 @@ const createLocationSchema = z.object({
   featured: z.boolean().optional(),
 });
 
-// FLOW: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function POST(request: Request) {
-  // STEP 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
-  // STEP 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
-  // STEP 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
-  // STEP 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
+  // BƯỚC 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
+  // BƯỚC 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
+  // BƯỚC 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
+  // BƯỚC 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
   const guard = await requireAdminApi();
   if (guard) return guard;
 
-  // STEP 2: Parse JSON an toàn trước khi kiểm tra hợp lệ schema.
+  // BƯỚC 2: Parse JSON an toàn trước khi kiểm tra hợp lệ schema.
   const json = await parseJsonBody(request, "Dữ liệu tạo điểm đến không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }
 
-  // STEP 3: Validate field bắt buộc cho điểm đến (name/slug/location/...).
+  // BƯỚC 3: Validate field bắt buộc cho điểm đến (name/slug/location/...).
   const parsed = createLocationSchema.safeParse(json.data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    // STEP 4: Ghi dữ liệu qua lớp service để route không ôm logic DB.
+    // BƯỚC 4: Ghi dữ liệu qua lớp service để route không ôm logic DB.
     const created = await createAdminLocation(parsed.data);
     return NextResponse.json(
       { message: "Tạo điểm đến thành công.", location: created },
@@ -65,4 +65,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Không thể tạo điểm đến mới." }, { status: 500 });
   }
 }
+
 

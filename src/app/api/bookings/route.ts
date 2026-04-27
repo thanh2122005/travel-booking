@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/bookings/route.ts
+﻿// TÓM TẮT API: src/app/api/bookings/route.ts
 // Phạm vi: API public hoặc user đã đăng nhập.
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -83,6 +83,8 @@ function isGuestBreakdownPersistenceError(error: unknown) {
     message.includes("Unknown argument `childUnder5RatioSnapshot`") ||
     message.includes("Unknown argument `singleRoomSurchargePerAdultSnapshot`") ||
     message.includes("Unknown argument `durationNightsSnapshot`") ||
+    message.includes("Unknown argument `pickupMethod`") ||
+    message.includes("Unknown argument `pickupLocation`") ||
     message.includes("Unknown argument `departureDate`") ||
     message.includes("Unknown argument `paymentMethod`") ||
     message.includes("Unknown argument `paymentStatus`") ||
@@ -118,6 +120,8 @@ function isCompatibilitySchemaError(error: unknown) {
     message.includes("Unknown argument `childUnder5RatioSnapshot`") ||
     message.includes("Unknown argument `singleRoomSurchargePerAdultSnapshot`") ||
     message.includes("Unknown argument `durationNightsSnapshot`") ||
+    message.includes("Unknown argument `pickupMethod`") ||
+    message.includes("Unknown argument `pickupLocation`") ||
     message.includes("Unknown argument `paymentMethod`") ||
     message.includes("Unknown argument `paymentStatus`") ||
     message.includes("Unknown argument `status`") ||
@@ -302,12 +306,12 @@ function getUtc7DayRange(date: Date) {
   return { start, end };
 }
 
-// FLOW: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function POST(request: Request) {
-  // STEP 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
-  // STEP 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
-  // STEP 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
-  // STEP 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
+  // BƯỚC 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
+  // BƯỚC 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
+  // BƯỚC 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
+  // BƯỚC 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
   // Chỉ user đã đăng nhập và không bị khóa mới được đặt tour.
   const guard = await requireActiveUserApi({
     unauthorizedMessage: "Vui lòng đăng nhập để đặt tour.",
@@ -322,7 +326,18 @@ export async function POST(request: Request) {
     return json.response;
   }
 
-  const parsed = bookingSchema.safeParse(json.data);
+  const normalizedInput =
+    json.data && typeof json.data === "object"
+      ? {
+          ...json.data,
+          pickupLocation:
+            "pickupLocation" in json.data && (json.data as { pickupLocation?: unknown }).pickupLocation === null
+              ? ""
+              : (json.data as { pickupLocation?: unknown }).pickupLocation,
+        }
+      : json.data;
+
+  const parsed = bookingSchema.safeParse(normalizedInput);
   if (!parsed.success) {
     // Trả lỗi đầu tiên để thông báo rõ ràng, tránh spam nhiều lỗi cùng lúc.
     const firstIssue = parsed.error.issues[0];
@@ -336,6 +351,11 @@ export async function POST(request: Request) {
   const child5To7Guests = parsed.data.child5To7Guests ?? 0;
   const childUnder5Guests = parsed.data.childUnder5Guests ?? 0;
   const roomType = parsed.data.roomType ?? "DOUBLE";
+  const requestedSingleRoomGuests =
+    typeof parsed.data.singleRoomGuests === "number" ? parsed.data.singleRoomGuests : undefined;
+  const pickupMethod = parsed.data.pickupMethod ?? "SELF_ARRIVAL";
+  const pickupLocation =
+    pickupMethod === "NEED_PICKUP" ? parsed.data.pickupLocation?.trim() || null : null;
   const totalGuests = guestsFrom8 + child5To7Guests + childUnder5Guests;
   if (totalGuests !== parsed.data.numberOfGuests) {
     return NextResponse.json(
@@ -449,6 +469,14 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    const normalizedSingleRoomGuests =
+      typeof requestedSingleRoomGuests === "number" && Number.isFinite(requestedSingleRoomGuests)
+        ? Math.trunc(requestedSingleRoomGuests)
+        : totalGuests;
+    const singleRoomGuests =
+      roomType === "SINGLE"
+        ? Math.max(1, Math.min(totalGuests, normalizedSingleRoomGuests))
+        : 0;
     const baseGuestTotal = Math.round(
       unitPrice *
         (guestsFrom8 +
@@ -457,7 +485,7 @@ export async function POST(request: Request) {
     );
     const roomSurchargeTotal =
       roomType === "SINGLE"
-        ? Math.round(guestsFrom8 * singleRoomSurchargePerAdult * tour.durationNights)
+        ? Math.round(singleRoomGuests * singleRoomSurchargePerAdult * tour.durationNights)
         : 0;
     const totalPrice = baseGuestTotal + roomSurchargeTotal;
     const booking = await db.$transaction(
@@ -536,6 +564,8 @@ export async function POST(request: Request) {
           status: "PENDING",
           paymentMethod: "Thanh toan khi xac nhan",
           paymentStatus: "UNPAID",
+          pickupMethod,
+          pickupLocation,
           roomType,
           baseGuestTotal,
           roomSurchargeTotal,
@@ -566,6 +596,8 @@ export async function POST(request: Request) {
           status: "PENDING",
           paymentMethod: "Thanh toan khi xac nhan",
           paymentStatus: "UNPAID",
+          pickupMethod,
+          pickupLocation,
           totalPrice,
           departureDate,
         } as unknown as Prisma.BookingUncheckedCreateInput;
@@ -594,6 +626,8 @@ export async function POST(request: Request) {
           note: parsed.data.note || null,
           status: "PENDING",
           paymentMethod: "Thanh toan khi xac nhan",
+          pickupMethod,
+          pickupLocation,
           totalPrice,
           departureDate,
         } as unknown as Prisma.BookingUncheckedCreateInput;
@@ -608,6 +642,8 @@ export async function POST(request: Request) {
           note: parsed.data.note || null,
           status: "PENDING",
           paymentMethod: "Thanh toan khi xac nhan",
+          pickupMethod,
+          pickupLocation,
           totalPrice,
         } as unknown as Prisma.BookingUncheckedCreateInput;
         const createDataLegacyWithPaymentMethodOnly = {
@@ -738,6 +774,7 @@ export async function POST(request: Request) {
         remainingSeats: booking.remainingSeats,
         pricing: {
           roomType,
+          singleRoomGuests,
           baseGuestTotal,
           roomSurchargeTotal,
           totalPrice,
@@ -759,8 +796,11 @@ export async function POST(request: Request) {
         child5To7Guests,
         childUnder5Guests,
         roomType,
-        note: parsed.data.note,
-        departureDate: parsed.data.departureDate,
+        singleRoomGuests: requestedSingleRoomGuests,
+          note: parsed.data.note,
+          pickupMethod,
+          pickupLocation,
+          departureDate: parsed.data.departureDate,
       });
 
       if (duPhongBooking === "MAX_GUEST_EXCEEDED") {
@@ -857,6 +897,12 @@ export async function POST(request: Request) {
             totalPrice: duPhongBooking.totalPrice,
           },
           remainingSeats: duPhongBooking.remainingSeats,
+          pricing: {
+            roomType,
+            singleRoomGuests: roomType === "SINGLE" ? requestedSingleRoomGuests ?? guestsFrom8 : 0,
+            baseGuestTotal: duPhongBooking.baseGuestTotal ?? null,
+            roomSurchargeTotal: duPhongBooking.roomSurchargeTotal ?? null,
+          },
         },
         { status: 201 },
       );
@@ -887,13 +933,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (process.env.NODE_ENV !== "production") {
-      const debugMessage = error instanceof Error ? error.message : String(error);
-      return NextResponse.json(
-        { message: `Không thể xử lý đặt tour lúc này. Debug: ${debugMessage}` },
-        { status: 500 },
-      );
-    }
+    console.error("Create booking failed:", error);
 
     return NextResponse.json(
       { message: "Không thể xử lý đặt tour lúc này, vui lòng thử lại sau." },
@@ -901,6 +941,7 @@ export async function POST(request: Request) {
     );
   }
 }
+
 
 
 

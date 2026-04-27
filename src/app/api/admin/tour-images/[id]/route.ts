@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/tour-images/[id]/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/tour-images/[id]/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> validate -> cập nhật/xóa ảnh tour.
 
@@ -67,4 +67,5 @@ export async function DELETE(_request: Request, context: TourImageByIdRouteConte
     return NextResponse.json({ message: "Không thể xóa ảnh tour." }, { status: 500 });
   }
 }
+
 

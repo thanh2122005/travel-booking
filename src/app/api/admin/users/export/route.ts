@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/users/export/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/users/export/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> đọc bộ lọc query -> truy vấn DB -> xuất CSV.
 
@@ -51,7 +51,7 @@ function buildFileName(prefix: string) {
   return `${prefix}_${date}_${time}.csv`;
 }
 
-// FLOW: GET - kiểm tra quyền -> đọc query params -> export dữ liệu user.
+// LUỒNG: GET - kiểm tra quyền -> đọc query params -> export dữ liệu user.
 export async function GET(request: NextRequest) {
   const guard = await requireAdminApi();
   if (guard) return guard;
@@ -114,4 +114,5 @@ export async function GET(request: NextRequest) {
     },
   });
 }
+
 

@@ -51,9 +51,9 @@ import {
 } from "@/lib/db/booking-checkin-metadata";
 import {
   appendBookingActivityLog,
-  getAdminBookingActivityLogs as getAdminBookingActivityFeed,
   getBookingActivityLogs,
 } from "@/lib/db/booking-activity-log";
+import { getUnifiedAdminActivityLogs } from "@/lib/db/admin-activity-log";
 import {
   attachBookingPaymentMetadata,
   getBookingPaymentMetadata,
@@ -175,6 +175,8 @@ function isLegacyBookingFieldError(error: unknown) {
     message.includes("Unknown field `childUnder5RatioSnapshot`") ||
     message.includes("Unknown field `singleRoomSurchargePerAdultSnapshot`") ||
     message.includes("Unknown field `durationNightsSnapshot`") ||
+    message.includes("Unknown field `pickupMethod`") ||
+    message.includes("Unknown field `pickupLocation`") ||
     message.includes("Unknown field `singleRoomSurchargePerAdult`") ||
     message.includes("Unknown argument `roomType`") ||
     message.includes("Unknown argument `baseGuestTotal`") ||
@@ -187,6 +189,8 @@ function isLegacyBookingFieldError(error: unknown) {
     message.includes("Unknown argument `childUnder5RatioSnapshot`") ||
     message.includes("Unknown argument `singleRoomSurchargePerAdultSnapshot`") ||
     message.includes("Unknown argument `durationNightsSnapshot`") ||
+    message.includes("Unknown argument `pickupMethod`") ||
+    message.includes("Unknown argument `pickupLocation`") ||
     message.includes("Unknown argument `singleRoomSurchargePerAdult`")
   );
 }
@@ -588,7 +592,7 @@ function buildBookingRevenueTimeline(
   bookings: Array<{ createdAt: Date; totalPrice: number; status: BookingStatus }>,
   options: { startDate: Date; endDate: Date; granularity: TimelineGranularity },
 ) {
-  // Đổ dữ liệu booking vào các bucket timeline (day/week/month).
+  // Đổ dữ liệu đơn đặt tour vào các bucket timeline (day/week/month).
   const rows = buildTimelineRows(options.startDate, options.endDate, options.granularity);
   const map = new Map(rows.map((row) => [row.monthKey, row]));
 
@@ -1794,6 +1798,9 @@ export async function updateAdminBookingDetail(
     departureDate?: string | null;
     paymentMethod?: string;
     roomType?: "DOUBLE" | "SINGLE";
+    singleRoomGuests?: number;
+    pickupMethod?: "SELF_ARRIVAL" | "NEED_PICKUP";
+    pickupLocation?: string | null;
     status?: BookingStatus;
     paymentStatus?: PaymentStatus;
   },
@@ -1964,6 +1971,25 @@ export async function updateAdminBookingDetail(
     if (nextRoomType === "SINGLE" && durationNights <= 0) {
       return "INVALID_ROOM_TYPE" as const;
     }
+    const inferredSingleRoomGuests =
+      typeof current.roomSurchargeTotal === "number" &&
+      current.roomSurchargeTotal > 0 &&
+      singleRoomSurchargePerAdult > 0 &&
+      durationNights > 0
+        ? Math.max(1, Math.round(current.roomSurchargeTotal / (singleRoomSurchargePerAdult * durationNights)))
+        : Math.max(nextGuestsFrom8, 0);
+    const nextSingleRoomGuests =
+      nextRoomType === "SINGLE"
+        ? Math.max(
+            1,
+            Math.min(
+              Math.max(nextGuests, 0),
+              typeof payload.singleRoomGuests === "number" && Number.isFinite(payload.singleRoomGuests)
+                ? Math.trunc(payload.singleRoomGuests)
+                : inferredSingleRoomGuests,
+            ),
+          )
+        : 0;
     const weightedGuests =
       Math.max(nextGuestsFrom8, 0) +
       Math.max(nextChild5To7Guests, 0) * child5To7Ratio +
@@ -1971,7 +1997,7 @@ export async function updateAdminBookingDetail(
     const baseGuestTotal = Math.round(unitPrice * weightedGuests);
     const roomSurchargeTotal =
       nextRoomType === "SINGLE"
-        ? Math.round(Math.max(nextGuestsFrom8, 0) * singleRoomSurchargePerAdult * durationNights)
+        ? Math.round(nextSingleRoomGuests * singleRoomSurchargePerAdult * durationNights)
         : 0;
     const nextDepartureDate =
       payload.departureDate === null
@@ -1992,6 +2018,10 @@ export async function updateAdminBookingDetail(
         ...(typeof payload.numberOfGuests === "number" ? { numberOfGuests: nextGuests } : {}),
         ...(payload.note === null || typeof payload.note === "string" ? { note: payload.note } : {}),
         ...(payload.paymentMethod ? { paymentMethod: payload.paymentMethod } : {}),
+        ...(payload.pickupMethod ? { pickupMethod: payload.pickupMethod } : {}),
+        ...(payload.pickupLocation === null || typeof payload.pickupLocation === "string"
+          ? { pickupLocation: payload.pickupLocation }
+          : {}),
         ...(nextDepartureDate !== undefined ? { departureDate: nextDepartureDate } : {}),
         ...(payload.status ? { status: payload.status } : {}),
         ...(payload.paymentStatus ? { paymentStatus: payload.paymentStatus } : {}),
@@ -2076,6 +2106,10 @@ export async function updateAdminBookingDetail(
         ...(typeof payload.numberOfGuests === "number" ? { numberOfGuests: nextGuests } : {}),
         ...(payload.note === null || typeof payload.note === "string" ? { note: payload.note } : {}),
         ...(payload.paymentMethod ? { paymentMethod: payload.paymentMethod } : {}),
+        ...(payload.pickupMethod ? { pickupMethod: payload.pickupMethod } : {}),
+        ...(payload.pickupLocation === null || typeof payload.pickupLocation === "string"
+          ? { pickupLocation: payload.pickupLocation }
+          : {}),
         ...(nextDepartureDate !== undefined ? { departureDate: nextDepartureDate } : {}),
         ...(payload.status ? { status: payload.status } : {}),
         ...(payload.paymentStatus ? { paymentStatus: payload.paymentStatus } : {}),
@@ -2218,7 +2252,7 @@ export async function getAdminActivityLogs(filter: {
   pageSize?: number;
 } = {}) {
   try {
-    return await getAdminBookingActivityFeed(filter);
+    return await getUnifiedAdminActivityLogs(filter);
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return demoGetAdminActivityLogs(filter);

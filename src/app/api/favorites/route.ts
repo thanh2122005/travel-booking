@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/favorites/route.ts
+﻿// TÓM TẮT API: src/app/api/favorites/route.ts
 // Phạm vi: API public hoặc user đã đăng nhập.
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -12,12 +12,12 @@ import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { favoriteSchema } from "@/lib/validations/tour-interactions";
 
-// FLOW: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function POST(request: Request) {
-  // STEP 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
-  // STEP 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
-  // STEP 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
-  // STEP 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
+  // BƯỚC 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
+  // BƯỚC 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
+  // BƯỚC 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
+  // BƯỚC 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
   // Guard xác thực user trước khi cho phép thao tác favorite.
   const guard = await requireActiveUserApi({
     unauthorizedMessage: "Vui lòng đăng nhập để sử dụng tính năng này.",
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   }
   const session = guard.session;
 
-  // STEP 2: Rate limit cho thao tác bật/tắt yêu thích.
+  // BƯỚC 2: Rate limit cho thao tác bật/tắt yêu thích.
   const ip = getClientIp(request);
   const rate = consumeRateLimit(`public:favorite:toggle:${session.user.id}:${ip}`, {
     windowMs: 15 * 60 * 1000,
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // STEP 3: Phân tích body + kiểm tra hợp lệ tourId.
+  // BƯỚC 3: Phân tích body + kiểm tra hợp lệ tourId.
   const json = await parseJsonBody(request, "Dữ liệu yêu thích không hợp lệ.");
   if (!json.ok) {
     return json.response;
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    // STEP 4: Kiểm tra tour còn ACTIVE trước khi cho favorite.
+    // BƯỚC 4: Kiểm tra tour còn ACTIVE trước khi cho favorite.
     // Chỉ cho favorite tour đang ACTIVE.
     const tour = await db.tour.findUnique({
       where: { id: parsed.data.tourId },
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     });
 
     if (existing) {
-      // STEP 5A: Đã có thì xóa record -> bỏ yêu thích.
+      // BƯỚC 5A: Đã có thì xóa record -> bỏ yêu thích.
       // Đã có favorite thì toggle thành bỏ yêu thích.
       await db.favorite.delete({
         where: { id: existing.id },
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // STEP 5B: Chưa có thì tạo record -> thêm yêu thích.
+    // BƯỚC 5B: Chưa có thì tạo record -> thêm yêu thích.
     // Chưa có favorite thì tạo mới.
     await db.favorite.create({
       data: {
@@ -146,12 +146,12 @@ export async function POST(request: Request) {
   }
 }
 
-// FLOW: DELETE - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: DELETE - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function DELETE(request: Request) {
-  // STEP 1: Kiểm tra quyền truy cập để tránh xóa trái phép.
-  // STEP 2: Phân tích input cần thiết (id/body/query) và kiểm tra hợp lệ.
-  // STEP 3: Kiểm tra tồn tại + ràng buộc nghiệp vụ trước khi xóa.
-  // STEP 4: Xóa dữ liệu và trả kết quả/thông báo lỗi phù hợp.
+  // BƯỚC 1: Kiểm tra quyền truy cập để tránh xóa trái phép.
+  // BƯỚC 2: Phân tích input cần thiết (id/body/query) và kiểm tra hợp lệ.
+  // BƯỚC 3: Kiểm tra tồn tại + ràng buộc nghiệp vụ trước khi xóa.
+  // BƯỚC 4: Xóa dữ liệu và trả kết quả/thông báo lỗi phù hợp.
   const guard = await requireActiveUserApi({
     unauthorizedMessage: "Vui lòng đăng nhập để sử dụng tính năng này.",
   });
@@ -160,7 +160,7 @@ export async function DELETE(request: Request) {
   }
   const session = guard.session;
 
-  // STEP 2: Rate limit cho thao tác xóa yêu thích.
+  // BƯỚC 2: Rate limit cho thao tác xóa yêu thích.
   const ip = getClientIp(request);
   const rate = consumeRateLimit(`public:favorite:remove:${session.user.id}:${ip}`, {
     windowMs: 15 * 60 * 1000,
@@ -178,7 +178,7 @@ export async function DELETE(request: Request) {
     );
   }
 
-  // STEP 3: Phân tích body + kiểm tra hợp lệ tourId.
+  // BƯỚC 3: Phân tích body + kiểm tra hợp lệ tourId.
   const json = await parseJsonBody(request, "Dữ liệu yêu thích không hợp lệ.");
   if (!json.ok) {
     return json.response;
@@ -194,7 +194,7 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    // STEP 4: Tìm bản ghi favorite theo cặp (userId, tourId) rồi xóa.
+    // BƯỚC 4: Tìm bản ghi favorite theo cặp (userId, tourId) rồi xóa.
     const existing = await db.favorite.findUnique({
       where: {
         userId_tourId: {
@@ -247,6 +247,7 @@ export async function DELETE(request: Request) {
     );
   }
 }
+
 
 
 

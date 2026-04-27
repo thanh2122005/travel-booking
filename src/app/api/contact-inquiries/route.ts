@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/contact-inquiries/route.ts
+﻿// TÓM TẮT API: src/app/api/contact-inquiries/route.ts
 // Phạm vi: API public hoặc user đã đăng nhập.
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -7,6 +7,7 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db/prisma";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { saveContactInquiry, demoGetContactInquiries } from "@/lib/demo/contact-inquiry-store";
+import { requireAdminApi } from "@/lib/auth/admin-api";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { contactInquirySchema } from "@/lib/validations/contact";
 
@@ -60,12 +61,12 @@ async function createContactInquiryWithRetry(data: {
   throw new Error("Không thể tạo mã tham chiếu mới cho yêu cầu tư vấn.");
 }
 
-// FLOW: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function POST(request: Request) {
-  // STEP 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
-  // STEP 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
-  // STEP 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
-  // STEP 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
+  // BƯỚC 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
+  // BƯỚC 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
+  // BƯỚC 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
+  // BƯỚC 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
   // Rate limit theo IP cho form liên hệ công khai.
   const ip = getClientIp(request);
   const rate = consumeRateLimit(`public:contact-inquiry:${ip}`, {
@@ -136,14 +137,15 @@ export async function POST(request: Request) {
   }
 }
 
-// FLOW: GET - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: GET - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function GET() {
-  // STEP 1: Kiểm tra quyền truy cập (nếu endpoint có yêu cầu auth/admin).
-  // STEP 2: Đọc query params và chuẩn hóa bộ lọc/sắp xếp.
-  // STEP 3: Gọi service/DB để lấy dữ liệu hoặc tạo file export.
-  // STEP 4: Trả response thành công hoặc mã lỗi phù hợp (400/401/403/404/500).
+  // Chỉ admin mới được truy cập danh sách inquiry.
+  const adminResponse = await requireAdminApi();
+  if (adminResponse) {
+    return adminResponse;
+  }
+
   try {
-    // Endpoint debug/demo: lấy toàn bộ inquiry gần nhất.
     const inquiries = await db.contactInquiry.findMany({
       orderBy: { createdAt: "desc" },
       include: { tour: { select: { title: true } } },
@@ -160,6 +162,7 @@ export async function GET() {
     );
   }
 }
+
 
 
 

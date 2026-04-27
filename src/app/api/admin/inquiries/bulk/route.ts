@@ -1,11 +1,12 @@
-﻿// API SUMMARY: src/app/api/admin/inquiries/bulk/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/inquiries/bulk/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> parse body -> validate -> cập nhật trạng thái hàng loạt.
 
 import { InquiryStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import { requireAdminApi } from "@/lib/auth/admin-api";
+import { requireAdminApiAuth } from "@/lib/auth/admin-api";
+import { appendAdminActivityLog } from "@/lib/db/admin-activity-log";
 import { updateAdminInquiriesBulk } from "@/lib/db/admin-engagement-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
 
@@ -16,8 +17,8 @@ const bulkInquirySchema = z.object({
 
 export async function PATCH(request: Request) {
   try {
-    const guard = await requireAdminApi();
-    if (guard) return guard;
+    const auth = await requireAdminApiAuth();
+    if (auth.response) return auth.response;
 
     const json = await parseJsonBody(request, "Dữ liệu cập nhật tư vấn hàng loạt không hợp lệ.");
     if (!json.ok) {
@@ -37,6 +38,15 @@ export async function PATCH(request: Request) {
     if (updated.count === 0) {
       return NextResponse.json({ message: "Không tìm thấy yêu cầu tư vấn phù hợp để cập nhật." }, { status: 404 });
     }
+    await appendAdminActivityLog({
+      action: "INQUIRIES_BULK_UPDATED",
+      actorId: auth.userId,
+      actorName: auth.userName ?? "Quản trị viên",
+      detail: {
+        count: updated.count,
+        status: parsed.data.status,
+      },
+    }).catch(() => undefined);
 
     return NextResponse.json({
       message: `Đã cập nhật ${updated.count} yêu cầu tư vấn.`,
@@ -46,4 +56,5 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ message: "Không thể xử lý yêu cầu lúc này." }, { status: 500 });
   }
 }
+
 

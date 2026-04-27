@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { requireAdminApiAuth } from "@/lib/auth/admin-api";
 import { markAdminBookingCheckedIn } from "@/lib/db/admin-queries";
 
@@ -15,7 +15,7 @@ export async function POST(_request: Request, context: AdminBookingCheckInRouteC
   try {
     const result = await markAdminBookingCheckedIn(id, guard.userId);
     if (result === "NOT_FOUND") {
-      return NextResponse.json({ message: "Không tìm thấy đơn booking." }, { status: 404 });
+      return NextResponse.json({ message: "Không tìm thấy đơn đặt tour." }, { status: 404 });
     }
     if (result === "NOT_PAID") {
       return NextResponse.json(
@@ -25,7 +25,7 @@ export async function POST(_request: Request, context: AdminBookingCheckInRouteC
     }
     if (result === "TICKET_NOT_ISSUED") {
       return NextResponse.json(
-        { message: "Đơn chưa có vé/check-in code. Vui lòng phát hành vé trước." },
+        { message: "Đơn chưa có vé/mã check-in. Vui lòng phát hành vé trước." },
         { status: 409 },
       );
     }
@@ -41,10 +41,7 @@ export async function POST(_request: Request, context: AdminBookingCheckInRouteC
       booking: result,
     });
   } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      const detail = error instanceof Error ? error.message : String(error);
-      return NextResponse.json({ message: `Không thể check-in lúc này. Debug: ${detail}` }, { status: 500 });
-    }
+    console.error("Mark booking check-in failed:", error);
     return NextResponse.json({ message: "Không thể check-in lúc này." }, { status: 500 });
   }
 }

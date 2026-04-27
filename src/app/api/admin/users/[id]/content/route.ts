@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/users/[id]/content/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/users/[id]/content/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -6,6 +6,7 @@ import { Prisma, UserRole, UserStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireAdminApiAuth } from "@/lib/auth/admin-api";
+import { appendAdminActivityLog } from "@/lib/db/admin-activity-log";
 import { isPrismaNotFoundError } from "@/lib/db/db-error";
 import { updateAdminUserContent } from "@/lib/db/admin-queries";
 import { parseJsonBody } from "@/lib/http/parse-json-body";
@@ -24,12 +25,12 @@ type UserContentRouteContext = {
   params: Promise<{ id: string }>;
 };
 
-// FLOW: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function PATCH(request: Request, context: UserContentRouteContext) {
-  // STEP 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
-  // STEP 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
-  // STEP 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
-  // STEP 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
+  // BƯỚC 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
+  // BƯỚC 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
+  // BƯỚC 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
+  // BƯỚC 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
   // Dùng auth chi tiết để có userId hiện tại (phục vụ rule tự khóa/tự hạ quyền).
   const auth = await requireAdminApiAuth();
   if (auth.response) return auth.response;
@@ -78,6 +79,18 @@ export async function PATCH(request: Request, context: UserContentRouteContext) 
     if (!updated) {
       return NextResponse.json({ message: "Không tìm thấy người dùng cần cập nhật." }, { status: 404 });
     }
+    await appendAdminActivityLog({
+      action: "USER_CONTENT_UPDATED",
+      actorId: auth.userId,
+      actorName: auth.userName ?? "Quản trị viên",
+      detail: {
+        userId: updated.id,
+        fullName: updated.fullName,
+        email: updated.email,
+        role: updated.role,
+        status: updated.status,
+      },
+    }).catch(() => undefined);
 
     return NextResponse.json({
       message: "Đã cập nhật thông tin người dùng.",
@@ -99,6 +112,7 @@ export async function PATCH(request: Request, context: UserContentRouteContext) 
     return NextResponse.json({ message: "Không thể cập nhật người dùng." }, { status: 500 });
   }
 }
+
 
 
 

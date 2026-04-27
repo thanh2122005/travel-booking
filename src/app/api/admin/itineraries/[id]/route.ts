@@ -1,4 +1,4 @@
-﻿// API SUMMARY: src/app/api/admin/itineraries/[id]/route.ts
+﻿// TÓM TẮT API: src/app/api/admin/itineraries/[id]/route.ts
 // Phạm vi: API quản trị (admin).
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -20,12 +20,12 @@ type ItineraryByIdRouteContext = {
   params: Promise<{ id: string }>;
 };
 
-// FLOW: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function PATCH(request: Request, context: ItineraryByIdRouteContext) {
-  // STEP 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
-  // STEP 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
-  // STEP 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
-  // STEP 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
+  // BƯỚC 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
+  // BƯỚC 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
+  // BƯỚC 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
+  // BƯỚC 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
   const guard = await requireAdminApi();
   if (guard) return guard;
 
@@ -70,12 +70,12 @@ export async function PATCH(request: Request, context: ItineraryByIdRouteContext
   }
 }
 
-// FLOW: DELETE - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
+// LUỒNG: DELETE - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function DELETE(_request: Request, context: ItineraryByIdRouteContext) {
-  // STEP 1: Kiểm tra quyền truy cập để tránh xóa trái phép.
-  // STEP 2: Phân tích input cần thiết (id/body/query) và kiểm tra hợp lệ.
-  // STEP 3: Kiểm tra tồn tại + ràng buộc nghiệp vụ trước khi xóa.
-  // STEP 4: Xóa dữ liệu và trả kết quả/thông báo lỗi phù hợp.
+  // BƯỚC 1: Kiểm tra quyền truy cập để tránh xóa trái phép.
+  // BƯỚC 2: Phân tích input cần thiết (id/body/query) và kiểm tra hợp lệ.
+  // BƯỚC 3: Kiểm tra tồn tại + ràng buộc nghiệp vụ trước khi xóa.
+  // BƯỚC 4: Xóa dữ liệu và trả kết quả/thông báo lỗi phù hợp.
   const guard = await requireAdminApi();
   if (guard) return guard;
 
@@ -92,4 +92,5 @@ export async function DELETE(_request: Request, context: ItineraryByIdRouteConte
     return NextResponse.json({ message: "Không thể xóa lịch trình." }, { status: 500 });
   }
 }
+
 
