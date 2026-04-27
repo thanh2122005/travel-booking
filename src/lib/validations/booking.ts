@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 function parseDateInput(value: string) {
   const trimmed = value.trim();
@@ -83,7 +83,18 @@ export const bookingSchema = z
       .min(0, "So khach duoi 5 tuoi khong hop le")
       .max(100, "So khach duoi 5 tuoi khong hop le")
       .optional(),
+    pickupMethod: z.enum(["SELF_ARRIVAL", "NEED_PICKUP"]).default("SELF_ARRIVAL"),
+    pickupLocation: z.preprocess(
+      (value) => (value === null ? "" : value),
+      z.string().trim().max(120, "Diem don toi da 120 ky tu").optional().or(z.literal("")),
+    ),
     roomType: z.enum(["DOUBLE", "SINGLE"]).optional(),
+    singleRoomGuests: z
+      .number({ message: "So khach o phong don khong hop le" })
+      .int("So khach o phong don phai la so nguyen")
+      .min(0, "So khach o phong don khong hop le")
+      .max(100, "So khach o phong don khong hop le")
+      .optional(),
     note: z.string().trim().max(500, "Ghi chu toi da 500 ky tu").optional().or(z.literal("")),
     departureDate: departureDateSchema,
   })
@@ -104,6 +115,33 @@ export const bookingSchema = z
         });
       }
     }
+
+    if (value.pickupMethod === "NEED_PICKUP" && !value.pickupLocation?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Vui long nhap diem don mong muon khi chon can ho tro don.",
+        path: ["pickupLocation"],
+      });
+    }
+
+    if (value.roomType === "SINGLE") {
+      const singleRoomGuests = value.singleRoomGuests ?? 0;
+      if (singleRoomGuests < 1) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Vui long nhap it nhat 1 khach o phong don.",
+          path: ["singleRoomGuests"],
+        });
+      }
+      if (singleRoomGuests > value.numberOfGuests) {
+        ctx.addIssue({
+          code: "custom",
+          message: "So khach o phong don khong duoc vuot qua tong so khach.",
+          path: ["singleRoomGuests"],
+        });
+      }
+    }
   });
 
 export type BookingInput = z.infer<typeof bookingSchema>;
+

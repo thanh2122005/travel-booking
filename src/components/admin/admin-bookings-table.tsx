@@ -25,6 +25,8 @@ type BookingItem = {
   child5To7Guests?: number | null;
   childUnder5Guests?: number | null;
   roomType?: "DOUBLE" | "SINGLE" | null;
+  pickupMethod?: "SELF_ARRIVAL" | "NEED_PICKUP" | null;
+  pickupLocation?: string | null;
   baseGuestTotal?: number | null;
   roomSurchargeTotal?: number | null;
   unitPriceSnapshot?: number | null;
@@ -315,6 +317,11 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
                     {booking.checkInCode ? ` • CI ${booking.checkInCode}` : ""}
                   </p>
                 ) : null}
+                {booking.pickupMethod === "NEED_PICKUP" ? (
+                  <p className="text-xs text-sky-700">
+                    Cần hỗ trợ đón{booking.pickupLocation ? ` • ${booking.pickupLocation}` : ""}
+                  </p>
+                ) : null}
                 {booking.checkedInAt ? (
                   <p className="text-xs font-medium text-teal-700">
                     Đã check-in: {formatDate(new Date(booking.checkedInAt))}
@@ -420,6 +427,11 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
                         <p className="text-xs text-emerald-700">
                           {booking.ticketCode ? `Vé ${booking.ticketCode}` : "Đã gửi yêu cầu thanh toán"}
                           {booking.checkInCode ? ` • CI ${booking.checkInCode}` : ""}
+                        </p>
+                      ) : null}
+                      {booking.pickupMethod === "NEED_PICKUP" ? (
+                        <p className="text-xs text-sky-700">
+                          Đón: {booking.pickupLocation || "Đang chờ xác nhận điểm đón"}
                         </p>
                       ) : null}
                       {booking.checkedInAt ? (

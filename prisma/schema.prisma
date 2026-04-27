@@ -45,6 +45,11 @@ enum RoomType {
   SINGLE
 }
 
+enum PickupMethod {
+  SELF_ARRIVAL
+  NEED_PICKUP
+}
+
 model User {
   id           String     @id @default(cuid())
   fullName     String
@@ -160,6 +165,8 @@ model Booking {
   child5To7Guests Int?
   childUnder5Guests Int?
   roomType       RoomType      @default(DOUBLE)
+  pickupMethod   PickupMethod  @default(SELF_ARRIVAL)
+  pickupLocation String?
   note           String?
   baseGuestTotal Int           @default(0)
   roomSurchargeTotal Int       @default(0)

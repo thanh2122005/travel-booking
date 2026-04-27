@@ -112,6 +112,16 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
               <div className="flex justify-between gap-3"><dt className="text-slate-500">Email</dt><dd>{booking.email}</dd></div>
               <div className="flex justify-between gap-3"><dt className="text-slate-500">Điện thoại</dt><dd>{booking.phone}</dd></div>
               <div className="flex justify-between gap-3"><dt className="text-slate-500">Số khách</dt><dd>{booking.numberOfGuests}</dd></div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-slate-500">Nhu cầu đón</dt>
+                <dd>{booking.pickupMethod === "NEED_PICKUP" ? "Cần hỗ trợ đón" : "Tự đến điểm hẹn"}</dd>
+              </div>
+              {booking.pickupMethod === "NEED_PICKUP" ? (
+                <div className="flex justify-between gap-3">
+                  <dt className="text-slate-500">Điểm đón mong muốn</dt>
+                  <dd>{booking.pickupLocation || "-"}</dd>
+                </div>
+              ) : null}
               <div className="flex justify-between gap-3"><dt className="text-slate-500">Thanh toán</dt><dd>{booking.paymentMethod || "Tiêu chuẩn"}</dd></div>
               {booking.departureDate ? (
                 <div className="flex justify-between gap-3"><dt className="text-slate-500">Ngày khởi hành</dt><dd>{formatDate(booking.departureDate)}</dd></div>

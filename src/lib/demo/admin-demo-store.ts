@@ -104,6 +104,8 @@ type DemoBooking = {
   child5To7Guests?: number;
   childUnder5Guests?: number;
   roomType?: "DOUBLE" | "SINGLE";
+  pickupMethod?: "SELF_ARRIVAL" | "NEED_PICKUP";
+  pickupLocation?: string | null;
   note?: string | null;
   baseGuestTotal?: number;
   roomSurchargeTotal?: number;
@@ -1777,6 +1779,8 @@ export async function demoUpdateBookingDetail(
     departureDate?: string | null;
     paymentMethod?: string;
     roomType?: "DOUBLE" | "SINGLE";
+    pickupMethod?: "SELF_ARRIVAL" | "NEED_PICKUP";
+    pickupLocation?: string | null;
     status?: BookingStatus;
     paymentStatus?: PaymentStatus;
   },
@@ -1806,6 +1810,12 @@ export async function demoUpdateBookingDetail(
   if (payload.paymentMethod) booking.paymentMethod = payload.paymentMethod;
   if (payload.roomType) {
     booking.roomType = payload.roomType;
+  }
+  if (payload.pickupMethod) {
+    booking.pickupMethod = payload.pickupMethod;
+  }
+  if (payload.pickupLocation === null || typeof payload.pickupLocation === "string") {
+    booking.pickupLocation = payload.pickupLocation;
   }
   if (payload.status) booking.status = payload.status;
   applyDemoPaymentWorkflow(booking, payload.paymentStatus, adminUserId);
@@ -2811,6 +2821,9 @@ export async function demoCreatePublicBooking(input: {
   child5To7Guests?: number;
   childUnder5Guests?: number;
   roomType?: "DOUBLE" | "SINGLE";
+  singleRoomGuests?: number;
+  pickupMethod?: "SELF_ARRIVAL" | "NEED_PICKUP";
+  pickupLocation?: string | null;
   note?: string;
   departureDate?: string;
 }) {
@@ -2823,11 +2836,21 @@ export async function demoCreatePublicBooking(input: {
   const child5To7Guests = input.child5To7Guests ?? 0;
   const childUnder5Guests = input.childUnder5Guests ?? 0;
   const roomType = input.roomType ?? "DOUBLE";
+  const requestedSingleRoomGuests =
+    typeof input.singleRoomGuests === "number" && Number.isFinite(input.singleRoomGuests)
+      ? Math.max(0, Math.trunc(input.singleRoomGuests))
+      : undefined;
+  const pickupMethod = input.pickupMethod ?? "SELF_ARRIVAL";
+  const pickupLocation = pickupMethod === "NEED_PICKUP" ? input.pickupLocation ?? null : null;
   const totalGuests = guestsFrom8 + child5To7Guests + childUnder5Guests;
   if (totalGuests !== input.numberOfGuests) return "INVALID_GUEST_BREAKDOWN";
   if (tour.durationNights <= 0 && roomType === "SINGLE") {
     return "INVALID_ROOM_TYPE";
   }
+  const singleRoomGuests =
+    roomType === "SINGLE"
+      ? Math.max(1, Math.min(totalGuests, requestedSingleRoomGuests ?? totalGuests))
+      : 0;
 
   await ensureDemoUser(state, input.userId, { fullName: input.fullName, email: input.email });
   const departureDateObj = input.departureDate ? new Date(input.departureDate) : null;
@@ -2865,7 +2888,7 @@ export async function demoCreatePublicBooking(input: {
   );
   const roomSurchargeTotal =
     roomType === "SINGLE"
-      ? Math.round(guestsFrom8 * tour.singleRoomSurchargePerAdult * tour.durationNights)
+      ? Math.round(singleRoomGuests * tour.singleRoomSurchargePerAdult * tour.durationNights)
       : 0;
   const totalPrice = baseGuestTotal + roomSurchargeTotal;
 
@@ -2882,6 +2905,8 @@ export async function demoCreatePublicBooking(input: {
     child5To7Guests,
     childUnder5Guests,
     roomType,
+    pickupMethod,
+    pickupLocation,
     note: input.note ?? null,
     baseGuestTotal,
     roomSurchargeTotal,

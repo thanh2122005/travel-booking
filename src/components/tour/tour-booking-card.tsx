@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarDays, CheckCircle2, Heart, Loader2 } from "lucide-react";
+import { CalendarDays, Heart, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +62,18 @@ type BookingStep = (typeof BOOKING_STEPS)[number]["key"];
 
 const STEP_FIELDS: Record<BookingStep, (keyof BookingInput)[]> = {
   1: ["fullName", "email", "phone"],
-  2: ["guestsFrom8", "child5To7Guests", "childUnder5Guests", "numberOfGuests", "departureDate", "note"],
+  2: [
+    "guestsFrom8",
+    "child5To7Guests",
+    "childUnder5Guests",
+    "numberOfGuests",
+    "pickupMethod",
+    "pickupLocation",
+    "departureDate",
+    "roomType",
+    "singleRoomGuests",
+    "note",
+  ],
   3: [],
 };
 
@@ -134,7 +145,10 @@ export function TourBookingCard({
       guestsFrom8: 1,
       child5To7Guests: 0,
       childUnder5Guests: 0,
+      pickupMethod: "SELF_ARRIVAL",
+      pickupLocation: "",
       roomType: durationNights > 0 ? "DOUBLE" : undefined,
+      singleRoomGuests: 0,
       note: "",
       departureDate: "",
     },
@@ -188,6 +202,7 @@ export function TourBookingCard({
     setActiveStep(1);
     setIsConfirmChecked(false);
     setValue("roomType", durationNights > 0 ? "DOUBLE" : undefined);
+    setValue("singleRoomGuests", 0);
   }, [durationNights, setValue, tourId]);
 
   const guestsFrom8Raw = useWatch({
@@ -217,9 +232,17 @@ export function TourBookingCard({
     control,
     name: "departureDate",
   });
+  const pickupMethod = useWatch({
+    control,
+    name: "pickupMethod",
+  });
   const roomTypeRaw = useWatch({
     control,
     name: "roomType",
+  });
+  const singleRoomGuestsRaw = useWatch({
+    control,
+    name: "singleRoomGuests",
   });
   const shouldShowRoomType = durationNights > 0;
   const effectiveSingleRoomSurchargePerAdult = resolveSingleRoomSurchargePerAdult({
@@ -232,6 +255,24 @@ export function TourBookingCard({
       ? "SINGLE"
       : "DOUBLE"
     : "DOUBLE";
+  const singleRoomGuests =
+    shouldShowRoomType && roomType === "SINGLE"
+      ? Math.max(
+          1,
+          Math.min(
+            computedTotalGuests,
+            normalizeGuestCount(singleRoomGuestsRaw, computedTotalGuests, 0),
+          ),
+        )
+      : 0;
+
+  useEffect(() => {
+    if (!shouldShowRoomType || roomType !== "SINGLE") {
+      setValue("singleRoomGuests", 0, { shouldValidate: true });
+      return;
+    }
+    setValue("singleRoomGuests", singleRoomGuests, { shouldValidate: true });
+  }, [roomType, setValue, shouldShowRoomType, singleRoomGuests]);
 
   useEffect(() => {
     if (!departureDate) {
@@ -303,19 +344,16 @@ export function TourBookingCard({
   );
   const roomSurchargeTotal =
     shouldShowRoomType && roomType === "SINGLE"
-      ? Math.round(guestsFrom8 * effectiveSingleRoomSurchargePerAdult * durationNights)
+      ? Math.round(singleRoomGuests * effectiveSingleRoomSurchargePerAdult * durationNights)
       : 0;
   const totalPrice = baseGuestTotal + roomSurchargeTotal;
   const adultUnitPrice = unitPrice;
-  const child5To7UnitPrice = Math.round(unitPrice * CHILD_5_TO_7_PRICE_RATIO);
-  const childUnder5UnitPrice = Math.round(unitPrice * CHILD_UNDER_5_PRICE_RATIO);
-  const adultsTotalPrice = guestsFrom8 * adultUnitPrice;
-  const child5To7TotalPrice = child5To7Guests * child5To7UnitPrice;
-  const childUnder5TotalPrice = childUnder5Guests * childUnder5UnitPrice;
   const bookingSummary = {
     fullName: getValues("fullName"),
     email: getValues("email"),
     phone: getValues("phone"),
+    pickupMethod: getValues("pickupMethod"),
+    pickupLocation: getValues("pickupLocation"),
     departureDate: getValues("departureDate"),
     roomType,
     note: getValues("note"),
@@ -384,7 +422,11 @@ export function TourBookingCard({
           guestsFrom8,
           child5To7Guests,
           childUnder5Guests,
+          pickupMethod: values.pickupMethod,
+          pickupLocation:
+            values.pickupMethod === "NEED_PICKUP" ? values.pickupLocation?.trim() || "" : "",
           roomType,
+          singleRoomGuests,
         }),
       });
 
@@ -442,7 +484,10 @@ export function TourBookingCard({
         guestsFrom8: 1,
         child5To7Guests: 0,
         childUnder5Guests: 0,
+        pickupMethod: "SELF_ARRIVAL",
+        pickupLocation: "",
         roomType: durationNights > 0 ? "DOUBLE" : undefined,
+        singleRoomGuests: 0,
         note: "",
         departureDate: "",
       });
@@ -581,7 +626,7 @@ export function TourBookingCard({
             </li>
           ) : null}
           {shouldShowRoomType ? (
-            <li>Công thức phụ thu phòng đơn: số người lớn x phụ thu x số đêm.</li>
+            <li>Công thức phụ thu phòng đơn: số khách ở phòng đơn x phụ thu x số đêm.</li>
           ) : null}
         </ul>
       </details>
@@ -761,10 +806,67 @@ export function TourBookingCard({
                     </option>
                   </select>
                   <p className="min-h-8 text-[11px] leading-4 text-muted-foreground">
-                    {`Phụ thu phòng đơn áp dụng cho khách người lớn trong ${durationNights} đêm.`}
+                    {`Phụ thu phòng đơn áp dụng theo số khách ở phòng đơn trong ${durationNights} đêm.`}
                   </p>
                 </div>
               ) : null}
+
+              {shouldShowRoomType ? (
+                <div className={fieldBlockClass}>
+                  <Label htmlFor={`single-room-guests-${tourId}`}>Số khách ở phòng đơn</Label>
+                  <Input
+                    id={`single-room-guests-${tourId}`}
+                    type="number"
+                    min={1}
+                    max={Math.max(computedTotalGuests, 1)}
+                    disabled={roomType !== "SINGLE"}
+                    {...register("singleRoomGuests", { valueAsNumber: true })}
+                  />
+                  {errors.singleRoomGuests ? (
+                    <p className="min-h-8 text-[11px] leading-4 text-destructive">{errors.singleRoomGuests.message}</p>
+                  ) : (
+                    <p className="min-h-8 text-[11px] leading-4 text-muted-foreground">
+                      Tối đa {computedTotalGuests} khách theo đơn. Chỉ số này dùng để tính phụ thu phòng đơn.
+                    </p>
+                  )}
+                </div>
+              ) : null}
+
+              <div className={fieldBlockClass}>
+                <Label htmlFor={`pickup-method-${tourId}`}>Nhu cầu đón</Label>
+                <select
+                  id={`pickup-method-${tourId}`}
+                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
+                  {...register("pickupMethod")}
+                >
+                  <option value="SELF_ARRIVAL">Tự đến điểm hẹn</option>
+                  <option value="NEED_PICKUP">Cần hỗ trợ đón</option>
+                </select>
+                <p className="min-h-8 text-[11px] leading-4 text-muted-foreground">
+                  Bên vận hành sẽ tư vấn phương án đón phù hợp trước khi chốt dịch vụ.
+                </p>
+              </div>
+
+              <div className={fieldBlockClass}>
+                <Label htmlFor={`pickup-location-${tourId}`}>Điểm đón mong muốn</Label>
+                <Input
+                  id={`pickup-location-${tourId}`}
+                  placeholder="Ví dụ: Big C Thăng Long, Hà Nội"
+                  disabled={pickupMethod !== "NEED_PICKUP"}
+                  {...register("pickupLocation")}
+                />
+                <p
+                  className={cn(
+                    helperTextClass,
+                    errors.pickupLocation ? "text-destructive" : "text-muted-foreground",
+                  )}
+                >
+                  {errors.pickupLocation?.message ??
+                    (pickupMethod === "NEED_PICKUP"
+                      ? "Nhập điểm đón để admin sắp xếp tuyến."
+                      : "Nếu tự đến điểm hẹn, bạn có thể để trống trường này.")}
+                </p>
+              </div>
 
               <div className={fieldBlockClass}>
                 <Label htmlFor={`departure-${tourId}`}>Ngày đi</Label>
@@ -828,6 +930,15 @@ export function TourBookingCard({
                   <li>Họ tên: {bookingSummary.fullName || "-"}</li>
                   <li>Email: {bookingSummary.email || "-"}</li>
                   <li>Điện thoại: {bookingSummary.phone || "-"}</li>
+                  <li>
+                    Nhu cầu đón:{" "}
+                    {bookingSummary.pickupMethod === "NEED_PICKUP"
+                      ? "Cần hỗ trợ đón"
+                      : "Tự đến điểm hẹn"}
+                  </li>
+                  {bookingSummary.pickupMethod === "NEED_PICKUP" ? (
+                    <li>Điểm đón mong muốn: {bookingSummary.pickupLocation || "-"}</li>
+                  ) : null}
                   <li>Khách người lớn (từ 8 tuổi): {guestsFrom8}</li>
                   <li>Trẻ em 5-7 tuổi: {child5To7Guests}</li>
                   <li>Trẻ em dưới 5 tuổi: {childUnder5Guests}</li>
@@ -836,26 +947,16 @@ export function TourBookingCard({
                   <li>Đơn giá người lớn: {formatPrice(adultUnitPrice)}/khách</li>
                   {roomType === "SINGLE" && roomSurchargeTotal > 0 ? (
                     <li>
-                      Phụ thu phòng đơn: {formatPrice(effectiveSingleRoomSurchargePerAdult)}/người lớn/đêm x{" "}
-                      {guestsFrom8} người x {durationNights} đêm = {formatPrice(roomSurchargeTotal)}
-                    </li>
-                  ) : null}
-                  {child5To7Guests > 0 ? (
-                    <li>
-                      Đơn giá trẻ em 5-7 tuổi (50%): {formatPrice(child5To7UnitPrice)}/khách
-                    </li>
-                  ) : null}
-                  {childUnder5Guests > 0 ? (
-                    <li>
-                      Đơn giá trẻ em dưới 5 tuổi (0%): {formatPrice(childUnder5UnitPrice)}/khách
+                      Phụ thu phòng đơn: {singleRoomGuests} x {formatPrice(effectiveSingleRoomSurchargePerAdult)} x {durationNights} đêm = {formatPrice(roomSurchargeTotal)}
                     </li>
                   ) : null}
                 </ul>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Cơ cấu: {guestsFrom8} người lớn + {child5To7Guests} trẻ em 5-7 tuổi + {childUnder5Guests} trẻ em dưới 5 tuổi.
+                </p>
               </div>
-
               <div className="rounded-xl border bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
                 <p className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4" />
                   Sau khi gửi, đơn của bạn sẽ ở trạng thái chờ xác nhận.
                 </p>
               </div>
@@ -869,38 +970,6 @@ export function TourBookingCard({
                 />
                 <span>Tôi đã kiểm tra thông tin và xác nhận đặt tour với dữ liệu trên.</span>
               </label>
-
-              <details className="rounded-xl border bg-muted/40 p-3 text-sm">
-                <summary className="cursor-pointer list-none font-medium">
-                  Xem chi tiết cách tính tiền
-                </summary>
-                <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                  <li>
-                    Người lớn: {guestsFrom8} x {formatPrice(adultUnitPrice)} = {formatPrice(adultsTotalPrice)}
-                  </li>
-                  {child5To7Guests > 0 ? (
-                    <li>
-                      Trẻ em 5-7 tuổi: {child5To7Guests} x {formatPrice(child5To7UnitPrice)} ={" "}
-                      {formatPrice(child5To7TotalPrice)}
-                    </li>
-                  ) : null}
-                  {childUnder5Guests > 0 ? (
-                    <li>
-                      Trẻ em dưới 5 tuổi: {childUnder5Guests} x {formatPrice(childUnder5UnitPrice)} ={" "}
-                      {formatPrice(childUnder5TotalPrice)}
-                    </li>
-                  ) : null}
-                  {roomType === "SINGLE" && roomSurchargeTotal > 0 ? (
-                    <li>
-                      Phụ thu phòng đơn: {guestsFrom8} x {formatPrice(effectiveSingleRoomSurchargePerAdult)} x{" "}
-                      {durationNights} đêm = {formatPrice(roomSurchargeTotal)}
-                    </li>
-                  ) : null}
-                </ul>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Cơ cấu: {guestsFrom8} người lớn + {child5To7Guests} trẻ em 5-7 tuổi + {childUnder5Guests} trẻ em dưới 5 tuổi.
-                </p>
-              </details>
             </div>
           ) : null}
 
