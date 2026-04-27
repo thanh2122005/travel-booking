@@ -6,7 +6,7 @@ import {
   demoGetPublicTourBySlug,
   demoGetPublicTours,
 } from "@/lib/demo/admin-demo-store";
-import { isDatabaseUnavailableError } from "@/lib/db/db-error";
+import { isDatabaseUnavailableError, isDemoFallbackEnabled } from "@/lib/db/db-error";
 import { db } from "@/lib/db/prisma";
 import { resolveSingleRoomSurchargePerAdult } from "@/lib/pricing/single-room-surcharge";
 
@@ -342,7 +342,7 @@ export async function getTours(filters: TourFilterInput) {
       totalPages: Math.max(Math.ceil(total / pageSize), 1),
     };
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
+    if (isDatabaseUnavailableError(error) && isDemoFallbackEnabled()) {
       return demoGetPublicTours(filters);
     }
     throw error;

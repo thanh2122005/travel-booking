@@ -42,7 +42,7 @@ import {
   demoUpdateUsersBulk,
   demoDeleteUser,
 } from "@/lib/demo/admin-demo-store";
-import { isDatabaseUnavailableError } from "@/lib/db/db-error";
+import { isDatabaseUnavailableError, isDemoFallbackEnabled } from "@/lib/db/db-error";
 import {
   attachBookingCheckInMetadata,
   clearBookingCheckInMetadata,
@@ -1047,7 +1047,7 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
       recentUsers,
     };
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
+    if (isDatabaseUnavailableError(error) && isDemoFallbackEnabled()) {
       return demoGetDashboardData(options);
     }
     throw error;
@@ -1423,7 +1423,7 @@ export async function getAdminBookings(filter: AdminBookingListFilter = {}) {
 
     return { items, total, page, pageSize, totalPages: Math.max(Math.ceil(total / pageSize), 1) };
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
+    if (isDatabaseUnavailableError(error) && isDemoFallbackEnabled()) {
       return demoGetBookings(filter);
     }
     throw error;
