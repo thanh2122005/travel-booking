@@ -17,7 +17,7 @@ export function NewSubscribers({ items }: NewSubscribersProps) {
       </div>
 
       {items.length ? (
-        <div className="space-y-2.5">
+        <div className="h-[500px] space-y-2.5 overflow-y-auto pr-1">
           {items.slice(0, 7).map((subscriber) => (
             <article key={subscriber.id} className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
               <p className="truncate text-sm text-slate-700">{subscriber.email}</p>

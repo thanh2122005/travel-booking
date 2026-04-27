@@ -401,7 +401,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         <LatestReviews items={data.recentReviews as DashboardRecentReview[]} />
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-2">
+      <section className="grid items-start gap-4 xl:grid-cols-2">
         <NewConsultations items={data.recentInquiries as DashboardRecentInquiry[]} />
         <NewSubscribers items={data.recentNewsletterSubscribers as DashboardSubscriber[]} />
       </section>

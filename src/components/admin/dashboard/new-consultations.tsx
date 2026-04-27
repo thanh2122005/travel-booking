@@ -49,7 +49,7 @@ export function NewConsultations({ items }: NewConsultationsProps) {
       </div>
 
       {items.length ? (
-        <div className="space-y-2.5">
+        <div className="h-[500px] space-y-2.5 overflow-y-auto pr-1">
           {items.slice(0, 7).map((inquiry) => {
             const capacityShortage = parseCapacityShortageMessage(inquiry.message);
             const tourTitle = capacityShortage?.tourTitle || inquiry.tour?.title || null;
@@ -113,4 +113,3 @@ export function NewConsultations({ items }: NewConsultationsProps) {
     </article>
   );
 }
-
