@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { authSecret } from "@/lib/auth/auth-secret"; //giải mã 
 import { db } from "@/lib/db/prisma";
+import { appendAdminActivityLog } from "@/lib/db/admin-activity-log";
 import { loginSchema } from "@/lib/validations/auth";
 
 const DEV_ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "admin@example.com";
@@ -77,6 +78,17 @@ export const authOptions: NextAuthOptions = {
           const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
           if (!isPasswordValid) {
             return null;
+          }
+
+          if (user.role === UserRole.ADMIN) {
+            await appendAdminActivityLog({
+              action: "ADMIN_LOGIN",
+              actorId: user.id,
+              actorName: user.fullName || "Quản trị viên",
+              detail: {
+                email: user.email,
+              },
+            }).catch(() => undefined);
           }
 
           return {

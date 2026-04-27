@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth/auth-options";
 type AdminApiAuthResult = {
   response: NextResponse | null;
   userId: string | null;
+  userName: string | null;
 };
 
 export async function requireAdminApiAuth(): Promise<AdminApiAuthResult> {
@@ -17,6 +18,7 @@ export async function requireAdminApiAuth(): Promise<AdminApiAuthResult> {
     return {
       response: NextResponse.json({ message: "Vui lòng đăng nhập." }, { status: 401 }),
       userId: null,
+      userName: null,
     };
   }
 
@@ -25,6 +27,7 @@ export async function requireAdminApiAuth(): Promise<AdminApiAuthResult> {
     return {
       response: NextResponse.json({ message: "Tài khoản của bạn đã bị khóa." }, { status: 403 }),
       userId: session.user.id,
+      userName: session.user.name ?? null,
     };
   }
 
@@ -33,12 +36,14 @@ export async function requireAdminApiAuth(): Promise<AdminApiAuthResult> {
     return {
       response: NextResponse.json({ message: "Bạn không có quyền truy cập." }, { status: 403 }),
       userId: session.user.id,
+      userName: session.user.name ?? null,
     };
   }
 
   return {
     response: null,
     userId: session.user.id,
+    userName: session.user.name ?? null,
   };
 }
 
