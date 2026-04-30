@@ -76,7 +76,7 @@ export async function PATCH(request: Request, context: UserContentRouteContext) 
       );
     }
 
-    if (!updated) {
+    if (updated === "NOT_FOUND" || !updated) {
       return NextResponse.json({ message: "Không tìm thấy người dùng cần cập nhật." }, { status: 404 });
     }
     await appendAdminActivityLog({

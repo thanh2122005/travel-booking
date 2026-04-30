@@ -76,6 +76,9 @@ export async function PATCH(request: Request, context: UserRouteContext) {
     if (updated === "NOT_FOUND") {
       return NextResponse.json({ message: "Không tìm thấy người dùng cần cập nhật." }, { status: 404 });
     }
+    if (!updated || typeof updated === "string") {
+      return NextResponse.json({ message: "Không tìm thấy người dùng cần cập nhật." }, { status: 404 });
+    }
     await appendAdminActivityLog({
       action: "USER_UPDATED",
       actorId: auth.userId,
@@ -124,6 +127,9 @@ export async function DELETE(_request: Request, context: UserRouteContext) {
       );
     }
     if (removed === "NOT_FOUND") {
+      return NextResponse.json({ message: "Không tìm thấy người dùng cần xóa." }, { status: 404 });
+    }
+    if (!removed || typeof removed === "string") {
       return NextResponse.json({ message: "Không tìm thấy người dùng cần xóa." }, { status: 404 });
     }
     await appendAdminActivityLog({
