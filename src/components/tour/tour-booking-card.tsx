@@ -17,7 +17,7 @@ import { resolveSingleRoomSurchargePerAdult } from "@/lib/pricing/single-room-su
 import { buildCapacityShortageMessage } from "@/lib/utils/capacity-shortage-inquiry";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/utils/format";
-import { bookingSchema, type BookingInput } from "@/lib/validations/booking";
+import { bookingSchema, type BookingInput, type BookingPayload } from "@/lib/validations/booking";
 
 const CHILD_5_TO_7_PRICE_RATIO = 0.5;
 const CHILD_UNDER_5_PRICE_RATIO = 0;
@@ -134,7 +134,7 @@ export function TourBookingCard({
     clearErrors,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<BookingInput>({
+  } = useForm<BookingInput, unknown, BookingPayload>({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
       tourId,

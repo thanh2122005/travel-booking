@@ -84,10 +84,13 @@ export const bookingSchema = z
       .max(100, "So khach duoi 5 tuoi khong hop le")
       .optional(),
     pickupMethod: z.enum(["SELF_ARRIVAL", "NEED_PICKUP"]).default("SELF_ARRIVAL"),
-    pickupLocation: z.preprocess(
-      (value) => (value === null ? "" : value),
-      z.string().trim().max(120, "Diem don toi da 120 ky tu").optional().or(z.literal("")),
-    ),
+    pickupLocation: z
+      .string()
+      .trim()
+      .max(120, "Diem don toi da 120 ky tu")
+      .optional()
+      .nullable()
+      .transform((value) => value ?? ""),
     roomType: z.enum(["DOUBLE", "SINGLE"]).optional(),
     singleRoomGuests: z
       .number({ message: "So khach o phong don khong hop le" })
@@ -143,5 +146,6 @@ export const bookingSchema = z
     }
   });
 
-export type BookingInput = z.infer<typeof bookingSchema>;
+export type BookingInput = z.input<typeof bookingSchema>;
+export type BookingPayload = z.output<typeof bookingSchema>;
 
