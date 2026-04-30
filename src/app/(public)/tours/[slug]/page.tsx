@@ -8,6 +8,7 @@ import { SectionHeading } from "@/components/common/section-heading";
 import { TourBookingCard } from "@/components/tour/tour-booking-card";
 import { TourCard } from "@/components/tour/tour-card";
 import { TourImageGallery } from "@/components/tour/tour-image-gallery";
+import { TourItinerarySection } from "@/components/tour/tour-itinerary-section";
 import { TourReviewForm } from "@/components/tour/tour-review-form";
 import { StarRating } from "@/components/tour/star-rating";
 import { getAuthSession } from "@/lib/auth/session";
@@ -304,27 +305,20 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
             </div>
           </article>
 
-          <article id="lich-trinh" className="space-y-4 rounded-3xl border bg-card p-6">
-            <h2 className="text-2xl font-bold">Lịch trình chi tiết</h2>
-            {tour.itineraries.length ? (
-              <div className="space-y-3">
-                {tour.itineraries.map((item) => (
-                  <div key={item.id} className="rounded-xl border bg-background p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
-                      Ngày {item.dayNumber}
-                    </p>
-                    <h3 className="mt-1 text-base font-semibold">{item.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
+          {tour.itineraries.length ? (
+            <TourItinerarySection
+              itineraries={tour.itineraries}
+              durationDays={tour.durationDays}
+            />
+          ) : (
+            <article id="lich-trinh" className="space-y-4 rounded-3xl border bg-card p-6">
+              <h2 className="text-2xl font-bold">Lịch trình chi tiết</h2>
               <EmptyState
                 title="Chưa có lịch trình chi tiết"
                 description="Quản trị viên sẽ cập nhật thêm lịch trình cho tour này sau."
               />
-            )}
-          </article>
+            </article>
+          )}
 
           <article id="danh-gia" className="space-y-4 rounded-3xl border bg-card p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
