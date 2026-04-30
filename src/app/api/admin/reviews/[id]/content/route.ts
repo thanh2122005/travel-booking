@@ -46,6 +46,9 @@ export async function PATCH(request: Request, context: ReviewContentRouteContext
 
   try {
     const updated = await updateAdminReviewContent(id, parsed.data);
+    if (!updated) {
+      return NextResponse.json({ message: "Không tìm thấy đánh giá cần cập nhật." }, { status: 404 });
+    }
     await appendAdminActivityLog({
       action: "REVIEW_CONTENT_UPDATED",
       actorId: auth.userId,

@@ -41,6 +41,9 @@ export async function PATCH(request: Request, context: ReviewRouteContext) {
   try {
     // Toggle trạng thái hiển thị review (ẩn/hiện ngoài public).
     const updated = await updateAdminReview(id, parsed.data);
+    if (!updated) {
+      return NextResponse.json({ message: "Không tìm thấy đánh giá cần cập nhật." }, { status: 404 });
+    }
     await appendAdminActivityLog({
       action: "REVIEW_VISIBILITY_UPDATED",
       actorId: auth.userId,
