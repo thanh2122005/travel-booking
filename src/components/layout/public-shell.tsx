@@ -10,7 +10,7 @@ type PublicShellProps = {
 
 export function PublicShell({ children, mainClassName, fullWidth = false }: PublicShellProps) {
   return (
-    <div className="iv-theme min-h-screen">
+    <div suppressHydrationWarning className="iv-theme min-h-screen">
       <SiteHeader />
       <main className={cn("iv-shell-main", mainClassName)}>
         <div className={cn(!fullWidth && "iv-shell-container")}>{children}</div>

@@ -627,7 +627,7 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                       <th className="px-2 py-3 font-medium">Trạng thái</th>
                       <th className="px-2 py-3 font-medium">Thanh toán</th>
                       <th className="px-2 py-3 font-medium">Ngày tạo</th>
-                      <th className="px-2 py-3 font-medium">Thao tác</th>
+                      <th className="w-[280px] px-2 py-3 font-medium">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -658,19 +658,13 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                           </div>
                         </td>
                         <td className="px-2 py-3 text-slate-500">{formatDate(booking.createdAt)}</td>
-                        <td className="px-2 py-3">
-                          <div className="flex flex-wrap items-center gap-2">
+                        <td className="w-[280px] px-2 py-3 align-top">
+                          <div className="flex min-w-[260px] items-start gap-2">
                             <Link
                               href={`/booking/${booking.id}`}
                               className="inline-flex h-8 items-center justify-center rounded-lg border border-teal-200 px-2.5 text-xs font-semibold text-teal-700 transition hover:bg-teal-50"
                             >
                               Chi tiết
-                            </Link>
-                            <Link
-                              href={`/tours/${booking.tour.slug}`}
-                              className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-300 px-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-                            >
-                              Xem tour
                             </Link>
                             {canCancelBooking(booking.status, booking.paymentStatus, booking.departureDate) ? (
                               <BookingCancelButton
@@ -679,14 +673,14 @@ export default async function BookingPage({ searchParams }: BookingPageProps) {
                                 className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
                               />
                             ) : (
-                              <span className="text-xs text-slate-400">
+                              <p className="max-w-[170px] pt-1 text-xs leading-5 text-slate-400">
                                 {getCancelBlockedLabel(
                                   booking.status,
                                   booking.paymentStatus,
                                   booking.departureDate,
                                   Boolean(booking.ticketCode),
                                 )}
-                              </span>
+                              </p>
                             )}
                           </div>
                         </td>

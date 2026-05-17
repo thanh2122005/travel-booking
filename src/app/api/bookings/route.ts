@@ -1,4 +1,4 @@
-﻿// TÓM TẮT API: src/app/api/bookings/route.ts
+// TÓM TẮT API: src/app/api/bookings/route.ts
 // Phạm vi: API public hoặc user đã đăng nhập.
 // Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
 
@@ -562,7 +562,7 @@ export async function POST(request: Request) {
           numberOfGuests: totalGuests,
           note: parsed.data.note || null,
           status: "PENDING",
-          paymentMethod: "Thanh toan khi xac nhan",
+          paymentMethod: "Thanh toán khi xác nhận",
           paymentStatus: "UNPAID",
           pickupMethod,
           pickupLocation,
@@ -594,7 +594,7 @@ export async function POST(request: Request) {
           numberOfGuests: totalGuests,
           note: parsed.data.note || null,
           status: "PENDING",
-          paymentMethod: "Thanh toan khi xac nhan",
+          paymentMethod: "Thanh toán khi xác nhận",
           paymentStatus: "UNPAID",
           pickupMethod,
           pickupLocation,
@@ -611,7 +611,7 @@ export async function POST(request: Request) {
           numberOfGuests: totalGuests,
           note: parsed.data.note || null,
           status: "PENDING",
-          paymentMethod: "Thanh toan khi xac nhan",
+          paymentMethod: "Thanh toán khi xác nhận",
           paymentStatus: "UNPAID",
           totalPrice,
         } as unknown as Prisma.BookingUncheckedCreateInput;
@@ -625,7 +625,7 @@ export async function POST(request: Request) {
           numberOfGuests: totalGuests,
           note: parsed.data.note || null,
           status: "PENDING",
-          paymentMethod: "Thanh toan khi xac nhan",
+          paymentMethod: "Thanh toán khi xác nhận",
           pickupMethod,
           pickupLocation,
           totalPrice,
@@ -641,7 +641,7 @@ export async function POST(request: Request) {
           numberOfGuests: totalGuests,
           note: parsed.data.note || null,
           status: "PENDING",
-          paymentMethod: "Thanh toan khi xac nhan",
+          paymentMethod: "Thanh toán khi xác nhận",
           pickupMethod,
           pickupLocation,
           totalPrice,
@@ -655,7 +655,7 @@ export async function POST(request: Request) {
           phone: parsed.data.phone,
           numberOfGuests: totalGuests,
           note: parsed.data.note || null,
-          paymentMethod: "Thanh toan khi xac nhan",
+          paymentMethod: "Thanh toán khi xác nhận",
           totalPrice,
           departureDate,
         } as unknown as Prisma.BookingUncheckedCreateInput;
@@ -668,7 +668,7 @@ export async function POST(request: Request) {
           phone: parsed.data.phone,
           numberOfGuests: totalGuests,
           note: parsed.data.note || null,
-          paymentMethod: "Thanh toan khi xac nhan",
+          paymentMethod: "Thanh toán khi xác nhận",
           totalPrice,
         } as unknown as Prisma.BookingUncheckedCreateInput;
         const createDataLegacyMinimal = {
@@ -839,7 +839,7 @@ export async function POST(request: Request) {
           email: parsed.data.email,
           phone: parsed.data.phone,
           tourId: parsed.data.tourId,
-          tourTitle: "Khong ro tour",
+          tourTitle: "Không rõ tour",
           departureDate,
           numberOfGuests: totalGuests,
           remainingSeats: 0,
@@ -865,7 +865,7 @@ export async function POST(request: Request) {
           email: parsed.data.email,
           phone: parsed.data.phone,
           tourId: parsed.data.tourId,
-          tourTitle: "Khong ro tour",
+          tourTitle: "Không rõ tour",
           departureDate,
           numberOfGuests: totalGuests,
           remainingSeats: duPhongBooking.remainingSeats,

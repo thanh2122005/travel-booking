@@ -24,15 +24,15 @@ function toIsoDateOnly(value: Date | string) {
 
 export function buildCapacityShortageMessage(input: CapacityShortageMessageInput) {
   const departureDate = toIsoDateOnly(input.departureDate);
-  const normalizedTitle = input.tourTitle.trim() || "Khong ro tour";
+  const normalizedTitle = input.tourTitle.trim() || "Không rõ tour";
 
   return [
     CAPACITY_SHORTAGE_TAG,
     `Tour: ${normalizedTitle}`,
-    `Ngay di: ${departureDate || "Chua xac dinh"}`,
-    `So khach yeu cau: ${input.requestedGuests}`,
-    `So cho con lai: ${input.remainingSeats}`,
-    "Yeu cau uu tien xu ly gap: lien he khach de tu van phuong an phu hop.",
+    `Ngày đi: ${departureDate || "Chưa xác định"}`,
+    `Số khách yêu cầu: ${input.requestedGuests}`,
+    `Số chỗ còn lại: ${input.remainingSeats}`,
+    "Yêu cầu ưu tiên xử lý gấp: liên hệ khách để tư vấn phương án phù hợp.",
   ].join("\n");
 }
 
@@ -71,13 +71,13 @@ export function parseCapacityShortageMessage(message: string | null | undefined)
     .filter(Boolean);
 
   const tourTitle = parseTextAfterPrefix(lines.find((line) => line.startsWith("Tour:")), "Tour:");
-  const departureDate = parseTextAfterPrefix(lines.find((line) => line.startsWith("Ngay di:")), "Ngay di:");
-  const requestedGuests = parseNumberFromLine(
-    lines.find((line) => line.startsWith("So khach yeu cau:")),
-  );
-  const remainingSeats = parseNumberFromLine(
-    lines.find((line) => line.startsWith("So cho con lai:")),
-  );
+  // Hỗ trợ cả format cũ (không dấu) và format mới (có dấu).
+  const departureDateLine = lines.find((line) => line.startsWith("Ngày đi:") || line.startsWith("Ngay di:"));
+  const departureDate = parseTextAfterPrefix(departureDateLine, departureDateLine?.startsWith("Ngày đi:") ? "Ngày đi:" : "Ngay di:");
+  const requestedGuestsLine = lines.find((line) => line.startsWith("Số khách yêu cầu:") || line.startsWith("So khach yeu cau:"));
+  const requestedGuests = parseNumberFromLine(requestedGuestsLine);
+  const remainingSeatsLine = lines.find((line) => line.startsWith("Số chỗ còn lại:") || line.startsWith("So cho con lai:"));
+  const remainingSeats = parseNumberFromLine(remainingSeatsLine);
 
   return {
     tourTitle,

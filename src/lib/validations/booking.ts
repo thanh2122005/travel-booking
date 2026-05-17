@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 
 function parseDateInput(value: string) {
   const trimmed = value.trim();
@@ -26,7 +26,7 @@ function parseDateInput(value: string) {
 const departureDateSchema = z
   .string()
   .trim()
-  .max(30, "Ngay khoi hanh khong hop le")
+  .max(30, "Ngày khởi hành không hợp lệ")
   .refine((value) => {
     const trimmed = value.trim();
     if (!trimmed) return true;
@@ -37,68 +37,68 @@ const departureDateSchema = z
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return selectedDate >= today;
-  }, "Ngay khoi hanh phai tu hom nay tro di")
+  }, "Ngày khởi hành phải từ hôm nay trở đi")
   .optional()
   .or(z.literal(""));
 
 export const bookingSchema = z
   .object({
-    tourId: z.string().trim().min(1, "Thieu thong tin tour"),
+    tourId: z.string().trim().min(1, "Thiếu thông tin tour"),
     fullName: z
       .string()
       .trim()
-      .min(2, "Ho va ten phai co it nhat 2 ky tu")
-      .max(80, "Ho va ten khong hop le"),
+      .min(2, "Họ và tên phải có ít nhất 2 ký tự")
+      .max(80, "Họ và tên không hợp lệ"),
     email: z
       .string()
       .trim()
-      .min(1, "Email la bat buoc")
-      .email("Email khong dung dinh dang")
+      .min(1, "Email là bắt buộc")
+      .email("Email không đúng định dạng")
       .toLowerCase(),
     phone: z
       .string()
       .trim()
       .min(8, "Số điện thoại phải có ít nhất 8 ký tự")
-      .max(20, "So dien thoai khong hop le"),
+      .max(20, "Số điện thoại không hợp lệ"),
     numberOfGuests: z
-      .number({ message: "So luong khach khong hop le" })
-      .int("So luong khach phai la so nguyen")
-      .min(1, "So luong khach toi thieu la 1")
-      .max(100, "So luong khach toi da cho mot don la 100"),
+      .number({ message: "Số lượng khách không hợp lệ" })
+      .int("Số lượng khách phải là số nguyên")
+      .min(1, "Số lượng khách tối thiểu là 1")
+      .max(100, "Số lượng khách tối đa cho một đơn là 100"),
     guestsFrom8: z
-      .number({ message: "So khach tu 8 tuoi tro len khong hop le" })
-      .int("So khach tu 8 tuoi tro len phai la so nguyen")
-      .min(1, "Can it nhat 1 khach tu 8 tuoi tro len")
-      .max(100, "So khach tu 8 tuoi tro len khong hop le")
+      .number({ message: "Số khách từ 8 tuổi trở lên không hợp lệ" })
+      .int("Số khách từ 8 tuổi trở lên phải là số nguyên")
+      .min(1, "Cần ít nhất 1 khách từ 8 tuổi trở lên")
+      .max(100, "Số khách từ 8 tuổi trở lên không hợp lệ")
       .optional(),
     child5To7Guests: z
-      .number({ message: "So khach tu 5 den 7 tuoi khong hop le" })
-      .int("So khach tu 5 den 7 tuoi phai la so nguyen")
-      .min(0, "So khach tu 5 den 7 tuoi khong hop le")
-      .max(100, "So khach tu 5 den 7 tuoi khong hop le")
+      .number({ message: "Số khách từ 5 đến 7 tuổi không hợp lệ" })
+      .int("Số khách từ 5 đến 7 tuổi phải là số nguyên")
+      .min(0, "Số khách từ 5 đến 7 tuổi không hợp lệ")
+      .max(100, "Số khách từ 5 đến 7 tuổi không hợp lệ")
       .optional(),
     childUnder5Guests: z
-      .number({ message: "So khach duoi 5 tuoi khong hop le" })
-      .int("So khach duoi 5 tuoi phai la so nguyen")
-      .min(0, "So khach duoi 5 tuoi khong hop le")
-      .max(100, "So khach duoi 5 tuoi khong hop le")
+      .number({ message: "Số khách dưới 5 tuổi không hợp lệ" })
+      .int("Số khách dưới 5 tuổi phải là số nguyên")
+      .min(0, "Số khách dưới 5 tuổi không hợp lệ")
+      .max(100, "Số khách dưới 5 tuổi không hợp lệ")
       .optional(),
     pickupMethod: z.enum(["SELF_ARRIVAL", "NEED_PICKUP"]).default("SELF_ARRIVAL"),
     pickupLocation: z
       .string()
       .trim()
-      .max(120, "Diem don toi da 120 ky tu")
+      .max(120, "Điểm đón tối đa 120 ký tự")
       .optional()
       .nullable()
       .transform((value) => value ?? ""),
     roomType: z.enum(["DOUBLE", "SINGLE"]).optional(),
     singleRoomGuests: z
-      .number({ message: "So khach o phong don khong hop le" })
-      .int("So khach o phong don phai la so nguyen")
-      .min(0, "So khach o phong don khong hop le")
-      .max(100, "So khach o phong don khong hop le")
+      .number({ message: "Số khách ở phòng đơn không hợp lệ" })
+      .int("Số khách ở phòng đơn phải là số nguyên")
+      .min(0, "Số khách ở phòng đơn không hợp lệ")
+      .max(100, "Số khách ở phòng đơn không hợp lệ")
       .optional(),
-    note: z.string().trim().max(500, "Ghi chu toi da 500 ky tu").optional().or(z.literal("")),
+    note: z.string().trim().max(500, "Ghi chú tối đa 500 ký tự").optional().or(z.literal("")),
     departureDate: departureDateSchema,
   })
   .superRefine((value, ctx) => {
@@ -113,7 +113,7 @@ export const bookingSchema = z
       if (from8 + from5To7 + under5 !== value.numberOfGuests) {
         ctx.addIssue({
           code: "custom",
-          message: "Tong so khach khong khop voi co cau do tuoi.",
+          message: "Tổng số khách không khớp với cơ cấu độ tuổi.",
           path: ["numberOfGuests"],
         });
       }
@@ -122,7 +122,7 @@ export const bookingSchema = z
     if (value.pickupMethod === "NEED_PICKUP" && !value.pickupLocation?.trim()) {
       ctx.addIssue({
         code: "custom",
-        message: "Vui long nhap diem don mong muon khi chon can ho tro don.",
+        message: "Vui lòng nhập điểm đón mong muốn khi chọn cần hỗ trợ đón.",
         path: ["pickupLocation"],
       });
     }
@@ -132,14 +132,14 @@ export const bookingSchema = z
       if (singleRoomGuests < 1) {
         ctx.addIssue({
           code: "custom",
-          message: "Vui long nhap it nhat 1 khach o phong don.",
+          message: "Vui lòng nhập ít nhất 1 khách ở phòng đơn.",
           path: ["singleRoomGuests"],
         });
       }
       if (singleRoomGuests > value.numberOfGuests) {
         ctx.addIssue({
           code: "custom",
-          message: "So khach o phong don khong duoc vuot qua tong so khach.",
+          message: "Số khách ở phòng đơn không được vượt quá tổng số khách.",
           path: ["singleRoomGuests"],
         });
       }
@@ -148,4 +148,3 @@ export const bookingSchema = z
 
 export type BookingInput = z.input<typeof bookingSchema>;
 export type BookingPayload = z.output<typeof bookingSchema>;
-

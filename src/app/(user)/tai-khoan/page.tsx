@@ -782,7 +782,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             </div>
 
             <div className="hidden overflow-x-auto lg:block">
-              <table className="w-full min-w-[1010px] text-sm">
+              <table className="w-full min-w-[1080px] text-sm">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
                     <th className="px-2 py-3 font-medium">Mã đơn</th>
@@ -792,7 +792,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                     <th className="px-2 py-3 font-medium">Trạng thái</th>
                     <th className="px-2 py-3 font-medium">Thanh toán</th>
                     <th className="px-2 py-3 font-medium">Ngày tạo</th>
-                    <th className="px-2 py-3 font-medium">Thao tác</th>
+                    <th className="w-[280px] px-2 py-3 font-medium">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -825,11 +825,11 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                         </div>
                       </td>
                       <td className="px-2 py-3 text-muted-foreground">{formatDate(booking.createdAt)}</td>
-                      <td className="px-2 py-3">
+                      <td className="w-[280px] px-2 py-3 align-top">
                         <div className="flex flex-wrap items-center gap-2">
                           <Link
                             href={`/booking/${booking.id}`}
-                            className="inline-flex h-8 items-center justify-center rounded-lg border border-teal-200 px-2.5 text-xs font-semibold text-teal-700 transition hover:bg-teal-50"
+                            className="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-teal-200 px-2.5 text-xs font-semibold text-teal-700 transition hover:bg-teal-50"
                           >
                             Chi tiết
                           </Link>
@@ -837,10 +837,10 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                             <BookingCancelButton
                               bookingId={booking.id}
                               bookingCode={booking.bookingCode}
-                              className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
+                              className="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-rose-200 px-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-70"
                             />
                           ) : (
-                            <span className="text-xs text-slate-400">
+                            <span className="max-w-[170px] text-xs leading-5 whitespace-normal text-slate-400">
                               {getCancelBlockedLabel(
                                 booking.status,
                                 booking.paymentStatus,

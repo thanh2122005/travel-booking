@@ -1,4 +1,4 @@
-﻿import { BookingStatus, InquiryStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
+import { BookingStatus, InquiryStatus, PaymentStatus, Prisma, TourStatus, UserRole, UserStatus } from "@prisma/client";
 import {
   demoCreateLocation,
   demoCreateItinerary,
@@ -927,10 +927,10 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
     }, new Map());
     const topRevenueTours = Array.from(topRevenueToursMap.values())
       .sort((a, b) => {
-        // Thu tu uu tien:
+        // Thứ tự ưu tiên:
         // 1) confirmedRevenue
         // 2) confirmedBookings
-        // 3) tong bookings
+        // 3) tổng bookings
         if (b.confirmedRevenue !== a.confirmedRevenue) {
           return b.confirmedRevenue - a.confirmedRevenue;
         }
@@ -995,7 +995,7 @@ export async function getAdminDashboardData(options?: DashboardTimelineOptions) 
           phone: booking.phone,
           numberOfGuests: booking.numberOfGuests,
           departureDate: booking.departureDate,
-          message: "Yeu cau tu van tu he thong dat tour.",
+          message: "Yêu cầu tư vấn từ hệ thống đặt tour.",
           status: index % 3 === 0 ? InquiryStatus.RESOLVED : InquiryStatus.PENDING,
           createdAt: booking.createdAt,
           tour: {
