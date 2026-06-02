@@ -1,7 +1,6 @@
-﻿// TÓM TẮT API: src/app/api/admin/bookings/[id]/route.ts
-// Phạm vi: API quản trị (admin).
-// Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
-
+// API Cập Nhật Nhanh Đơn Đặt Tour (Admin Only).
+// Chức năng: Cho phép quản trị viên thay đổi trạng thái Booking (Đã xác nhận, Đã hủy) hoặc trạng thái Thanh toán (Đã thanh toán).
+// Endpoint này chỉ cập nhật các trạng thái (Enum), không thay đổi số khách hay ngày đi để tránh sai lệch doanh thu.
 import { BookingStatus, PaymentStatus } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
@@ -22,13 +21,9 @@ type BookingRouteContext = {
   params: Promise<{ id: string }>;
 };
 
-// LUỒNG: PATCH - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function PATCH(request: Request, context: BookingRouteContext) {
-  // BƯỚC 1: Kiểm tra quyền truy cập trước khi sửa dữ liệu.
-  // BƯỚC 2: Phân tích body và kiểm tra hợp lệ các trường được phép cập nhật.
-  // BƯỚC 3: Áp dụng quy tắc nghiệp vụ rồi cập nhật DB/lớp service.
-  // BƯỚC 4: Trả response thành công hoặc mã lỗi nghiệp vụ tương ứng.
-  // Guard admin từ sớm để ngăn request trái quyền.
+  // Xác thực quyền (Auth Guard): Chỉ có tài khoản Quản trị (Admin) mới có quyền cập nhật hóa đơn.
+  // Hàm này trả về userId (để ghi log ai duyệt đơn) nếu hợp lệ.
   const guard = await requireAdminApiAuth();
   if (guard.response) return guard.response;
 
@@ -42,7 +37,7 @@ export async function PATCH(request: Request, context: BookingRouteContext) {
 
   const parsed = bookingUpdateSchema.safeParse(json.data);
   if (!parsed.success) {
-    // Trả lỗi kiểm tra hợp lệ đầu tiên để UX gọn gàng.
+    // Trả lỗi Validation: Báo cho frontend biết dữ liệu trạng thái truyền lên không đúng chuẩn Enum.
     const firstIssue = parsed.error.issues[0];
     return NextResponse.json(
       { message: firstIssue?.message ?? "Dữ liệu cập nhật không hợp lệ." },
@@ -50,10 +45,10 @@ export async function PATCH(request: Request, context: BookingRouteContext) {
     );
   }
 
-  // Lưu ý cho dev:
-  // Endpoint này cho update status và paymentStatus, không sửa thông tin khách/tour.
-  // Trường hợp cần sửa chi tiết đơn thì dùng endpoint detail/content khác.
   try {
+    // Cập nhật CSDL và Ghi Log (Audit Trail):
+    // Hàm `updateAdminBooking` không chỉ cập nhật trạng thái đơn mà còn lưu lại userId của nhân viên thao tác.
+    // Việc này phục vụ truy vết (log) xem "Ai là người đã duyệt đơn/hủy đơn này?".
     const updated = await updateAdminBooking(id, parsed.data, guard.userId);
     if (!updated) {
       return NextResponse.json({ message: "Không tìm thấy đơn đặt tour cần cập nhật." }, { status: 404 });

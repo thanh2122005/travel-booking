@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { ChatWidget } from "@/components/chat/chat-widget";
 
 type PublicShellProps = {
   children: React.ReactNode;
@@ -16,6 +17,7 @@ export function PublicShell({ children, mainClassName, fullWidth = false }: Publ
         <div className={cn(!fullWidth && "iv-shell-container")}>{children}</div>
       </main>
       <SiteFooter />
+      <ChatWidget />
     </div>
   );
 }

@@ -1,7 +1,7 @@
-﻿// TÓM TẮT API: src/app/api/contact-inquiries/route.ts
-// Phạm vi: API public hoặc user đã đăng nhập.
-// Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
-
+// API Xử lý Yêu cầu tư vấn (Contact Inquiry).
+// File này xử lý 2 luồng:
+// 1. Khách hàng tự điền form tư vấn.
+// 2. Hệ thống TỰ ĐỘNG gọi API này khi khách đặt tour nhưng tour đã báo "hết chỗ", chuyển thành "Yêu cầu tư vấn ngầm".
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db/prisma";
@@ -12,7 +12,8 @@ import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { contactInquirySchema } from "@/lib/validations/contact";
 
 function buildReferenceCode() {
-  // Mã tư vấn để CSKH tra cứu nhanh theo ngày.
+  // Tạo Mã Phiếu Tư Vấn Tự Động: 
+  // CSKH có thể dùng mã này (VD: TV2405234567) để tra cứu nhanh thông tin khách yêu cầu theo ngày.
   const now = new Date();
   const yy = String(now.getFullYear()).slice(-2);
   const mm = String(now.getMonth() + 1).padStart(2, "0");
@@ -30,7 +31,8 @@ async function createContactInquiryWithRetry(data: {
   numberOfGuests: number;
   message: string;
 }) {
-  // Retry khi trùng referenceCode (unique) để tăng tỉ lệ thành công.
+  // Cơ chế Tự động Thử lại (Retry Logic):
+  // Vì `referenceCode` phải là duy nhất (unique), nếu lỡ random trùng mã, hệ thống sẽ tự sinh mã khác và thử lại tối đa 5 lần thay vì báo lỗi luôn.
   for (let attempt = 0; attempt < 5; attempt += 1) {
     try {
       return await db.contactInquiry.create({
@@ -61,13 +63,9 @@ async function createContactInquiryWithRetry(data: {
   throw new Error("Không thể tạo mã tham chiếu mới cho yêu cầu tư vấn.");
 }
 
-// LUỒNG: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function POST(request: Request) {
-  // BƯỚC 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
-  // BƯỚC 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
-  // BƯỚC 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
-  // BƯỚC 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
-  // Rate limit theo IP cho form liên hệ công khai.
+  // Bảo vệ API (Rate Limit): 
+  // Chống Spam bằng cách đếm số request theo IP. Tối đa 10 request / 15 phút.
   const ip = getClientIp(request);
   const rate = consumeRateLimit(`public:contact-inquiry:${ip}`, {
     windowMs: 15 * 60 * 1000,
@@ -107,7 +105,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Tạo inquiry trong DB và trả mã tham chiếu cho người dùng.
+    // Lưu Yêu Cầu Vào CSDL: Gọi hàm tạo và trả về mã tham chiếu để hiển thị lên màn hình thành công cho khách hàng.
     const inquiry = await createContactInquiryWithRetry(parsed.data);
     return NextResponse.json(
       {
@@ -137,9 +135,8 @@ export async function POST(request: Request) {
   }
 }
 
-// LUỒNG: GET - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function GET() {
-  // Chỉ admin mới được truy cập danh sách inquiry.
+  // Phân quyền Quản trị (Auth Guard): Chỉ có Admin (nhân viên CSKH) mới được xem danh sách này.
   const adminResponse = await requireAdminApi();
   if (adminResponse) {
     return adminResponse;

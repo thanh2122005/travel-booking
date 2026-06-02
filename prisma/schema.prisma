@@ -1,15 +1,21 @@
+// =====================================================================
+// TỔNG QUAN VỀ CƠ SỞ DỮ LIỆU (DATABASE SCHEMA)
+// =====================================================================
+// Định nghĩa toàn bộ các bảng trong MySQL sử dụng Prisma ORM. 
+// Prisma sẽ tự động map các cấu trúc model này thành các lệnh CREATE TABLE tương ứng trong database.
 generator client {
   // Sinh Prisma Client để gọi DB bằng TypeScript type-safe.
   provider = "prisma-client-js"
 }
 
+// Cấu hình kết nối đến XAMPP MySQL. Chuỗi kết nối nằm trong file .env
 datasource db {
   // Kết nối CSDL MySQL từ biến môi trường.
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-// Enum quyền và trạng thái người dùng cho phân quyền toàn hệ thống.
+// Quản lý phân quyền người dùng
 enum UserRole {
   USER
   ADMIN
@@ -50,6 +56,7 @@ enum PickupMethod {
   NEED_PICKUP
 }
 
+// Bảng User (Tài khoản): Dùng để lưu trữ thông tin đăng nhập và hồ sơ người dùng, phân quyền (USER/ADMIN).
 model User {
   id           String     @id @default(cuid())
   fullName     String
@@ -62,7 +69,7 @@ model User {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  // Quan hệ 1-n với các tương tác của người dùng.
+  // Quan hệ 1-N (Một - Nhiều): Một User có thể có nhiều đơn đặt tour (bookings), nhiều đánh giá (reviews) và yêu thích nhiều tour (favorites).
   bookings  Booking[]
   reviews   Review[]
   favorites Favorite[]
@@ -71,6 +78,7 @@ model User {
   @@index([status])
 }
 
+// Bảng Location (Địa điểm): Lưu trữ thông tin danh mục điểm đến, liên kết 1-N với Tour (1 địa điểm có nhiều tour).
 model Location {
   id               String   @id @default(cuid())
   name             String
@@ -85,12 +93,13 @@ model Location {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  // Một địa điểm có nhiều tour.
+  // Quan hệ 1-N: Một địa điểm (Location) chứa nhiều Tour.
   tours Tour[]
 
   @@index([featured])
 }
 
+// Bảng Tour (Sản phẩm cốt lõi): Lưu trữ thông tin chi tiết tour du lịch, giá cả, và cấu hình lịch trình.
 model Tour {
   id                String     @id @default(cuid())
   title             String
@@ -112,7 +121,8 @@ model Tour {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
-  // Tour thuộc về 1 location; xóa location sẽ xóa tour liên quan.
+  // Quan hệ N-1: Thuộc về 1 Location duy nhất.
+  // onDelete: Cascade nghĩa là nếu admin xóa Location thì tất cả Tour thuộc Location đó cũng bị xóa theo tự động ở cấp DB.
   location    Location    @relation(fields: [locationId], references: [id], onDelete: Cascade)
   images      TourImage[]
   itineraries Itinerary[]
@@ -127,6 +137,7 @@ model Tour {
   @@index([price])
 }
 
+// Bảng TourImage: Lưu trữ danh sách hình ảnh (Gallery) của tour. Quan hệ N-1 với Tour.
 model TourImage {
   id        String @id @default(cuid())
   tourId    String
@@ -138,6 +149,7 @@ model TourImage {
   @@index([tourId])
 }
 
+// Bảng Itinerary: Lưu trữ lịch trình chi tiết từng ngày của Tour. Quan hệ N-1 với Tour.
 model Itinerary {
   id          String @id @default(cuid())
   tourId      String
@@ -151,6 +163,7 @@ model Itinerary {
   @@index([tourId])
 }
 
+// Bảng Booking (Đơn đặt tour): Quan trọng nhất, lưu trữ thông tin mua hàng, thanh toán và lịch sử giá.
 model Booking {
   id             String        @id @default(cuid())
   // Mã đơn dùng cho tra cứu nghiệp vụ và hiển thị cho khách.
@@ -170,12 +183,16 @@ model Booking {
   note           String?
   baseGuestTotal Int           @default(0)
   roomSurchargeTotal Int       @default(0)
+  
+  // Lưu "Snapshot" (bản sao) giá tại thời điểm đặt. 
+  // Vì giá Tour có thể thay đổi trong tương lai, nhưng Booking cũ phải giữ nguyên giá lúc khách mua.
   unitPriceSnapshot Int        @default(0)
   discountPriceSnapshot Int?
   child5To7RatioSnapshot Float @default(0.5)
   childUnder5RatioSnapshot Float @default(0)
   singleRoomSurchargePerAdultSnapshot Int @default(0)
   durationNightsSnapshot Int   @default(0)
+  
   totalPrice     Int
   status         BookingStatus @default(PENDING)
   paymentMethod  String        @default("Thanh toan khi xac nhan")
@@ -191,6 +208,7 @@ model Booking {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
+  // Quan hệ N-1: 1 Booking thuộc về 1 User và 1 Tour. Cascade Delete đảm bảo khi xóa User/Tour thì Booking cũng mất.
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   tour Tour @relation(fields: [tourId], references: [id], onDelete: Cascade)
 
@@ -200,6 +218,7 @@ model Booking {
   @@index([paymentStatus])
 }
 
+// Bảng Review (Đánh giá): Cho phép User nhận xét Tour. Quan hệ N-1 với User và Tour.
 model Review {
   id        String   @id @default(cuid())
   userId    String
@@ -219,6 +238,7 @@ model Review {
   @@index([isVisible])
 }
 
+// Bảng Favorite (Yêu thích): Dùng để người dùng lưu (bookmark) tour muốn đi.
 model Favorite {
   id        String   @id @default(cuid())
   userId    String
@@ -234,6 +254,7 @@ model Favorite {
   @@index([tourId])
 }
 
+// Bảng lưu các form yêu cầu tư vấn của khách hàng
 model ContactInquiry {
   id             String    @id @default(cuid())
   referenceCode  String    @unique
@@ -249,8 +270,10 @@ model ContactInquiry {
   updatedAt      DateTime  @updatedAt
 
   // Inquiry có thể không gắn tour; khi tour bị xóa thì đặt null.
+  // SetNull: Nếu Tour bị xóa, ContactInquiry vẫn giữ lại nhưng trường tourId = null (vì đây là lịch sử tư vấn).
   tour Tour? @relation(fields: [tourId], references: [id], onDelete: SetNull)
 
+  // Đánh Index để tăng tốc độ tìm kiếm/truy vấn khi Where theo các trường này.
   @@index([status])
   @@index([email])
 }

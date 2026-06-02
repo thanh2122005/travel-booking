@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -21,6 +21,8 @@ export function RegisterForm() {
     ? `/dang-nhap?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/dang-nhap";
 
+  // Quản lý trạng thái form: Sử dụng `react-hook-form` để kiểm soát dữ liệu người dùng nhập.
+  // Validate Frontend: Dùng `zodResolver` chặn ngay các lỗi như email sai định dạng, mật khẩu ngắn trước khi gọi API.
   const {
     register,
     handleSubmit,
@@ -36,8 +38,10 @@ export function RegisterForm() {
     },
   });
 
+  // Xử lý Sự kiện Đăng ký (Submit):
   const onSubmit = handleSubmit(async (values) => {
     try {
+      // 1. Gửi request chứa thông tin đăng ký lên API Server.
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
@@ -48,11 +52,13 @@ export function RegisterForm() {
 
       const payload = (await response.json().catch(() => ({}))) as { message?: string };
 
+      // 2. Kiểm tra phản hồi: Nếu API trả về lỗi (VD: trùng email, mật khẩu yếu), hiển thị cảnh báo bằng toast.
       if (!response.ok) {
         toast.error(payload.message ?? "Đăng ký thất bại, vui lòng thử lại.");
         return;
       }
 
+      // 3. Nếu đăng ký thành công: Hiển thị thông báo và chuyển hướng (redirect) người dùng sang trang Đăng nhập.
       toast.success(payload.message ?? "Đăng ký thành công.");
       router.push(loginHref);
     } catch {

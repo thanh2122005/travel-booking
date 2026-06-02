@@ -1,4 +1,8 @@
-﻿import Link from "next/link";
+// Giao diện hiển thị danh sách đơn đặt tour (Admin)
+// Sử dụng Next.js Server Component để fetch data trực tiếp từ DB qua Prisma,
+// kết hợp với URL searchParams để xử lý filter/pagination mà không cần API route trung gian.
+
+import Link from "next/link";
 import { AdminBookingsTable } from "@/components/admin/admin-bookings-table";
 import { EmptyState } from "@/components/common/empty-state";
 import { MobileQuickActions } from "@/components/common/mobile-quick-actions";
@@ -119,6 +123,7 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
   let loadFailed = false;
 
   try {
+    // Gọi thẳng vào DB qua Prisma để lấy dữ liệu render server-side
     data = await getAdminBookings({
     search: search || undefined,
     status,

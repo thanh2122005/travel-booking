@@ -1,4 +1,4 @@
-﻿type RateLimitOptions = {
+type RateLimitOptions = {
   windowMs: number;
   max: number;
 };
@@ -22,7 +22,7 @@ function getStore() {
   };
 
   if (!globalObject[GLOBAL_STORE_KEY]) {
-    // Store in-memory theo process, phù hợp dev/single-instance.
+    // Lưu trữ tạm thời (In-memory Store): Lưu dữ liệu rate limit trực tiếp trên RAM của server (phù hợp cho 1 instance NodeJS).
     globalObject[GLOBAL_STORE_KEY] = new Map<string, RateLimitBucket>();
   }
 
@@ -30,7 +30,7 @@ function getStore() {
 }
 
 function cleanupExpiredBuckets(store: Map<string, RateLimitBucket>, now: number) {
-  // Chỉ dọn dẹp khi store lớn để giảm chi phí lặp.
+  // Tối ưu hiệu năng bộ nhớ: Chỉ quét và xóa dữ liệu cũ khi lượng record vượt quá 2000 để tránh tốn CPU.
   if (store.size < 2000) return;
 
   for (const [key, bucket] of store.entries()) {
@@ -41,7 +41,7 @@ function cleanupExpiredBuckets(store: Map<string, RateLimitBucket>, now: number)
 }
 
 export function getClientIp(request: { headers: Headers }) {
-  // Ưu tiên header chuẩn reverse proxy.
+  // Lấy IP thật của người dùng: Xuyên qua lớp Reverse Proxy (như Cloudflare, Nginx) thông qua các header chuẩn.
   const forwardedFor =
     request.headers.get("x-forwarded-for") ??
     request.headers.get("cf-connecting-ip") ??
@@ -63,7 +63,7 @@ export function consumeRateLimit(key: string, options: RateLimitOptions): RateLi
   const existing = store.get(key);
 
   if (!existing || existing.resetAt <= now) {
-    // Cửa sổ mới: reset count về 1.
+    // Khởi tạo cửa sổ đếm mới: Người dùng chưa bị giới hạn, hoặc khoảng thời gian phạt đã trôi qua.
     const nextBucket: RateLimitBucket = {
       count: 1,
       resetAt: now + options.windowMs,
@@ -78,7 +78,7 @@ export function consumeRateLimit(key: string, options: RateLimitOptions): RateLi
   }
 
   if (existing.count >= options.max) {
-    // Hết quota trong window hiện tại.
+    // Chặn request (Rate limit exceeded): Người dùng gửi quá nhiều request trong thời gian cho phép -> Trả về số giây cần đợi.
     return {
       allowed: false,
       retryAfterSeconds: Math.max(1, Math.ceil((existing.resetAt - now) / 1000)),

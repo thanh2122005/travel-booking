@@ -41,6 +41,9 @@ const departureDateSchema = z
   .optional()
   .or(z.literal(""));
 
+// TÓM TẮT LOGIC VALIDATE DỮ LIỆU ĐẶT TOUR
+// Dùng thư viện `zod` để định nghĩa bộ quy tắc dữ liệu đầu vào (schema validation).
+// Schema này dùng chung cho cả Client (hiển thị lỗi form trực tiếp) và Server (chống dữ liệu sai/độc hại đẩy vào API).
 export const bookingSchema = z
   .object({
     tourId: z.string().trim().min(1, "Thiếu thông tin tour"),
@@ -64,24 +67,24 @@ export const bookingSchema = z
       .number({ message: "Số lượng khách không hợp lệ" })
       .int("Số lượng khách phải là số nguyên")
       .min(1, "Số lượng khách tối thiểu là 1")
-      .max(100, "Số lượng khách tối đa cho một đơn là 100"),
+      .max(1000, "Số lượng khách tối đa cho một đơn là 1000"),
     guestsFrom8: z
       .number({ message: "Số khách từ 8 tuổi trở lên không hợp lệ" })
       .int("Số khách từ 8 tuổi trở lên phải là số nguyên")
       .min(1, "Cần ít nhất 1 khách từ 8 tuổi trở lên")
-      .max(100, "Số khách từ 8 tuổi trở lên không hợp lệ")
+      .max(1000, "Số khách từ 8 tuổi trở lên không hợp lệ")
       .optional(),
     child5To7Guests: z
       .number({ message: "Số khách từ 5 đến 7 tuổi không hợp lệ" })
       .int("Số khách từ 5 đến 7 tuổi phải là số nguyên")
       .min(0, "Số khách từ 5 đến 7 tuổi không hợp lệ")
-      .max(100, "Số khách từ 5 đến 7 tuổi không hợp lệ")
+      .max(1000, "Số khách từ 5 đến 7 tuổi không hợp lệ")
       .optional(),
     childUnder5Guests: z
       .number({ message: "Số khách dưới 5 tuổi không hợp lệ" })
       .int("Số khách dưới 5 tuổi phải là số nguyên")
       .min(0, "Số khách dưới 5 tuổi không hợp lệ")
-      .max(100, "Số khách dưới 5 tuổi không hợp lệ")
+      .max(1000, "Số khách dưới 5 tuổi không hợp lệ")
       .optional(),
     pickupMethod: z.enum(["SELF_ARRIVAL", "NEED_PICKUP"]).default("SELF_ARRIVAL"),
     pickupLocation: z
@@ -96,12 +99,15 @@ export const bookingSchema = z
       .number({ message: "Số khách ở phòng đơn không hợp lệ" })
       .int("Số khách ở phòng đơn phải là số nguyên")
       .min(0, "Số khách ở phòng đơn không hợp lệ")
-      .max(100, "Số khách ở phòng đơn không hợp lệ")
+      .max(1000, "Số khách ở phòng đơn không hợp lệ")
       .optional(),
     note: z.string().trim().max(500, "Ghi chú tối đa 500 ký tự").optional().or(z.literal("")),
     departureDate: departureDateSchema,
   })
+  // Xác thực chéo (Cross-field Validation): Kiểm tra logic nghiệp vụ phụ thuộc giữa nhiều trường dữ liệu.
+  // Ví dụ: Tổng số khách người lớn + trẻ em phải bằng đúng số `numberOfGuests`.
   .superRefine((value, ctx) => {
+    // 1. Kiểm tra cơ cấu độ tuổi: Đảm bảo khách không gian lận chọn số lượng trẻ em không khớp với tổng số khách.
     if (
       typeof value.guestsFrom8 === "number" ||
       typeof value.child5To7Guests === "number" ||
@@ -119,6 +125,7 @@ export const bookingSchema = z
       }
     }
 
+    // 2. Validate điểm đón: Bắt buộc phải nhập "điểm đón" nếu chọn hình thức "Cần xe đưa đón".
     if (value.pickupMethod === "NEED_PICKUP" && !value.pickupLocation?.trim()) {
       ctx.addIssue({
         code: "custom",
@@ -127,6 +134,7 @@ export const bookingSchema = z
       });
     }
 
+    // 3. Validate phòng đơn: Phải nhập số lượng khách ở phòng đơn hợp lệ nếu đã tick chọn ở phòng riêng.
     if (value.roomType === "SINGLE") {
       const singleRoomGuests = value.singleRoomGuests ?? 0;
       if (singleRoomGuests < 1) {

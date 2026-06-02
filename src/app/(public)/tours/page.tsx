@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Heart, List, ListFilter, Search } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
@@ -168,7 +168,7 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
       />
 
       <div id="bo-loc-tour" className="scroll-mt-24" />
-      <form className="grid gap-3 rounded-2xl border bg-card p-4 md:grid-cols-2 lg:grid-cols-7">
+      <form key={JSON.stringify(rawParams)} className="grid gap-3 rounded-2xl border bg-card p-4 md:grid-cols-2 lg:grid-cols-7">
         <input type="hidden" name="page" value="1" />
 
         <div className="lg:col-span-2">

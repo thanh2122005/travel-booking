@@ -1,6 +1,4 @@
-﻿// TÓM TẮT API: src/app/api/auth/register/route.ts
-// Phạm vi: API xác thực (auth).
-// Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
+// API Xử lý Đăng ký tài khoản: Validate form, mã hóa mật khẩu và tạo user mới trong CSDL.
 
 import { NextResponse } from "next/server";
 import { UserRole } from "@prisma/client";
@@ -10,13 +8,8 @@ import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { consumeRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { registerSchema } from "@/lib/validations/auth";
 
-// LUỒNG: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function POST(request: Request) {
-  // BƯỚC 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
-  // BƯỚC 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
-  // BƯỚC 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
-  // BƯỚC 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
-  // Giới hạn tần suất đăng ký theo IP để giảm spam.
+  // Rate limit: Giới hạn tần suất đăng ký từ 1 địa chỉ IP (chống bot spam tạo hàng loạt tài khoản ảo).
   const ip = getClientIp(request);
   const rate = consumeRateLimit(`auth:register:${ip}`, {
     windowMs: 15 * 60 * 1000,
@@ -38,11 +31,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Parse JSON và kiểm tra hợp lệ schema trước khi truy vấn DB.
+    // Parse Body: Đọc dữ liệu JSON gửi lên từ client.
     const json = await parseJsonBody(request, "Dữ liệu đăng ký không hợp lệ.");
     if (!json.ok) {
       return json.response;
     }
+    // Validate dữ liệu: Kiểm tra tính hợp lệ của email, mật khẩu (độ dài, ký tự) bằng thư viện Zod.
     const parsed = registerSchema.safeParse(json.data);
 
     if (!parsed.success) {
@@ -56,14 +50,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // Kiểm tra trùng lặp: Tìm xem email này đã có người khác đăng ký trong CSDL chưa.
     const existingUser = await db.user.findUnique({
       where: {
         email: parsed.data.email,
       },
     });
 
+    // Tránh tạo trùng tài khoản theo email.
     if (existingUser) {
-      // Tránh tạo trùng tài khoản theo email.
       return NextResponse.json(
         {
           message: "Email đã tồn tại, vui lòng sử dụng email khác.",
@@ -72,9 +67,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Luôn hash mật khẩu trước khi lưu.
+    // Hash mật khẩu: Băm mật khẩu người dùng nhập (chuỗi thô) bằng thuật toán bcrypt (mức salt 10) trước khi lưu để bảo mật.
     const passwordHash = await bcrypt.hash(parsed.data.password, 10);
 
+    // Tạo tài khoản mới: Lưu thông tin vào CSDL. Mặc định mọi tài khoản mới đăng ký đều có quyền USER.
     await db.user.create({
       data: {
         fullName: parsed.data.fullName,
@@ -100,11 +96,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
-
-
-
-
-
-
-

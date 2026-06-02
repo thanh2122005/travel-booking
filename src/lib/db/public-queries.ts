@@ -1,4 +1,4 @@
-﻿import { Prisma, TourStatus } from "@prisma/client";
+import { Prisma, TourStatus } from "@prisma/client";
 import {
   demoGetPublicLocationBySlug,
   demoGetPublicLocations,
@@ -233,7 +233,12 @@ export async function getTours(filters: TourFilterInput) {
     const page = Math.max(filters.page ?? 1, 1);
     const pageSize = filters.pageSize ?? 9;
 
-    // Tổng hợp bộ lọc tìm kiếm thành 1 where object.
+    // Thuật toán Phân trang (Offset-based Pagination):
+    // Dùng công thức: skip = (page - 1) * pageSize để bỏ qua các bản ghi trang trước đó.
+    // Lấy số lượng bản ghi bằng đúng `pageSize` (mặc định 9 tour/trang).
+
+    // Xây dựng bộ lọc tìm kiếm (Dynamic Where Clause):
+    // Gom tất cả các điều kiện lọc (tên, giá, điểm đến) vào 1 object `where` để Prisma truy vấn.
     const where: Prisma.TourWhereInput = {
       status: TourStatus.ACTIVE,
       ...(filters.search
@@ -252,6 +257,9 @@ export async function getTours(filters: TourFilterInput) {
       ...buildDurationWhere(filters.duration),
     };
 
+    // Truy vấn song song (Parallel Queries):
+    // Sử dụng `Promise.all` để chạy đồng thời 3 câu lệnh (tổng số tour, danh sách điểm đến, điểm khởi hành).
+    // Kỹ thuật này giúp giảm 1/3 thời gian load so với chạy tuần tự từng câu lệnh `await`.
     const [total, allLocations, departurePlaces] = await Promise.all([
       db.tour.count({ where }),
       db.location.findMany({
@@ -351,6 +359,8 @@ export async function getTours(filters: TourFilterInput) {
 
 export async function getTourBySlug(slug: string, userId?: string) {
   try {
+    // Tìm chi tiết tour theo Slug (URL):
+    // Lấy thông tin tour kèm theo hình ảnh, lịch trình và nhận xét thông qua JOIN bảng.
     const tour = await db.tour.findUnique({
     where: { slug },
     include: {
@@ -390,11 +400,8 @@ export async function getTourBySlug(slug: string, userId?: string) {
 
     let viewer: TourViewerData | null = null;
     if (userId) {
-      // Khi có userId thì trả thêm dữ liệu cá nhân hóa cho trang chi tiết tour.
-      // Chạy song song 3 query để giảm thời gian chờ:
-      // - favorite
-      // - review cua chinh user
-      // - Phone profile để prefill form
+      // Tùy biến trải nghiệm người dùng (Personalization):
+      // Nếu user đã đăng nhập, chạy thêm query lấy dữ liệu "Đã yêu thích", "Đã đánh giá", "Số điện thoại" để hiển thị sẵn lên form đặt tour.
       const [favorite, ownReview, ownProfile] = await Promise.all([
         db.favorite.findUnique({
           where: {

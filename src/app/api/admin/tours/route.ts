@@ -1,6 +1,5 @@
-﻿// TÓM TẮT API: src/app/api/admin/tours/route.ts
-// Phạm vi: API quản trị (admin).
-// Luồng chính: kiểm tra quyền -> rate limit -> parse body -> validate schema -> xử lý DB -> trả response nhất quán.
+// API Xử lý Thêm Tour Mới (Dành cho Admin).
+// Validate dữ liệu chặt chẽ (giá, lịch trình, phòng đơn) trước khi ghi vào Database.
 
 import { Prisma, TourStatus } from "@prisma/client";
 import { z } from "zod";
@@ -12,7 +11,7 @@ import { parseJsonBody } from "@/lib/http/parse-json-body";
 import { requiredMediaUrlSchema } from "@/lib/validations/media-url";
 
 const createTourSchema = z.object({
-  // Nhóm trường bắt buộc để tạo tour có thể mở bán.
+  // Nhóm trường thông tin cơ bản: Định nghĩa bắt buộc phải nhập các trường quan trọng (title, price, slug...).
   title: z.string().trim().min(1, "Tên tour là bắt buộc."),
   slug: z.string().trim().min(1, "Slug là bắt buộc."),
   shortDescription: z.string().trim().min(1, "Mô tả ngắn là bắt buộc."),
@@ -41,6 +40,7 @@ const createTourSchema = z.object({
   featured: z.boolean().optional(),
   locationId: z.string().trim().min(1, "Điểm đến là bắt buộc."),
 }).superRefine((value, ctx) => {
+  // Kiểm tra chéo (Cross-validation): Đảm bảo tour đi qua đêm (durationNights > 0) thì bắt buộc phải cấu hình phí phụ thu phòng đơn.
   if (value.durationNights > 0 && value.singleRoomSurchargePerAdult <= 0) {
     ctx.addIssue({
       code: "custom",
@@ -50,22 +50,19 @@ const createTourSchema = z.object({
   }
 });
 
-// LUỒNG: POST - kiểm tra quyền/kiểm tra hợp lệ trước, sau đó xử lý nghiệp vụ và trả response có cấu trúc rõ ràng.
 export async function POST(request: Request) {
-  // BƯỚC 1: Kiểm tra quyền truy cập và rate limit để chặn spam.
-  // BƯỚC 2: Phân tích JSON/body và kiểm tra hợp lệ schema đầu vào.
-  // BƯỚC 3: Thực thi nghiệp vụ tạo mới/cập nhật theo quy tắc hệ thống.
-  // BƯỚC 4: Trả kết quả thành công hoặc thông điệp lỗi có cấu trúc rõ ràng.
-  // Guard admin: chặn sớm request chưa đăng nhập hoặc không có quyền admin.
+  // Kiểm tra quyền (Auth Guard): Chỉ có tài khoản Admin mới được gọi API này để tạo tour mới.
+  // Hàm requireAdminApi sẽ tự động xác thực token JWT, chặn mọi request từ User thường hoặc chưa đăng nhập.
   const guard = await requireAdminApi();
   if (guard) return guard;
 
-  // Phân tích body an toàn; nếu JSON sai format thì trả 400 theo một chuẩn chung.
+  // Parse Body: Lấy và phân tích dữ liệu form do Admin gửi lên.
   const json = await parseJsonBody(request, "Dữ liệu tạo tour không hợp lệ.");
   if (!json.ok) {
     return json.response;
   }
 
+  // Validate dữ liệu: Kiểm tra dữ liệu có tuân thủ schema đã định nghĩa ở trên không (Zod).
   const parsed = createTourSchema.safeParse(json.data);
   if (!parsed.success) {
     // Trả lỗi kiểm tra hợp lệ đầu tiên để frontend hiển thị gọn và rõ.
@@ -76,8 +73,8 @@ export async function POST(request: Request) {
     );
   }
 
+  // Chuẩn hóa dữ liệu: Xóa khoảng trắng thừa (trim) và đánh lại số thứ tự ngày cho lịch trình (dayNumber).
   const normalized = {
-    // Chuẩn hóa string/array trước khi lưu để dữ liệu sạch hơn.
     ...parsed.data,
     images: parsed.data.images.map((item) => item.trim()).filter(Boolean),
     itineraries: parsed.data.itineraries
@@ -89,8 +86,8 @@ export async function POST(request: Request) {
       .filter((item) => item.title && item.description),
   };
 
+  // Kiểm tra nghiệp vụ: Tour bắt buộc phải có ít nhất 1 ngày lịch trình.
   if (!normalized.itineraries.length) {
-    // Rule nghiệp vụ: tour bắt buộc có ít nhất 1 ngày lịch trình.
     return NextResponse.json(
       { message: "Vui lòng thêm ít nhất 1 ngày lịch trình." },
       { status: 400 },
@@ -98,31 +95,24 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Day logic ghi DB xuong lớp service để route dễ đọc/dễ test.
+    // Lưu vào CSDL: Sử dụng Prisma query (được bọc trong service) để thêm mới tour cùng các quan hệ đi kèm (images, itineraries).
     const created = await createAdminTour(normalized);
     return NextResponse.json({ message: "Tạo tour thành công.", tour: created }, { status: 201 });
   } catch (error) {
+    // Xử lý lỗi Prisma (P2002): Quản trị viên nhập trùng URL Slug (trường duy nhất).
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      // P2002 = trùng unique key (thường là slug).
       return NextResponse.json(
         { message: "Slug tour đã tồn tại. Vui lòng nhập slug khác." },
         { status: 409 },
       );
     }
 
+    // Xử lý lỗi khóa ngoại (P2003): Điểm đến (locationId) truyền vào không tồn tại trong DB.
     if (isPrismaForeignKeyError(error)) {
-      // locationId không tồn tại.
       return NextResponse.json({ message: "Không tìm thấy điểm đến được chọn." }, { status: 404 });
     }
 
+    // Lỗi hệ thống không xác định
     return NextResponse.json({ message: "Không thể tạo tour mới." }, { status: 500 });
   }
 }
-
-
-
-
-
-
-
-

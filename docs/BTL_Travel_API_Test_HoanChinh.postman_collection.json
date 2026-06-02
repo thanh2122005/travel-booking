@@ -1,0 +1,1198 @@
+{
+  "info": {
+    "name": "Đồ án Travel API Test - Hoàn Chỉnh",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "GET Lay danh sach nhan tin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/newsletter"
+          }
+        },
+        {
+          "name": "POST Dang ky nhan tin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/newsletter",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"postman-newsletter-1774882724618@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET Lay danh sach lien he tu van",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/contact-inquiries"
+          }
+        },
+        {
+          "name": "POST Gui yeu cau tu van",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/contact-inquiries",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Khach Hang Test\",\n  \"phone\": \"0987654321\",\n  \"email\": \"khachhang@example.com\",\n  \"numberOfGuests\": 2,\n  \"message\": \"Toi can tu van tour\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "GET Lay CSRF token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/auth/csrf"
+          }
+        },
+        {
+          "name": "POST Dang nhap admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/auth/callback/credentials",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin@example.com\",\n  \"password\": \"123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Dang nhap nguoi dung",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/auth/callback/credentials",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user@example.com\",\n  \"password\": \"123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET Lay phien dang nhap",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/auth/session"
+          }
+        },
+        {
+          "name": "GET Lay danh sach provider",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/auth/providers"
+          }
+        },
+        {
+          "name": "POST Dang ky tai khoan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguoi Dung\",\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Quen mat khau - gui OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/auth/forgot-password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Dat lai mat khau bang OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/auth/reset-password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewPassword123!\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "PATCH Cap nhat ho so tai khoan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/account/profile",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Update Name\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Tao booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tourId\": \"id-tour\",\n  \"numberOfGuests\": 2,\n  \"fullName\": \"Khach\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Huy booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/bookings/id-booking/cancel",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Huy\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Bat tat yeu thich",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/favorites",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tourId\": \"id-tour\"\n}"
+            }
+          }
+        },
+        {
+          "name": "DEL Xoa tour khoi yeu thich",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/favorites/id-favorite"
+          }
+        },
+        {
+          "name": "POST Gui danh gia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tourId\": \"id-tour\",\n  \"rating\": 5,\n  \"comment\": \"Good\"\n}"
+            }
+          }
+        },
+        {
+          "name": "DEL Xoa danh gia",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/reviews/id-review"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "GET Xuat danh sach nguoi dung",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/users/export"
+          }
+        },
+        {
+          "name": "PATCH Cap nhat hang loat nguoi dung",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/users/bulk",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\n    \"1\",\n    \"2\"\n  ],\n  \"status\": \"ACTIVE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat nguoi dung",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/users/id-user",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"ADMIN\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat noi dung nguoi dung",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/users/id-user/content",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Admin Name\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET Xuat danh sach booking",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/bookings/export"
+          }
+        },
+        {
+          "name": "PATCH Cap nhat hang loat booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/bookings/bulk",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\n    \"1\",\n    \"2\"\n  ],\n  \"status\": \"CONFIRMED\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/bookings/id-booking",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CONFIRMED\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat chi tiet booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/bookings/id-booking/detail",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Ghi chu\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET Xuat danh sach danh gia",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/reviews/export"
+          }
+        },
+        {
+          "name": "PATCH Cap nhat hang loat danh gia",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/reviews/bulk",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\n    \"1\",\n    \"2\"\n  ],\n  \"isVisible\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat hien thi danh gia",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/reviews/id-review",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isVisible\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat noi dung danh gia",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/reviews/id-review/content",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Edited comment\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET Xuat danh sach yeu cau tu van",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/inquiries/export"
+          }
+        },
+        {
+          "name": "PATCH Cap nhat hang loat yeu cau tu van",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/inquiries/bulk",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\n    \"1\",\n    \"2\"\n  ],\n  \"status\": \"RESOLVED\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat yeu cau tu van",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/inquiries/id-inquiry",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RESOLVED\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET Xuat danh sach nhan tin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/newsletter/export"
+          }
+        },
+        {
+          "name": "DEL Xoa hang loat dang ky nhan tin",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/newsletter/bulk",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\n    \"1\",\n    \"2\"\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "GET Xuat bao cao dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/dashboard/export"
+          }
+        },
+        {
+          "name": "POST Tao diem den",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/locations",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ha Noi\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat diem den",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/locations/id-location",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"featured\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat noi dung diem den",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/locations/id-location/content",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ha Noi Updated\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat thu vien anh diem den",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/locations/id-location/gallery",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gallery\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Tao tour",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/tours",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tour Moi\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat tour",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/tours/id-tour",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat noi dung tour",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/tours/id-tour/content",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tour Updated\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Them anh tour",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/tours/id-tour/images",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageUrl\": \"url\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat thu tu anh tour",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/tours/id-tour/images",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orders\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat anh tour",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/tour-images/id-image",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageUrl\": \"url2\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Them lich trinh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/tours/id-tour/itineraries",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dayNumber\": 1,\n  \"title\": \"Ngay 1\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Cap nhat lich trinh",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/itineraries/id-itinerary",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Ngay 1 Updated\"\n}"
+            }
+          }
+        },
+        {
+          "name": "DEL Xoa lich trinh",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/itineraries/id-itinerary"
+          }
+        },
+        {
+          "name": "DEL Xoa anh tour",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/tour-images/id-image"
+          }
+        },
+        {
+          "name": "DEL Xoa tour",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/tours/id-tour"
+          }
+        },
+        {
+          "name": "DEL Xoa diem den",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/locations/id-location"
+          }
+        },
+        {
+          "name": "POST Upload anh tour",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..34uNdUvW9lqtG3kw.ZsRWqRImgdjP3grLOufGbpBj_v0jWOUAXsjxRceaRzZ4QB56iv6_UYC95zoD6e8omaySSjOM4fo0sfR9KfWQ27iZGpJfnLEFymJBl0Wscf9rbAwb4JTYrQCnoDvv-IxfW6tfzMqZ3JRPHE9aTzpB0m25UVXsjWCyM5p-xKoBzrvlCP_TD6kXgtffHCh-nCMDwYtFsD5MCVtJq-nzndVqQ_DsZwfHxSbPgP2pzASPO5PWWyyFW1RtdERY3M38DLQcCE3Vh0yQ6qSyYieG0TfRSZg29Bs2FIoZtD5Nsps1m18sZHbYYp1qYg1QjzQ8V59b7cfF3M5d3euMk2qBrRPIMQL3LI2TrP3C2K3YqbDy4UBbIf6Ioc2iVZQYB0i2biLchM_CdTOeLtsU0Mw_jhDk1sKNVlnj.rgeFZCDovxR4tRrKJ8kU7w",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "http://localhost:3000/api/admin/uploads/tour-image"
+          }
+        }
+      ]
+    }
+  ]
+}

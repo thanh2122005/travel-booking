@@ -33,9 +33,10 @@ type RequireActiveUserApiResult =
 export async function requireActiveUserApi(
   options: RequireActiveUserApiOptions = {},
 ): Promise<RequireActiveUserApiResult> {
-  // Guard chung cho API phía người dùng: phải đăng nhập.
+  // Lấy session hiện tại: Giải mã JWT token từ request để biết người dùng là ai.
   const session = await getServerSession(authOptions);
 
+  // Kiểm tra đăng nhập: Chặn đứng các request nặc danh (chưa đăng nhập hoặc token hết hạn).
   if (!session?.user?.id) {
     return {
       session: null,
@@ -47,8 +48,8 @@ export async function requireActiveUserApi(
   }
 
   const access = await resolveAccessState(session.user);
+  // Kiểm tra tài khoản bị khóa: Chặn user thực hiện các thao tác khi bị admin cấm (VD: bom hàng, spam).
   if (access.status === UserStatus.BLOCKED) {
-    // User bị khóa sẽ bị chặn mọi thao tác ghi dữ liệu.
     return {
       session: null,
       response: NextResponse.json(
@@ -59,7 +60,7 @@ export async function requireActiveUserApi(
   }
 
   return {
-    // Trả lại session khi pass guard để route xử lý nghiệp vụ.
+    // Vượt qua tất cả bảo mật: Trả về thông tin session để route xử lý nghiệp vụ tiếp theo.
     session: session as ActiveUserSession,
     response: null,
   };

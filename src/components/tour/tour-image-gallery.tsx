@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Images, Maximize2, X } from "lucide-react";
@@ -158,7 +158,7 @@ export function TourImageGallery({ title, images }: TourImageGalleryProps) {
 
       {isLightboxOpen ? (
         <div
-          className="fixed inset-0 z-50 bg-black/90 px-4 py-5"
+          className="fixed inset-0 z-[100] bg-black/90 px-4 py-5"
           onClick={() => setIsLightboxOpen(false)}
           role="dialog"
           aria-modal="true"

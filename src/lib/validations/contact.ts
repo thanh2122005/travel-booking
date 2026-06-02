@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 
 function normalizeOptional(value?: string) {
   const normalized = value?.trim();
@@ -34,7 +34,7 @@ export const contactInquirySchema = z.object({
     .number({ message: "Số khách phải là số." })
     .int("Số khách phải là số nguyên.")
     .min(1, "Số khách tối thiểu là 1.")
-    .max(20, "Số khách tối đa là 20."),
+    .max(1000, "Số khách tối đa là 1000."),
   message: z
     .string()
     .trim()

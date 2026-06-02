@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
@@ -239,7 +239,7 @@ export function AdminBookingsTable({ items, statusLabels, paymentLabels }: Admin
               type="button"
               onClick={handleBulkUpdate}
               disabled={isPending}
-              className="iv-btn-primary iv-admin-bulk-apply-btn inline-flex h-10 w-full items-center justify-center px-5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-2 xl:col-span-1"
+              className="iv-btn-primary iv-admin-bulk-apply-btn inline-flex h-10 w-full sm:w-auto sm:justify-self-center items-center justify-center px-8 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-2 2xl:col-span-1"
             >
               {isPending ? (
                 <>

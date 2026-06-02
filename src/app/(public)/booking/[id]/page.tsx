@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/empty-state";
 import { BookingCancelButton } from "@/components/booking/booking-cancel-button";
@@ -202,6 +202,8 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
           fullName={booking.fullName}
           tourTitle={booking.tour.title}
           verifiedByName={booking.paymentVerifiedByName}
+          checkedInAt={booking.checkedInAt}
+          checkedInByName={booking.checkedInByName}
         />
       ) : null}
     </div>

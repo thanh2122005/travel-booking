@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,6 +22,8 @@ export function LoginForm() {
     ? `/dang-ky?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/dang-ky";
 
+  // Quản lý Form bằng react-hook-form kết hợp Zod:
+  // Giúp kiểm tra email và mật khẩu (validate) trực tiếp trên giao diện mà không cần reload trang.
   const {
     register,
     handleSubmit,
@@ -34,12 +36,15 @@ export function LoginForm() {
     },
   });
 
+  // Xử lý Sự kiện Đăng nhập (Submit):
   const onSubmit = handleSubmit(async (values) => {
+    // 1. Gọi hàm signIn() của thư viện NextAuth.
+    // Thư viện sẽ tự động gửi request đến `api/auth/[...nextauth]` để so khớp mật khẩu trong CSDL.
     const result = await signIn("credentials", {
       email: values.email,
       password: values.password,
       callbackUrl: callbackUrl ?? "/",
-      redirect: false,
+      redirect: false, // Ngăn NextAuth tự động chuyển trang để ta tự xử lý kết quả bằng toast.
     });
 
     if (!result || result.error) {
@@ -48,7 +53,12 @@ export function LoginForm() {
     }
 
     toast.success("Đăng nhập thành công.");
+    // 2. Lấy lại session mới nhất từ server sau khi đăng nhập thành công.
     const session = await getSession();
+    
+    // 3. Phân luồng điều hướng (Routing):
+    // - Nếu là ADMIN -> Vào thẳng trang Dashboard.
+    // - Nếu là USER -> Vào trang tài khoản cá nhân hoặc quay lại trang cũ (callbackUrl).
     const destination = callbackUrl ?? (session?.user?.role === "ADMIN" ? "/admin" : "/tai-khoan");
 
     router.replace(destination);

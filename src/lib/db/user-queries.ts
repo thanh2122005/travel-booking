@@ -2,6 +2,7 @@ import { db } from "@/lib/db/prisma";
 import { demoGetUserDashboardData } from "@/lib/demo/admin-demo-store";
 import { isDatabaseUnavailableError } from "@/lib/db/db-error";
 import { attachBookingPaymentMetadata } from "@/lib/db/booking-payment-metadata";
+import { attachBookingCheckInMetadata } from "@/lib/db/booking-checkin-metadata";
 
 type UserIdentityInput = {
   userId: string;
@@ -165,7 +166,8 @@ export async function getUserBookingDetail(
     }
 
     const [bookingWithPayment] = await attachBookingPaymentMetadata([booking]);
-    return bookingWithPayment ?? null;
+    const [bookingWithAllMetadata] = await attachBookingCheckInMetadata([bookingWithPayment]);
+    return bookingWithAllMetadata ?? null;
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       const dashboard = await demoGetUserDashboardData(userId);

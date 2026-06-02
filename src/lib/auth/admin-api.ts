@@ -11,9 +11,10 @@ type AdminApiAuthResult = {
 };
 
 export async function requireAdminApiAuth(): Promise<AdminApiAuthResult> {
-  // Lấy session hiện tại từ NextAuth.
+  // Lấy session: Giải mã JWT token từ cookie để xác định người dùng đang request.
   const session = await getServerSession(authOptions);
 
+  // Kiểm tra đăng nhập: Chặn các request không hợp lệ (nặc danh, token hết hạn).
   if (!session?.user?.id) {
     return {
       response: NextResponse.json({ message: "Vui lòng đăng nhập." }, { status: 401 }),
@@ -23,6 +24,7 @@ export async function requireAdminApiAuth(): Promise<AdminApiAuthResult> {
   }
 
   const access = await resolveAccessState(session.user);
+  // Chặn tài khoản bị khóa: Không cho tài khoản bị ban (Blocked) thực hiện thao tác quản trị.
   if (access.status === UserStatus.BLOCKED) {
     return {
       response: NextResponse.json({ message: "Tài khoản của bạn đã bị khóa." }, { status: 403 }),
@@ -31,8 +33,8 @@ export async function requireAdminApiAuth(): Promise<AdminApiAuthResult> {
     };
   }
 
+  // Phân quyền (Role-based Access Control): Chặn user thường (ROLE = USER) truy cập API admin để bảo mật dữ liệu.
   if (access.role !== UserRole.ADMIN) {
-    // Chỉ ADMIN mới được gọi API quản trị.
     return {
       response: NextResponse.json({ message: "Bạn không có quyền truy cập." }, { status: 403 }),
       userId: session.user.id,
@@ -40,6 +42,7 @@ export async function requireAdminApiAuth(): Promise<AdminApiAuthResult> {
     };
   }
 
+  // Hợp lệ: Trả về thông tin session để route xử lý logic lưu trữ dữ liệu.
   return {
     response: null,
     userId: session.user.id,

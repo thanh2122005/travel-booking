@@ -46,6 +46,11 @@ function getUtc7DayRange(date: Date) {
   return { start, end };
 }
 
+// LUỒNG KIỂM TRA CHỖ TRỐNG (Phục vụ trả lời câu hỏi bảo vệ)
+// 1. Nhận `tourId` từ params và `departureDate` từ query string.
+// 2. Validate ngày khởi hành hợp lệ (không quá khứ).
+// 3. Query tổng số khách đã đặt (bookedGuests) trong bảng Booking khớp với tourId và ngày đi (status != CANCELLED).
+// 4. Lấy `maxGuests` của Tour trừ đi `bookedGuests` để ra số chỗ còn lại (`remainingSeats`).
 export async function GET(request: Request, context: RouteContext) {
   const { id } = await context.params;
   const { searchParams } = new URL(request.url);

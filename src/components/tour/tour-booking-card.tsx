@@ -1,3 +1,6 @@
+// Component Đặt Tour (Client Component): Quản lý form nhập liệu, tính toán giá tiền và gửi yêu cầu đặt tour.
+// Tích hợp Zod để validate ngay tại frontend trước khi gửi dữ liệu lên server.
+
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -118,12 +121,16 @@ export function TourBookingCard({
   const [lastBookingCode, setLastBookingCode] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [isFavoriteSubmitting, setIsFavoriteSubmitting] = useState(false);
+
+
   const [availability, setAvailability] = useState<TourAvailability | null>(null);
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const [isConfirmChecked, setIsConfirmChecked] = useState(false);
   const reportedCapacityShortageKeysRef = useRef<Set<string>>(new Set());
 
+  // Quản lý trạng thái form: Sử dụng `react-hook-form` để form không bị giật lag (re-render) khi gõ phím.
+  // Validate Frontend: Tích hợp `zodResolver` để báo lỗi ngay lập tức (VD: email sai định dạng, sđt quá ngắn).
   const {
     control,
     register,
@@ -258,14 +265,15 @@ export function TourBookingCard({
   const singleRoomGuests =
     shouldShowRoomType && roomType === "SINGLE"
       ? Math.max(
-          1,
-          Math.min(
-            computedTotalGuests,
-            normalizeGuestCount(singleRoomGuestsRaw, computedTotalGuests, 0),
-          ),
-        )
+        1,
+        Math.min(
+          computedTotalGuests,
+          normalizeGuestCount(singleRoomGuestsRaw, computedTotalGuests, 0),
+        ),
+      )
       : 0;
 
+  // Tự động tính toán số phòng đơn: Dựa trên tổng số khách và loại phòng (SINGLE/DOUBLE).
   useEffect(() => {
     if (!shouldShowRoomType || roomType !== "SINGLE") {
       setValue("singleRoomGuests", 0, { shouldValidate: true });
@@ -286,6 +294,7 @@ export function TourBookingCard({
       return;
     }
 
+    // Kiểm tra chỗ trống (Live Availability): Tự động gọi API hỏi server xem ngày này còn đủ chỗ không ngay khi khách chọn lịch.
     const controller = new AbortController();
     setIsLoadingAvailability(true);
     setAvailabilityError(null);
@@ -338,14 +347,18 @@ export function TourBookingCard({
     }
   }, [computedTotalGuests, numberOfGuests, setValue]);
 
+  // Tính toán giá tiền trực tiếp:
+  // - Tính giá theo cơ cấu độ tuổi (người lớn 100%, 5-7T 50%, <5T 0%).
   const baseGuestTotal = Math.round(
     unitPrice *
-      (guestsFrom8 + child5To7Guests * CHILD_5_TO_7_PRICE_RATIO + childUnder5Guests * CHILD_UNDER_5_PRICE_RATIO),
+    (guestsFrom8 + child5To7Guests * CHILD_5_TO_7_PRICE_RATIO + childUnder5Guests * CHILD_UNDER_5_PRICE_RATIO),
   );
+  // - Cộng thêm phụ thu phòng đơn nếu khách có nhu cầu ở riêng.
   const roomSurchargeTotal =
     shouldShowRoomType && roomType === "SINGLE"
       ? Math.round(singleRoomGuests * effectiveSingleRoomSurchargePerAdult * durationNights)
       : 0;
+  // - Ra tổng tiền cuối cùng.
   const totalPrice = baseGuestTotal + roomSurchargeTotal;
   const adultUnitPrice = unitPrice;
   const bookingSummary = {
@@ -380,7 +393,7 @@ export function TourBookingCard({
       const inquiryText = reportedInquiryCode
         ? `Chúng tôi đã ghi nhận yêu cầu (${reportedInquiryCode}) và sẽ liên hệ bạn sớm để tư vấn phương án phù hợp.`
         : "Chúng tôi đã ghi nhận yêu cầu và sẽ liên hệ bạn sớm để tư vấn phương án phù hợp.";
-      
+
       toast.error(shortageText, { description: inquiryText });
       return;
     }
@@ -404,6 +417,11 @@ export function TourBookingCard({
     });
   }
 
+  // Xử lý Gửi Đơn (Submit):
+  // 1. react-hook-form sẽ tự kiểm tra lỗi (validate) một lần cuối.
+  // 2. Gửi request POST lên API /api/bookings với đầy đủ thông tin.
+  // 3. Nếu server báo hết chỗ (lỗi 409), tự động tạo form Tư vấn (Contact Inquiry) ngầm cho khách.
+  // 4. Nếu thành công, chuyển hướng người dùng tới trang Xác nhận đơn.
   const onSubmitBooking = handleSubmit(async (values) => {
     if (activeStep !== 3 || !isConfirmChecked) {
       toast.error("Vui lòng kiểm tra thông tin và tick xác nhận trước khi đặt tour.");
@@ -440,6 +458,7 @@ export function TourBookingCard({
       };
 
       if (!response.ok) {
+        // Xử lý khi server từ chối đặt tour (Tour hết chỗ hoặc quá tải).
         if (response.status === 409 && typeof payload.remainingSeats === "number") {
           const reportedInquiryCode =
             payload.inquiryReferenceCode ??
@@ -450,7 +469,7 @@ export function TourBookingCard({
           const inquiryText = reportedInquiryCode
             ? `Chúng tôi đã ghi nhận yêu cầu (${reportedInquiryCode}) và sẽ liên hệ bạn sớm để hỗ trợ.`
             : "Chúng tôi đã ghi nhận yêu cầu và sẽ liên hệ bạn sớm để hỗ trợ.";
-          
+
           toast.error(payload.message ?? "Không thể đặt tour, vui lòng thử lại.", { description: inquiryText });
           return;
         }
@@ -458,6 +477,7 @@ export function TourBookingCard({
         return;
       }
 
+      // Chuyển hướng khi thành công: Điều hướng người dùng sang trang báo cáo kết quả kèm mã booking.
       toast.success(payload.message ?? "Đặt tour thành công.");
       const createdCode = payload.booking?.bookingCode ?? null;
       setLastBookingCode(createdCode);
@@ -466,11 +486,11 @@ export function TourBookingCard({
         setAvailability((prev) =>
           prev
             ? {
-                ...prev,
-                remainingSeats,
-                bookedGuests: Math.max(prev.maxGuests - remainingSeats, 0),
-                isFull: remainingSeats <= 0,
-              }
+              ...prev,
+              remainingSeats,
+              bookedGuests: Math.max(prev.maxGuests - remainingSeats, 0),
+              isFull: remainingSeats <= 0,
+            }
             : prev,
         );
       }
@@ -1035,6 +1055,3 @@ export function TourBookingCard({
     </div>
   );
 }
-
-
-

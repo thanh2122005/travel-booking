@@ -10,14 +10,15 @@ import { loginSchema } from "@/lib/validations/auth";
 const DEV_ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "admin@example.com";
 const DEV_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "Admin@123";
 
+// Cấu hình NextAuth: Xử lý đăng nhập bằng Email/Password, mã hóa phiên bản bằng JWT, phân quyền User/Admin.
 export const authOptions: NextAuthOptions = {
   secret: authSecret,
   session: {
-    // Dùng JWT để không cần session store riêng trong DB.
+    // Lưu session/JWT: Sử dụng JWT (JSON Web Token) mã hóa phía client thay vì lưu session trong DB để giảm tải server.
     strategy: "jwt",
   },
   pages: {
-    // Trang đăng nhập custom của hệ thống.
+    // Ghi đè trang đăng nhập mặc định của NextAuth bằng giao diện custom của dự án.
     signIn: "/dang-nhap",
   },
   providers: [
@@ -36,7 +37,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
-          // Validate đầu vào trước khi đụng DB.
+          // Validate dữ liệu: Dùng Zod để kiểm tra xem email/password khách nhập có đúng định dạng không trước khi gọi DB.
           const parsed = loginSchema.safeParse(credentials);
           if (!parsed.success) {
             return null;
@@ -45,11 +46,12 @@ export const authOptions: NextAuthOptions = {
           const email = parsed.data.email;
           const password = parsed.data.password;
 
+          // Tìm user theo email do người dùng cung cấp.
           let user = await db.user.findUnique({
             where: { email },
           });
 
-          // Dev bootstrap: tự tạo tài khoản admin mặc định nếu chưa có user trong DB.
+          // Fallback cấp tài khoản Admin cục bộ khi DB trống (dùng cho môi trường Dev).
           if (
             !user &&
             process.env.NODE_ENV !== "production" &&
@@ -69,12 +71,12 @@ export const authOptions: NextAuthOptions = {
             });
           }
 
+          // Chặn tài khoản bị khóa: Nếu user không tồn tại hoặc bị admin đánh dấu BLOCKED thì từ chối đăng nhập.
           if (!user || user.status === UserStatus.BLOCKED) {
-            // Không cho đăng nhập nếu không tồn tại hoặc đã bị khóa.
             return null;
           }
 
-          // So khớp mật khẩu plain text với hash lưu trong DB.
+          // So sánh mật khẩu bằng bcrypt: Mã hóa password người dùng nhập và so sánh với mã băm (hash) trong DB. Tuyệt đối không lưu mật khẩu gốc.
           const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
           if (!isPasswordValid) {
             return null;
@@ -102,8 +104,7 @@ export const authOptions: NextAuthOptions = {
           };
         } catch (error) {
           console.error("Lỗi authorize credentials:", error);
-          // Fallback cho môi trường dev khi DB chưa sẵn sàng:
-          // vẫn cho phép đăng nhập admin mặc định để tiếp tục kiểm tra UI.
+          // Fallback: Cho phép đăng nhập bằng tài khoản Dev Admin nội bộ nếu Database gặp sự cố kết nối.
           const parsed = loginSchema.safeParse(credentials);
           if (
             parsed.success &&
@@ -130,7 +131,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        // Gắn role/status vào JWT ngay tại thời điểm đăng nhập.
+        // Gắn role USER/ADMIN và trạng thái vào thẳng JWT token ngay khi đăng nhập thành công.
         token.role = user.role ?? UserRole.USER;
         token.status = user.status ?? UserStatus.ACTIVE;
         token.phone = user.phone ?? null;
@@ -159,12 +160,12 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (currentUser) {
-          // Đồng bộ lại quyền hiện tại từ DB để tránh token cũ sai quyền.
+          // Đồng bộ lại quyền hiện tại từ DB (nếu admin vừa đổi quyền hoặc khóa tài khoản user đang online).
           token.role = currentUser.role;
           token.status = currentUser.status;
           token.phone = currentUser.phone;
         } else if (!syncFailed) {
-          // Nếu user không còn tồn tại thì hạ quyền và khóa phiên.
+          // Nếu user bị xóa khỏi DB thì tự động hạ quyền và khóa phiên đăng nhập.
           token.role = UserRole.USER;
           token.status = UserStatus.BLOCKED;
           token.phone = null;
@@ -176,7 +177,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        // Đẩy các trường custom từ token ra session cho client sử dụng.
+        // Truyền các trường custom từ Token sang Session để Client-side (React components) có thể đọc được (như session.user.role).
         session.user.id = token.sub ?? "";
         session.user.role = (token.role as UserRole | undefined) ?? UserRole.USER;
         session.user.status = (token.status as UserStatus | undefined) ?? UserStatus.ACTIVE;
